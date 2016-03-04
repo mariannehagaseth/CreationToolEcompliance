@@ -69,7 +69,8 @@ public class RESTclientTest extends AbstractService   {
 	}
 
 	System.out.println("-------------------\nFreetext async POST Request Test");	Client client = ClientBuilder.newClient();
-	WebTarget webTarget = client.target("http://192.168.33.10:9000/skos/freetext");
+	//WebTarget webTarget = client.target("http://192.168.33.10:9000/skos/freetext");
+	WebTarget webTarget = client.target("http://192.168.33.10:9000/skos/textgenerator");
 	Invocation.Builder invocationBuilder = webTarget.request(MediaType.APPLICATION_XML);
 	invocationBuilder.header("Content-type", "text/plain");
 	// AsyncInvoker async_invoker = invocationBuilder.async().get(sftc);
@@ -122,7 +123,8 @@ public MySKOSConcept fetchSKOSconcept(){
 	}
 
 	System.out.println("-------------------\nFreetext async POST Request Test");	Client client = ClientBuilder.newClient();
-	WebTarget webTarget = client.target("http://192.168.33.10:9000/skos/freetext");
+	//WebTarget webTarget = client.target("http://192.168.33.10:9000/skos/freetext");
+	WebTarget webTarget = client.target("http://192.168.33.10:9000/skos/textgenerator");
 	Invocation.Builder invocationBuilder = webTarget.request(MediaType.APPLICATION_XML);
 	invocationBuilder.header("Content-type", "text/plain");
 	// AsyncInvoker async_invoker = invocationBuilder.async().get(sftc);
@@ -149,8 +151,9 @@ public MySKOSConcept fetchSKOSconcept(){
 	@Action
 	 public void SkosUriRequest() {
         Client client = ClientBuilder.newClient();
-        WebTarget webTarget = client.target("http://192.168.33.10:9000/skos/uri_request");
-        Invocation.Builder invocationBuilder = webTarget.request(MediaType.TEXT_PLAIN_TYPE);
+       // WebTarget webTarget = client.target("http://192.168.33.10:9000/skos/uri_request");
+		WebTarget webTarget = client.target("http://192.168.33.10:9000/skos/textgenerator");
+		Invocation.Builder invocationBuilder = webTarget.request(MediaType.TEXT_PLAIN_TYPE);
         invocationBuilder.header("Content-type", "application/xml");
         Response response = invocationBuilder.post(Entity.entity("<URIRequest><iri>http:/e-compliance/test</iri></URIRequest>", MediaType.APPLICATION_XML));
         System.out.println(response.getStatus());

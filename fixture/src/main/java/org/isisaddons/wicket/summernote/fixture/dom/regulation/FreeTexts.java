@@ -36,18 +36,17 @@ public class FreeTexts {
 
     //region > newRegulationText (action)
     @MemberOrder(sequence = "5")
-    @ActionLayout(named="Add New FreeTextSection")
+    @ActionLayout(hidden = Where.EVERYWHERE,named="Add New FreeTextSection")
     public FreeText newFreeText(
             final @Parameter(optionality=Optionality.MANDATORY) @ParameterLayout(typicalLength=10, named="Section NO") String sectionNo,
-            final @Parameter(optionality=Optionality.MANDATORY) @ParameterLayout(typicalLength=1000, multiLine=8,named="Regulation Text") String plainRegulationText,
-            final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(named="SOLAS Chapter") SolasChapter solasChapter
+            final @Parameter(optionality=Optionality.MANDATORY) @ParameterLayout(typicalLength=1000, multiLine=8,named="Regulation Text") String plainRegulationText
+            //, final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(named="SOLAS Chapter") SolasChapter solasChapter
             //final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(named="Finalized") boolean finalized
     )
     {
         return newFreeText(
                 sectionNo,
                 plainRegulationText,
-                solasChapter,
                 currentUserName()
         );
     }
@@ -57,9 +56,9 @@ public class FreeTexts {
     //public String default1NewRegulationText() {
      //   return "";
    // }
-    //public LocalDate default2NewRegulationText() {
-     //   return clockService.now();
-   // }
+//    public SolasChapter default2NewFreeText() {
+ //       return this.solasChapter;
+  //  }
     //public boolean default3NewRegulationText() {
     //    return false;
     //}
@@ -81,16 +80,15 @@ public class FreeTexts {
     }
     //endregion
 
+    // MHAGA... OK???
     //region > autoComplete (programmatic)
-   /* TRENGER DENNE??
-    @Programmatic // not part of metamodel
-    public List<RegulationText> autoComplete(final String regulationTitle) {
+     @Programmatic // not part of metamodel
+    public List<SolasChapter> autoComplete(final String solasChapter) {
         return container.allMatches(
-                new QueryDefault<RegulationText>(RegulationText.class,
-                        "findByOwnedByAndRegulationTitleContains", 
-                        "ownedBy", currentUserName(), 
-                        "regulationTitle", regulationTitle));
-    } */
+                new QueryDefault<SolasChapter>(SolasChapter.class,
+                        "findByOwnedBy",
+                        "ownedBy", currentUserName()));
+    }
     //endregion
 
 
@@ -102,14 +100,12 @@ public class FreeTexts {
     public FreeText newFreeText(
             final String sectionNo,
             final String plainRegulationText,
-            final SolasChapter solasChapter,
             final String userName
             )
     {
         final FreeText freeText= container.newTransientInstance(FreeText.class);
         freeText.setSectionNo(sectionNo);
         freeText.setPlainRegulationText(plainRegulationText);
-        freeText.setSolasChapter(solasChapter);
         freeText.setOwnedBy(userName);
         container.persist(freeText);
         container.flush();

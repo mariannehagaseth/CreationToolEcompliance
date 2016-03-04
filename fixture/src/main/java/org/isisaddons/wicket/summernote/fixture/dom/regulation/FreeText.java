@@ -40,11 +40,13 @@ import javax.jdo.annotations.VersionStrategy;
 @javax.jdo.annotations.Version(
         strategy=VersionStrategy.VERSION_NUMBER, 
         column="version")
-@javax.jdo.annotations.Uniques({
+/* @javax.jdo.annotations.Uniques({
     @javax.jdo.annotations.Unique(
-            name="Regulation_description_must_be_unique", 
-            members={"ownedBy","sectionNo"})
+            name="FreeText_description_must_be_unique",
+            members={"sectionNo","solasChapter"})
 })
+*/
+
 @javax.jdo.annotations.Queries( {
         @javax.jdo.annotations.Query(
                 name = "findByOwnedBy", language = "JDOQL",
@@ -102,9 +104,7 @@ public class FreeText implements Categorized, Comparable<FreeText> {
     public void setSectionNo(final String sectionNo) {
         this.sectionNo = sectionNo;
     }
-    public void modifySectionNo(final String sectionNo) {
-        setSectionNo(sectionNo);
-    }
+    public void modifySectionNo(final String sectionNo) { this.sectionNo = sectionNo;}
     public void clearSectionNo() {
         setSectionNo(null);
     }
@@ -156,14 +156,12 @@ public class FreeText implements Categorized, Comparable<FreeText> {
     // department=regulation=SOLASchapter
     //empolyee=RegulationRule=FreeText
 
-
-
     // mapping is done to this property:
-   // @javax.jdo.annotations.Column(allowsNull="true")
+    @javax.jdo.annotations.Column(allowsNull="true")
     private SolasChapter solasChapter;
-    @javax.jdo.annotations.Column(name = "solasChapterNo",allowsNull="false")
+    @javax.jdo.annotations.Column(allowsNull="true")
     public SolasChapter getSolasChapter() { return solasChapter; }
-   // @javax.jdo.annotations.Column(allowsNull="true")
+    @javax.jdo.annotations.Column(allowsNull="true")
     public void setSolasChapter(SolasChapter solasChapter) { this.solasChapter = solasChapter; }
 
     // End   Regulation to RegulationRule
@@ -282,7 +280,7 @@ public class FreeText implements Categorized, Comparable<FreeText> {
     @Override
     public String toString() {
 //        return ObjectContracts.toString(this, "description,complete,dueBy,ownedBy");
-        return ObjectContracts.toString(this, "sectionNo,plainRegulationText, ownedBy");
+        return ObjectContracts.toString(this, "sectionNo,plainRegulationText, solasChapter, ownedBy");
     }
 
     /**
@@ -290,7 +288,7 @@ public class FreeText implements Categorized, Comparable<FreeText> {
      */
     @Override
     public int compareTo(final FreeText other) {
-        return ObjectContracts.compare(this, other, "sectionNo,plainRegulationText, ownedBy");
+        return ObjectContracts.compare(this, other, "sectionNo,plainRegulationText, solasChapter, ownedBy");
     }
     //endregion
 

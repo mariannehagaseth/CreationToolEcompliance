@@ -39,12 +39,12 @@ public class SolasChapters {
     public SolasChapter newSolasChapter(
 
            final @Parameter(optionality=Optionality.MANDATORY) @ParameterLayout(typicalLength=100, named="SOLAS Chapter No") String solasChapterNumber,
-            final @Parameter(optionality=Optionality.MANDATORY) @ParameterLayout(typicalLength=50, named="SOLAS Chapter Title") String solasChapterTitle,
+           // final @Parameter(optionality=Optionality.MANDATORY) @ParameterLayout(typicalLength=50, named="SOLAS Chapter Title") String solasChapterTitle,
          final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=100, named="SOLAS Part No") String solasPartNumber,
-            final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=50, named="SOLAS Part Title") String solasPartTitle,
-            final @Parameter(optionality=Optionality.MANDATORY) @ParameterLayout(typicalLength=100, named="SOLAS Regulation No") String solasRegulationNumber,
-            final @Parameter(optionality=Optionality.MANDATORY) @ParameterLayout(typicalLength=50, named="SOLAS Regulation Title") String solasRegulationTitle,
-            final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=1000, multiLine=5, named="SOLAS Regulation Intro Text") String solasRegulationIntroText
+           // final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=50, named="SOLAS Part Title") String solasPartTitle,
+            final @Parameter(optionality=Optionality.MANDATORY) @ParameterLayout(typicalLength=100, named="SOLAS Regulation No") String solasRegulationNumber
+            //,final @Parameter(optionality=Optionality.MANDATORY) @ParameterLayout(typicalLength=50, named="SOLAS Regulation Title") String solasRegulationTitle
+         //   ,final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=1000, multiLine=5, named="SOLAS Regulation Intro Text") String solasRegulationIntroText
             //,
             //final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(named="Amendment Date") LocalDate amendmentDate,
             //final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(named="Finalized") boolean finalized
@@ -53,12 +53,12 @@ public class SolasChapters {
 
                return newSolasChapter(
                solasChapterNumber,
-                solasChapterTitle,
+              //  solasChapterTitle,
              solasPartNumber,
-                solasPartTitle,
+               // solasPartTitle,
                 solasRegulationNumber,
-                solasRegulationTitle,
-                       solasRegulationIntroText,
+              //  solasRegulationTitle,
+               //        solasRegulationIntroText,
                 // amendmentDate,
                 // finalized,
                 currentUserName()
@@ -100,12 +100,12 @@ public class SolasChapters {
      * and it won't appear in any XML snapshots .*/
     public SolasChapter newSolasChapter(
           final String solasChapterNumber,
-            final String solasChapterTitle,
+     //       final String solasChapterTitle,
          final String solasPartNumber,
-            final String solasPartTitle,
+       //     final String solasPartTitle,
             final String solasRegulationNumber,
-            final String solasRegulationTitle,
-            final String solasRegulationIntroText,
+         //   final String solasRegulationTitle,
+          //  final String solasRegulationIntroText,
              //       final LocalDate amendmentDate,
    //         final boolean finalized,
             final String userName
@@ -114,12 +114,12 @@ public class SolasChapters {
         final SolasChapter solasChapter = container.newTransientInstance(SolasChapter.class);
         // start with manually add the solas chapter number:
         solasChapter.setSolasChapterNumber(solasChapterNumber);
-        solasChapter.setSolasChapterTitle(solasChapterTitle);
+        //solasChapter.setSolasChapterTitle(solasChapterTitle);
         solasChapter.setSolasPartNumber(solasPartNumber);
-        solasChapter.setSolasPartTitle(solasPartTitle);
+        //solasChapter.setSolasPartTitle(solasPartTitle);
         solasChapter.setSolasRegulationNumber( solasRegulationNumber);
-        solasChapter.setSolasRegulationTitle(solasRegulationTitle);
-        solasChapter.setSolasRegulationIntroText(solasRegulationIntroText);
+        //solasChapter.setSolasRegulationTitle(solasRegulationTitle);
+        //solasChapter.setSolasRegulationIntroText(solasRegulationIntroText);
         solasChapter.setAmendmentDate(clockService.now());
         solasChapter.setFinalized(false);
         solasChapter.setOwnedBy(userName);
