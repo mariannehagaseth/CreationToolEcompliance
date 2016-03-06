@@ -3,6 +3,7 @@ package org.isisaddons.wicket.summernote.fixture.dom.regulation;
 import org.apache.isis.applib.AbstractService;
 import org.apache.isis.applib.annotation.Action;
 import org.apache.isis.applib.annotation.DomainService;
+import org.apache.isis.applib.annotation.DomainServiceLayout;
 import org.apache.isis.applib.annotation.Programmatic;
 import org.apache.isis.applib.query.QueryDefault;
 import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.MySKOSConcept;
@@ -18,6 +19,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 @DomainService
+@DomainServiceLayout(menuBar= DomainServiceLayout.MenuBar.TERTIARY)
 public class RESTclientTest extends AbstractService   {
 
 	// From https://docs.jboss.org/resteasy/docs/3.0-beta-3/userguide/html/RESTEasy_Client_Framework.html
@@ -265,7 +267,7 @@ public MySKOSConcept fetchSKOSconcept(){
 	//endregion
 
 	//Region 	findSolasCodes
-
+/*
 	@Programmatic
 	public Set<SolasCode> findSolasCodes (SolasChapter thisSolasChapter){
 		//search regulations similar to regulation:
@@ -285,7 +287,7 @@ public MySKOSConcept fetchSKOSconcept(){
 		return codeSet;
 	}
 	//endregion
-
+*/
 
 
 // Region Find ShipType s

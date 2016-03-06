@@ -28,25 +28,22 @@ import java.util.List;
 //import java.math.BigDecimal;
 
 //@DomainServiceLayout(named="Regulation Hierarchy",menuOrder="10")
-@DomainServiceLayout(menuBar= DomainServiceLayout.MenuBar.PRIMARY, named="SOLAS",menuOrder="10")
-@DomainService(repositoryFor = FreeText.class)
-public class FreeTexts {
+@DomainServiceLayout(menuBar= DomainServiceLayout.MenuBar.TERTIARY, named="Section Details",menuOrder="20")
+@DomainService(repositoryFor = SubSection.class)
+public class SubSections {
 
 
 
     //region > newRegulationText (action)
  //   @MemberOrder(sequence = "5")
  //   @ActionLayout(named="Add New Section")
-    @Programmatic // for use by fixtures
-    public FreeText newFreeText(
-            final @Parameter(optionality=Optionality.MANDATORY) @ParameterLayout(typicalLength=10, named="Section NO") String sectionNo,
-            final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=1000, multiLine=8,named="Regulation Text") String plainRegulationText
-            //, final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(named="SOLAS Chapter") SolasChapter solasChapter
-            //final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(named="Finalized") boolean finalized
-    )
+    public SubSection newSubSection(
+            final @Parameter(optionality=Optionality.MANDATORY) @ParameterLayout(typicalLength=10, named="Sub Section NO") String subSectionNo,
+            final @Parameter(optionality=Optionality.MANDATORY) @ParameterLayout(typicalLength=1000, multiLine=8,named="Regulation Text") String plainRegulationText
+     )
     {
-        return newFreeText(
-                sectionNo,
+        return newSubSection(
+                subSectionNo,
                 plainRegulationText,
                 currentUserName()
         );
@@ -67,14 +64,14 @@ public class FreeTexts {
 
     //region > allFreeTextSection (action)
     @MemberOrder(sequence = "6")
-    @PropertyLayout(named="List All Sections")
-    public List<FreeText> allFreeTexts() {
-        final List<FreeText> items = container.allMatches(
-                new QueryDefault<FreeText>(FreeText.class,
-                        "findByOwnedBy", 
+    @PropertyLayout(named="List All Sub Sections")
+    public List<SubSection> allSubSections() {
+        final List<SubSection> items = container.allMatches(
+                new QueryDefault<SubSection>(SubSection.class,
+                        "findSubSections",
                         "ownedBy", currentUserName()));
         if(items.isEmpty()) {
-            container.warnUser("No free texts found.");
+            container.warnUser("No subsections found.");
         }
         return items;
     }
@@ -83,9 +80,9 @@ public class FreeTexts {
     // MHAGA... OK???
     //region > autoComplete (programmatic)
      @Programmatic // not part of metamodel
-    public List<SolasChapter> autoComplete(final String solasChapter) {
+    public List<FreeText> autoComplete(final String freeText) {
         return container.allMatches(
-                new QueryDefault<SolasChapter>(SolasChapter.class,
+                new QueryDefault<FreeText>(FreeText.class,
                         "findByOwnedBy",
                         "ownedBy", currentUserName()));
     }
@@ -97,19 +94,19 @@ public class FreeTexts {
     /*The @Programmatic annotation can be used to cause Apache Isis to complete ignore a class member. 
      * This means it won't appear in any viewer, its value will not be persisted, 
      * and it won't appear in any XML snapshots .*/
-    public FreeText newFreeText(
-            final String sectionNo,
+    public SubSection newSubSection(
+            final String subSectionNo,
             final String plainRegulationText,
             final String userName
             )
     {
-        final FreeText freeText= container.newTransientInstance(FreeText.class);
-        freeText.setSectionNo(sectionNo);
-        freeText.setPlainRegulationText(plainRegulationText);
-        freeText.setOwnedBy(userName);
-        container.persist(freeText);
+        final SubSection subSection= container.newTransientInstance(SubSection.class);
+        subSection.setSubSectionNo(subSectionNo);
+        subSection.setPlainRegulationText(plainRegulationText);
+        subSection.setOwnedBy(userName);
+        container.persist(subSection);
         container.flush();
-        return freeText;
+        return subSection;
     }
     private String currentUserName() {
         return container.getUser().getName();

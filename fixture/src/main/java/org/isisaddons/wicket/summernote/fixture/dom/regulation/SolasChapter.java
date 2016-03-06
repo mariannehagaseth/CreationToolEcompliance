@@ -55,6 +55,7 @@ import java.util.TreeSet;
             members={"solasChapterNumber","solasPartNumber","solasRegulationNumber"})
 })
 @javax.jdo.annotations.Queries( {
+
         @javax.jdo.annotations.Query(
                 name = "findByOwnedBy", language = "JDOQL",
                 value = "SELECT "
@@ -148,7 +149,8 @@ public class SolasChapter implements Categorized, Comparable<SolasChapter> {
         final TitleBuffer buf = new TitleBuffer();
         buf.append("SOLAS CHAPTER ");
         buf.append(getSolasChapterNumber());
-        if (getSolasPartNumber() != "-") {buf.append(" PART "); buf.append(getSolasPartNumber());}
+      //  if (getSolasPartNumber() != "-") {buf.append(" PART "); buf.append(getSolasPartNumber());}
+        if (!getSolasPartNumber().equalsIgnoreCase("-")) {buf.append(" PART "); buf.append(getSolasPartNumber());}
         buf.append(" REGULATION ");
         buf.append(getSolasRegulationNumber());
         return buf.toString();
@@ -939,13 +941,13 @@ public class SolasChapter implements Categorized, Comparable<SolasChapter> {
 @javax.jdo.annotations.Persistent(mappedBy="solasChapter")
 @javax.jdo.annotations.Join // Make a separate join table.
 private SortedSet<FreeText> freeTexts = new TreeSet<FreeText>();
+//    @MemberOrder(name="Sections", sequence = "82")
 
-   // @MemberOrder(name="FreeTextSection", sequence = "82")
- //   @PropertyLayout(named="FreeTextSection")
+     //   @PropertyLayout(named="FreeTextSection")
     @SuppressWarnings("deprecation")
     //@CollectionInteraction
   //  @Collection(domainEvent=SolasChapter .FreeTexts.class)
-    @CollectionLayout(sortedBy=FreeTextsComparator.class,render=RenderType.EAGERLY)
+    @CollectionLayout(named = "Sections" , sortedBy=FreeTextsComparator.class,render=RenderType.EAGERLY)
     //@CollectionLayout(render=RenderType.EAGERLY)
      public SortedSet<FreeText> getFreeTexts() {
         return freeTexts;

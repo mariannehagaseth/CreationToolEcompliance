@@ -81,10 +81,10 @@ public class SolasChapters {
     @Action(semantics=SemanticsOf.SAFE,restrictTo=RestrictTo.PROTOTYPING)
     @MemberOrder(sequence = "6")
     @PropertyLayout(named="List SOLAS Chapters")
-    public List<SolasChapter> allSolasChapters() {
-        final List<SolasChapter> items = container.allMatches(
+    public  List<SolasChapter> allSolasChapters() {
+        final  List<SolasChapter> items = container.allMatches(
                 new QueryDefault<SolasChapter>(SolasChapter.class,
-                        "findByOwnedBy", 
+                        "findByOwnedBy",
                         "ownedBy", currentUserName()));
         if(items.isEmpty()) {
             container.warnUser("No Solas Chapters found.");
@@ -141,8 +141,8 @@ public class SolasChapters {
     @javax.inject.Inject
     private ClockService clockService;
 
-    @javax.inject.Inject
-    private SolasCode solasCode;
+    //@javax.inject.Inject
+    //private SolasCode solasCode;
 
 
     //endregion

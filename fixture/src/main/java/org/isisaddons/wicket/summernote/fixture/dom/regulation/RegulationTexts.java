@@ -28,7 +28,7 @@ import java.util.List;
 //import java.math.BigDecimal;
 
 //@DomainServiceLayout(named="Regulation Hierarchy",menuOrder="10")
-@DomainServiceLayout(named="RegulationText",menuOrder="10")
+@DomainServiceLayout(menuBar= DomainServiceLayout.MenuBar.TERTIARY,named="RegulationText",menuOrder="10")
 @DomainService(repositoryFor = RegulationText.class)
 public class RegulationTexts {
 
