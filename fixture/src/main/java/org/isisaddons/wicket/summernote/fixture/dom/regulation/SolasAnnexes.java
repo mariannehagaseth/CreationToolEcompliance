@@ -28,75 +28,74 @@ import java.util.List;
 
 //import java.math.BigDecimal;
 
-//@DomainServiceLayout(named="Regulation Hierarchy",menuOrder="10")
 @DomainService(repositoryFor = SolasChapter.class)
-@DomainServiceLayout(named="SOLAS Chapter",menuOrder="10")
-public class SolasChapters {
+@DomainServiceLayout(named="SOLAS Annex",menuOrder="20")
+public class SolasAnnexes {
 
-       //region > newSolasChapter (action)
-    @MemberOrder( sequence = "10")
-    @ActionLayout(named="NEW Chapter")
-    public SolasChapter newSolasChapter(
 
-   //         final @Parameter(optionality=Optionality.MANDATORY) @ParameterLayout(typicalLength=100, named="SOLAS") ChapterAnnex chapterAnnex,
-            final @Parameter(optionality=Optionality.MANDATORY) @ParameterLayout(typicalLength=100, named="Chapter No") String solasChapterNumber,
-            final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=50, named="Chapter Title") String solasChapterTitle,
-         final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=100, named="Part No") String solasPartNumber,
+    //region > newSolasChapter (action)
+    @MemberOrder(sequence = "10")
+    @ActionLayout(named="NEW Annex")
+    public SolasChapter newSolasAnnex(
+
+            //         final @Parameter(optionality=Optionality.MANDATORY) @ParameterLayout(typicalLength=100, named="SOLAS") ChapterAnnex chapterAnnex,
+            final @Parameter(optionality=Optionality.MANDATORY) @ParameterLayout(typicalLength=100, named="Annex No") String solasChapterNumber,
+             final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=50, named="Annex Title") String solasChapterTitle,
+            final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=100, named="Part No") String solasPartNumber,
             final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=50, named="Part Title") String solasPartTitle,
-           // final @Parameter( optionality=Optionality.MANDATORY) @ParameterLayout(typicalLength=100, named="SOLAS") String regulationChapter,
-            final @Parameter(optionality=Optionality.MANDATORY) @ParameterLayout(typicalLength=100, named="Regulation No") String solasRegulationNumber
-            ,final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=50, named="Regulation Title") String solasRegulationTitle
-         //   ,final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=1000, multiLine=5, named="SOLAS Regulation Intro Text") String solasRegulationIntroText
+            // final @Parameter( optionality=Optionality.MANDATORY) @ParameterLayout(typicalLength=100, named="SOLAS") String regulationChapter,
+            final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=100, named="Chapter No") String solasRegulationNumber
+            ,final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=50, named="Chapter Title") String solasRegulationTitle
+            //   ,final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=1000, multiLine=5, named="SOLAS Regulation Intro Text") String solasRegulationIntroText
             //,
             //final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(named="Amendment Date") LocalDate amendmentDate,
             //final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(named="Finalized") boolean finalized
     )
     {
 
-               return newSolasChapter(
-                       ChapterAnnex.CHAPTER,
-                       solasChapterNumber,
-               solasChapterTitle,
-                       solasPartNumber,
-               solasPartTitle,
-                       "REGULATION",
-                        solasRegulationNumber,
-                solasRegulationTitle,
-               //        solasRegulationIntroText,
+        return newSolasChapter(
+                ChapterAnnex.ANNEX,
+                solasChapterNumber,
+                solasChapterTitle,
+                solasPartNumber,
+                solasPartTitle,
+                "CHAPTER", //regulationChapter
+                solasRegulationNumber,
+                 solasRegulationTitle,
+                //        solasRegulationIntroText,
                 // amendmentDate,
                 // finalized,
-                        currentUserName()
+                currentUserName()
         );
     }
-  //  public String default0NewRegulationText() {
-   //     return "";
+    //  public String default0NewRegulationText() {
+    //     return "";
     //}
     //public String default1NewRegulationText() {
-     //   return "";
-   // }
+    //   return "";
+    // }
     //public LocalDate default2NewRegulationText() {
-     //   return clockService.now();
-   // }
+    //   return clockService.now();
+    // }
     //public String default3NewSolasChapter() {
     //    if chapterAnnex = ChapterAnnex.CHAPTER) return ;
     //}
 
     //region > allRegulationTexts (action)
     @Action(semantics=SemanticsOf.SAFE,restrictTo=RestrictTo.PROTOTYPING)
-    @MemberOrder(sequence = "30")
-    @PropertyLayout(named="List Chapters")
-    public  List<SolasChapter> allSolasChapters() {
+    @MemberOrder(sequence = "20")
+    @PropertyLayout(named="List Annexes")
+    public  List<SolasChapter> allSolasAnnexes() {
         final  List<SolasChapter> items = container.allMatches(
                 new QueryDefault<SolasChapter>(SolasChapter.class,
                         "findChaptersAnnexes",
-                        "chapterAnnex", ChapterAnnex.CHAPTER));
+                        "chapterAnnex", ChapterAnnex.ANNEX));
         if(items.isEmpty()) {
-            container.warnUser("No Solas Chapters found.");
+            container.warnUser("No Solas Annexes found.");
         }
         return items;
     }
     //endregion
-
 
     //region > helpers
     @Programmatic

@@ -24,7 +24,6 @@ import com.google.common.collect.Ordering;
 import org.apache.isis.applib.DomainObjectContainer;
 import org.apache.isis.applib.Identifier;
 import org.apache.isis.applib.annotation.*;
-import org.apache.isis.applib.query.QueryDefault;
 import org.apache.isis.applib.services.eventbus.ActionInteractionEvent;
 import org.apache.isis.applib.services.eventbus.EventBusService;
 import org.apache.isis.applib.services.wrapper.WrapperFactory;
@@ -37,7 +36,6 @@ import javax.jdo.JDOHelper;
 import javax.jdo.annotations.IdentityType;
 import javax.jdo.annotations.VersionStrategy;
 import java.util.Comparator;
-import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -52,7 +50,7 @@ import java.util.TreeSet;
 @javax.jdo.annotations.Uniques({
     @javax.jdo.annotations.Unique(
             name="Regulation_description_must_be_unique", 
-            members={"solasChapterNumber","solasPartNumber","solasRegulationNumber"})
+            members={"chapterAnnex","solasChapterNumber","solasPartNumber","solasRegulationNumber"})
 })
 @javax.jdo.annotations.Queries( {
 
@@ -61,6 +59,12 @@ import java.util.TreeSet;
                 value = "SELECT "
                         + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.SolasChapter "
                         + "WHERE ownedBy == :ownedBy")
+        ,
+        @javax.jdo.annotations.Query(
+                name = "findChaptersAnnexes", language = "JDOQL",
+                value = "SELECT "
+                        + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.SolasChapter "
+                        + "WHERE chapterAnnex == :chapterAnnex")
         ,
         @javax.jdo.annotations.Query(
         name = "findCodesBySolasChapter", language = "JDOQL",
@@ -147,36 +151,67 @@ public class SolasChapter implements Categorized, Comparable<SolasChapter> {
     // region > title, icon
     public String title() {
         final TitleBuffer buf = new TitleBuffer();
-        buf.append("SOLAS CHAPTER ");
+        if (getChapterAnnex().equals(ChapterAnnex.CHAPTER)) {buf.append("SOLAS CHAPTER ");}
+        if (getChapterAnnex().equals(ChapterAnnex.ANNEX))  {buf.append("SOLAS ANNEX ");}
+        if (getChapterAnnex().equals(ChapterAnnex.DIRECTIVE))  {buf.append("EU DIRECTIVE ");}
         buf.append(getSolasChapterNumber());
       //  if (getSolasPartNumber() != "-") {buf.append(" PART "); buf.append(getSolasPartNumber());}
-        if (!getSolasPartNumber().equalsIgnoreCase("-")) {buf.append(" PART "); buf.append(getSolasPartNumber());}
-        buf.append(" REGULATION ");
+        if (!getSolasPartNumber().equalsIgnoreCase("-")) {
+            if ((getChapterAnnex().equals(ChapterAnnex.CHAPTER)) || (getChapterAnnex().equals(ChapterAnnex.ANNEX))) {
+                buf.append(" PART ");
+            }
+            if ((getChapterAnnex().equals(ChapterAnnex.DIRECTIVE))) {
+                buf.append(" TITLE ");
+            }
+        }
+        buf.append(getSolasPartNumber());
+        if (getChapterAnnex().equals(ChapterAnnex.CHAPTER)) {buf.append(" REGULATION "); }
+        if (getChapterAnnex().equals(ChapterAnnex.ANNEX)) {buf.append(" CHAPTER ");}
+        if (getChapterAnnex().equals(ChapterAnnex.DIRECTIVE)) {buf.append(" ARTICLE ");}
         buf.append(getSolasRegulationNumber());
         return buf.toString();
     }
     //endregion
 
 
-/*
-    public static enum SolasChapterNumberType {
-        I,
-        II,
-        III,
-        IV,
-        V,
-        VI,
-        VII,
-        VIII,
-        VIX,
-        X,
-        XI,
-        XII,
-        XIII,
-        XIV,
-        XV
+
+    public static enum ChapterAnnex {
+        CHAPTER,
+        ANNEX,
+        DIRECTIVE;
+          }
+
+    private ChapterAnnex chapterAnnex;
+    @javax.jdo.annotations.Column(allowsNull="false")
+    @MemberOrder(name="SOLAS", sequence="29")
+    @Property(editing = Editing.DISABLED)
+    @PropertyLayout(named = " ")
+    public ChapterAnnex getChapterAnnex() {
+        return chapterAnnex;
     }
-*/
+
+    public void setChapterAnnex(final ChapterAnnex chapterAnnex) {
+        this.chapterAnnex = chapterAnnex;
+        if (chapterAnnex == ChapterAnnex.CHAPTER) {regulationChapter = "REGULATION";};
+        if (chapterAnnex == ChapterAnnex.ANNEX) {regulationChapter = "CHAPTER";};
+        if (chapterAnnex == ChapterAnnex.DIRECTIVE) {regulationChapter = "ARTICLE";};
+    }
+
+
+    private String regulationChapter;
+    @javax.jdo.annotations.Column(allowsNull="false")
+    @MemberOrder(name="SOLAS", sequence="69")
+    @Property(editing = Editing.DISABLED)
+    @PropertyLayout(named = " ")
+    public String getRegulationChapter() {
+        return regulationChapter;
+    }
+    public void setRegulationChapter(final String regulationChapter) {
+        if (chapterAnnex == ChapterAnnex.CHAPTER) {this.regulationChapter = "REGULATION";};
+        if (chapterAnnex == ChapterAnnex.ANNEX) {this.regulationChapter = "CHAPTER";};
+        if (chapterAnnex == ChapterAnnex.DIRECTIVE) {this.regulationChapter = "ARTICLE";};
+    }
+
     // Region solasChapterNumber
     private String solasChapterNumber;
     @javax.jdo.annotations.Column(allowsNull="false", length=10)
@@ -218,7 +253,7 @@ public class SolasChapter implements Categorized, Comparable<SolasChapter> {
     @javax.jdo.annotations.Column(allowsNull="true", length=100)
     // @Property(regexPattern="\\w[@&:\\-\\,\\.\\+ \\w]*")
     @MemberOrder(name="SOLAS", sequence="40")
-    @PropertyLayout(typicalLength=100)
+    @PropertyLayout(named = " ",typicalLength=100)
     public String getSolasChapterTitle() {
         return solasChapterTitle;
     }
@@ -238,7 +273,7 @@ public class SolasChapter implements Categorized, Comparable<SolasChapter> {
     @javax.jdo.annotations.Column(allowsNull="true", length=10)
     // @Property(regexPattern="\\w[@&:\\-\\,\\.\\+ \\w]*")
     @MemberOrder(name="SOLAS", sequence="50")
-    @PropertyLayout(typicalLength=5)
+    @PropertyLayout(typicalLength=5, named = "Part No")
     public String getSolasPartNumber() {
         return solasPartNumber;
     }
@@ -262,7 +297,7 @@ public class SolasChapter implements Categorized, Comparable<SolasChapter> {
     @javax.jdo.annotations.Column(allowsNull="true", length=100)
     // @Property(regexPattern="\\w[@&:\\-\\,\\.\\+ \\w]*")
     @MemberOrder(name="SOLAS", sequence="60")
-    @PropertyLayout(typicalLength=100)
+    @PropertyLayout(named = "Title", typicalLength=100)
     public String getSolasPartTitle() {
         return solasPartTitle;
     }
@@ -282,7 +317,7 @@ public class SolasChapter implements Categorized, Comparable<SolasChapter> {
     @javax.jdo.annotations.Column(allowsNull="true", length=10)
     // @Property(regexPattern="\\w[@&:\\-\\,\\.\\+ \\w]*")
     @MemberOrder(name="SOLAS", sequence="70")
-    @PropertyLayout(typicalLength=5)
+    @PropertyLayout(named = " ",typicalLength=5)
     public String getSolasRegulationNumber() {
         return solasRegulationNumber;
     }
@@ -303,7 +338,7 @@ public class SolasChapter implements Categorized, Comparable<SolasChapter> {
     @javax.jdo.annotations.Column(allowsNull="true", length=100)
     // @Property(regexPattern="\\w[@&:\\-\\,\\.\\+ \\w]*")
     @MemberOrder(name="SOLAS", sequence="80")
-    @PropertyLayout(typicalLength=100)
+    @PropertyLayout(named = "Title",typicalLength=100)
     public String getSolasRegulationTitle() {
         return solasRegulationTitle;
     }
@@ -323,7 +358,7 @@ public class SolasChapter implements Categorized, Comparable<SolasChapter> {
     @javax.jdo.annotations.Column(allowsNull="true", length=100)
     // @Property(regexPattern="\\w[@&:\\-\\,\\.\\+ \\w]*")
     @MemberOrder(name="SOLAS", sequence="90")
-    @PropertyLayout(typicalLength=1000, multiLine = 5)
+    @PropertyLayout(named = "Intro Text (Applicability)", typicalLength=1000, multiLine = 5)
     public String getSolasRegulationIntroText() {
         return solasRegulationIntroText;
     }
@@ -345,7 +380,7 @@ public class SolasChapter implements Categorized, Comparable<SolasChapter> {
     @javax.jdo.annotations.Column(allowsNull="true", length=10000)
    // @Property(regexPattern="\\w[@&:\\-\\,\\.\\+ \\w]*")
     @MemberOrder(name="Annotated Text", sequence="11")
-    @PropertyLayout(typicalLength=10000, multiLine=8)
+    @PropertyLayout(typicalLength=10000, multiLine=8, named = "Annotated Text")
     @Property(editing = Editing.DISABLED,editingDisabledReason = "Update using action that calls an SPI from the consolidation services")
     public String getSemantifiedRegulationText() {
         return semantifiedRegulationText;
@@ -366,10 +401,11 @@ public class SolasChapter implements Categorized, Comparable<SolasChapter> {
     public SolasChapter updateSemantifiedRegulationText() {
                 // Call API to do semantification:
                 String AsyncRestTest = restClientTest.SkosFreetextAsync();
-                this.setSemantifiedRegulationText(AsyncRestTest);
+        System.out.println("AsyncRestTest = " + AsyncRestTest);
+        this.setSemantifiedRegulationText(AsyncRestTest);
                 container.flush();
-                container.informUser("Semantify compeleted for " + container.titleOf(this));
-                System.out.print("Calling Semantify here!!");
+                container.informUser("Annotation completed for " + container.titleOf(this));
+                System.out.println("Calling Semantify here!!");
                 return this;
      }
      //endregion
@@ -948,7 +984,6 @@ private SortedSet<FreeText> freeTexts = new TreeSet<FreeText>();
     //@CollectionInteraction
   //  @Collection(domainEvent=SolasChapter .FreeTexts.class)
     @CollectionLayout(named = "Sections" , sortedBy=FreeTextsComparator.class,render=RenderType.EAGERLY)
-    //@CollectionLayout(render=RenderType.EAGERLY)
      public SortedSet<FreeText> getFreeTexts() {
         return freeTexts;
     }
@@ -999,7 +1034,7 @@ private SortedSet<FreeText> freeTexts = new TreeSet<FreeText>();
     @ActionLayout(named = "Add New Section")
     @MemberOrder(name = "freeTexts", sequence = "15")
     public SolasChapter addNewFreeText(final @ParameterLayout(typicalLength=10,named = "Section No") String sectionNo,
-                                       final @ParameterLayout(typicalLength=1000, multiLine=8,named = "Regulation Text") String plainRegulationText
+                                       final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=1000, multiLine=8,named = "Regulation Text") String plainRegulationText
                                         //,final SolasChapter solasChapter
                                         )
     {

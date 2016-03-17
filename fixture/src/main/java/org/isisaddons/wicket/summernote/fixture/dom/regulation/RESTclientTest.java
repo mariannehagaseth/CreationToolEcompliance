@@ -70,10 +70,14 @@ public class RESTclientTest extends AbstractService   {
 	}
 	}
 
+
+
+
 	System.out.println("-------------------\nFreetext async POST Request Test");	Client client = ClientBuilder.newClient();
 	//WebTarget webTarget = client.target("http://192.168.33.10:9000/skos/freetext");
-	WebTarget webTarget = client.target("http://192.168.33.10:9000/skos/textgenerator");
-	Invocation.Builder invocationBuilder = webTarget.request(MediaType.APPLICATION_XML);
+//	WebTarget webTarget = client.target("http://192.168.33.10:9000/skos/textgenerator"); THIS WAS THE PREIOUS ONE
+		WebTarget webTarget = client.target("http://192.168.33.10:9000/api/semantic/skos");
+		Invocation.Builder invocationBuilder = webTarget.request(MediaType.APPLICATION_XML);
 	invocationBuilder.header("Content-type", "text/plain");
 	// AsyncInvoker async_invoker = invocationBuilder.async().get(sftc);
 	AsyncInvoker async_invoker = invocationBuilder.async();
@@ -90,9 +94,7 @@ public class RESTclientTest extends AbstractService   {
 		System.out.println("response.get().toString()= "+ responseGot);
 		return responseGot;
 	}
-
-
-@Programmatic
+	@Programmatic
 // Lager denne for å teste henting av Ship  Class
 public MySKOSConcept fetchSKOSconcept(){
 
@@ -123,6 +125,8 @@ public MySKOSConcept fetchSKOSconcept(){
 			throwable.printStackTrace();
 		}
 	}
+
+
 
 	System.out.println("-------------------\nFreetext async POST Request Test");	Client client = ClientBuilder.newClient();
 	//WebTarget webTarget = client.target("http://192.168.33.10:9000/skos/freetext");

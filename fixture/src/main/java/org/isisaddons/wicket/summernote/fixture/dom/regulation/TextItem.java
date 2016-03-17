@@ -85,13 +85,27 @@ public class TextItem implements Categorized, Comparable<TextItem> {
     // region > title, icon
     public String title() {
         final TitleBuffer buf = new TitleBuffer();
-        buf.append("SOLAS CHAPTER ");
+
+        if (getFreeText().getSolasChapter().getChapterAnnex().equals(SolasChapter.ChapterAnnex.CHAPTER)) {buf.append("SOLAS CHAPTER ");}
+        if (getFreeText().getSolasChapter().getChapterAnnex().equals(SolasChapter.ChapterAnnex.ANNEX)) {buf.append("SOLAS ANNEX ");}
+        if (getFreeText().getSolasChapter().getChapterAnnex().equals(SolasChapter.ChapterAnnex.DIRECTIVE))  {buf.append("EU DIRECTIVE ");}
         buf.append(getFreeText().getSolasChapter().getSolasChapterNumber());
-        if (!getFreeText().getSolasChapter().getSolasPartNumber().equalsIgnoreCase("-")) {buf.append(" PART "); buf.append(getFreeText().getSolasChapter().getSolasPartNumber());}
-        buf.append(" REGULATION ");
+        if (!getFreeText().getSolasChapter().getSolasPartNumber().equalsIgnoreCase("-")) {
+            if ((getFreeText().getSolasChapter().getChapterAnnex().equals(SolasChapter.ChapterAnnex.CHAPTER)) || (getFreeText().getSolasChapter().getChapterAnnex().equals(SolasChapter.ChapterAnnex.ANNEX))) {
+                buf.append(" PART ");
+            }
+            if ((getFreeText().getSolasChapter().getChapterAnnex().equals(SolasChapter.ChapterAnnex.DIRECTIVE))) {
+                buf.append(" TITLE ");
+            }
+        }
+        buf.append(getFreeText().getSolasChapter().getSolasPartNumber());
+        if (getFreeText().getSolasChapter().getChapterAnnex().equals(SolasChapter.ChapterAnnex.CHAPTER)) {buf.append(" REGULATION "); }
+        if (getFreeText().getSolasChapter().getChapterAnnex().equals(SolasChapter.ChapterAnnex.ANNEX)) {buf.append(" CHAPTER ");}
+        if (getFreeText().getSolasChapter().getChapterAnnex().equals(SolasChapter.ChapterAnnex.DIRECTIVE)) {buf.append(" ARTICLE ");}
         buf.append(getFreeText().getSolasChapter().getSolasRegulationNumber());
         buf.append("SECTION ");
         buf.append(getFreeText().getSectionNo());
+
         buf.append("ITEM ");
         buf.append(getItemNo());
         return buf.toString();
@@ -121,7 +135,7 @@ public class TextItem implements Categorized, Comparable<TextItem> {
     @javax.jdo.annotations.Column(allowsNull="false", length=10000)
    // @Property(regexPattern="\\w[@&:\\-\\,\\.\\+ \\w]*")
     @MemberOrder(name="TextItem", sequence="10")
-    @PropertyLayout(named = "Item Text", typicalLength=10000, multiLine=8)
+    @PropertyLayout(named = "Text", typicalLength=10000, multiLine=8)
     public String getPlainRegulationText() {
       return plainRegulationText;
     }
@@ -135,7 +149,6 @@ public class TextItem implements Categorized, Comparable<TextItem> {
         setPlainRegulationText(null);
     }
     //endregion
-
 
     
     //region > ownedBy (property)
@@ -155,7 +168,6 @@ public class TextItem implements Categorized, Comparable<TextItem> {
     //endregion
 
 
-
     // Add Regulation to RegulationRule
     // Add FreeText to SOLASchapter
     // department=regulation=SOLASchapter
@@ -163,8 +175,10 @@ public class TextItem implements Categorized, Comparable<TextItem> {
 
     // mapping is done to this property:
     // Mapping back from TextItem to FreeText
+    //Link to Section
     @javax.jdo.annotations.Column(allowsNull="true")
     @Property(editing= Editing.DISABLED,editingDisabledReason="Section cannot be updated from here")
+    @PropertyLayout(hidden=Where.REFERENCES_PARENT, named = "Section")
     @MemberOrder(name="TextItem", sequence="50")
     private FreeText freeText;
     @javax.jdo.annotations.Column(allowsNull="true")
@@ -173,6 +187,8 @@ public class TextItem implements Categorized, Comparable<TextItem> {
     public void setFreeText(FreeText freeText) { this.freeText= freeText; }
 
     // End   Regulation to RegulationRule
+
+
 
 
     //region > version (derived property)

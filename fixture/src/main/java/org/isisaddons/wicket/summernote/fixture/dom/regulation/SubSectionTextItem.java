@@ -20,7 +20,6 @@ package org.isisaddons.wicket.summernote.fixture.dom.regulation;
 
 //import java.math.BigDecimal;
 
-import com.google.common.collect.Ordering;
 import org.apache.isis.applib.DomainObjectContainer;
 import org.apache.isis.applib.Identifier;
 import org.apache.isis.applib.annotation.*;
@@ -33,9 +32,6 @@ import org.apache.isis.applib.util.TitleBuffer;
 import javax.jdo.JDOHelper;
 import javax.jdo.annotations.IdentityType;
 import javax.jdo.annotations.VersionStrategy;
-import java.util.Comparator;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 @javax.jdo.annotations.PersistenceCapable(identityType=IdentityType.DATASTORE)
 @javax.jdo.annotations.DatastoreIdentity(
@@ -53,84 +49,86 @@ import java.util.TreeSet;
 
 @javax.jdo.annotations.Queries( {
         @javax.jdo.annotations.Query(
-                name = "findByOwnedBy", language = "JDOQL",
+                name = "findTextItems", language = "JDOQL",
                 value = "SELECT "
-                        + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.SubSection "
+                        + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.TextItem "
                         + "WHERE ownedBy == :ownedBy"),
         @javax.jdo.annotations.Query(
-        name = "findSubSections", language = "JDOQL",
+        name = "findSubSectionTextItems", language = "JDOQL",
         value = "SELECT "
-                + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.SubSection "),
+                + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.SubSectionTextItem "),
     @javax.jdo.annotations.Query(
             name = "findByOwnedByAndCompleteIsFalse", language = "JDOQL",
             value = "SELECT "
-                    + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.SubSection "
+                    + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.TextItem "
                     + "WHERE ownedBy == :ownedBy "
                     + "   && finalized == false")
 })
-@DomainObject(objectType="SUBSECTION",autoCompleteRepository=SubSections.class, autoCompleteAction="autoComplete")
+@DomainObject(objectType="SUBSECTIONTEXTITEM",autoCompleteRepository=TextItems.class, autoCompleteAction="autoComplete")
  // default unless overridden by autoCompleteNXxx() method
 @DomainObjectLayout(bookmarking= BookmarkPolicy.AS_ROOT)
 @MemberGroupLayout (
 		columnSpans={4,0,0,8},
-		left={"SubSection"},
+		left={"TextItem"},
 		middle={},
         right={})
-public class SubSection implements Categorized, Comparable<SubSection> {
+public class SubSectionTextItem implements Categorized, Comparable<SubSectionTextItem> {
 
     //region > LOG
     /**
      * It isn't common for entities to log, but they can if required.  
      * Isis uses slf4j API internally (with log4j as implementation), and is the recommended API to use.
      */
-    private final static org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(SubSection.class);
+    private final static org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(SubSectionTextItem.class);
       //endregion
 
     // region > title, icon
     public String title() {
         final TitleBuffer buf = new TitleBuffer();
 
-        if (getFreeTextSection().getSolasChapter().getChapterAnnex().equals(SolasChapter.ChapterAnnex.CHAPTER)) {buf.append("SOLAS CHAPTER ");}
-        if (getFreeTextSection().getSolasChapter().getChapterAnnex().equals(SolasChapter.ChapterAnnex.ANNEX)) {buf.append("SOLAS ANNEX ");}
-        if (getFreeTextSection().getSolasChapter().getChapterAnnex().equals(SolasChapter.ChapterAnnex.DIRECTIVE))  {buf.append("EU DIRECTIVE ");}
-        buf.append(getFreeTextSection().getSolasChapter().getSolasChapterNumber());
-        if (!getFreeTextSection().getSolasChapter().getSolasPartNumber().equalsIgnoreCase("-")) {
-            if ((getFreeTextSection().getSolasChapter().getChapterAnnex().equals(SolasChapter.ChapterAnnex.CHAPTER)) || (getFreeTextSection().getSolasChapter().getChapterAnnex().equals(SolasChapter.ChapterAnnex.ANNEX))) {
+        if (getSubSection().getFreeTextSection().getSolasChapter().getChapterAnnex().equals(SolasChapter.ChapterAnnex.CHAPTER)) {buf.append("SOLAS CHAPTER ");}
+        if (getSubSection().getFreeTextSection().getSolasChapter().getChapterAnnex().equals(SolasChapter.ChapterAnnex.ANNEX)) {buf.append("SOLAS ANNEX ");}
+        if (getSubSection().getFreeTextSection().getSolasChapter().getChapterAnnex().equals(SolasChapter.ChapterAnnex.DIRECTIVE))  {buf.append("EU DIRECTIVE ");}
+        buf.append(getSubSection().getFreeTextSection().getSolasChapter().getSolasChapterNumber());
+        if (!getSubSection().getFreeTextSection().getSolasChapter().getSolasPartNumber().equalsIgnoreCase("-")) {
+            if ((getSubSection().getFreeTextSection().getSolasChapter().getChapterAnnex().equals(SolasChapter.ChapterAnnex.CHAPTER)) || (getSubSection().getFreeTextSection().getSolasChapter().getChapterAnnex().equals(SolasChapter.ChapterAnnex.ANNEX))) {
                 buf.append(" PART ");
             }
-            if ((getFreeTextSection().getSolasChapter().getChapterAnnex().equals(SolasChapter.ChapterAnnex.DIRECTIVE))) {
+            if ((getSubSection().getFreeTextSection().getSolasChapter().getChapterAnnex().equals(SolasChapter.ChapterAnnex.DIRECTIVE))) {
                 buf.append(" TITLE ");
             }
         }
-        buf.append(getFreeTextSection().getSolasChapter().getSolasPartNumber());
-        if (getFreeTextSection().getSolasChapter().getChapterAnnex().equals(SolasChapter.ChapterAnnex.CHAPTER)) {buf.append(" REGULATION "); }
-        if (getFreeTextSection().getSolasChapter().getChapterAnnex().equals(SolasChapter.ChapterAnnex.ANNEX)) {buf.append(" CHAPTER ");}
-        if (getFreeTextSection().getSolasChapter().getChapterAnnex().equals(SolasChapter.ChapterAnnex.DIRECTIVE)) {buf.append(" ARTICLE ");}
-        buf.append(getFreeTextSection().getSolasChapter().getSolasRegulationNumber());
+        buf.append(getSubSection().getFreeTextSection().getSolasChapter().getSolasPartNumber());
+        if (getSubSection().getFreeTextSection().getSolasChapter().getChapterAnnex().equals(SolasChapter.ChapterAnnex.CHAPTER)) {buf.append(" REGULATION "); }
+        if (getSubSection().getFreeTextSection().getSolasChapter().getChapterAnnex().equals(SolasChapter.ChapterAnnex.ANNEX)) {buf.append(" CHAPTER ");}
+        if (getSubSection().getFreeTextSection().getSolasChapter().getChapterAnnex().equals(SolasChapter.ChapterAnnex.DIRECTIVE)) {buf.append(" ARTICLE ");}
+        buf.append(getSubSection().getFreeTextSection().getSolasChapter().getSolasRegulationNumber());
         buf.append("SECTION ");
-        buf.append(getFreeTextSection().getSectionNo());
+        buf.append(getSubSection().getFreeTextSection().getSectionNo());
+
         buf.append("SUBSECTION ");
-        buf.append(getSubSectionNo());
+        buf.append(getSubSection().getSubSectionNo());
+
+        buf.append("ITEM ");
+        buf.append(getItemNo());
         return buf.toString();
     }
     //endregion
 
-
-    // Region subSectionNo
-    private String subSectionNo;
-    @javax.jdo.annotations.Column(allowsNull="false", length=10)
-    // @Property(regexPattern="\\w[@&:\\-\\,\\.\\+ \\w]*")
-    @MemberOrder(name="SubSection", sequence="10")
+    // Region itemNo
+    private String itemNo;
+    @javax.jdo.annotations.Column(allowsNull="true", length=10)
+    @MemberOrder(name="TextItem", sequence="8")
     @PropertyLayout(typicalLength=10)
-    public String getSubSectionNo() {
-        return subSectionNo;
+    public String getItemNo() {
+        return itemNo;
     }
-    public void setSubSectionNo(final String subSectionNo) {
-        this.subSectionNo = subSectionNo;
+    public void setItemNo(final String itemNo) {
+        this.itemNo = itemNo;
     }
-    public void modifySubSectionNo(final String subSectionNo) { this.subSectionNo = subSectionNo;}
-    public void clearSubSectionNo() {
-        setSubSectionNo(null);
+    public void modifyItemNo(final String itemNo) { this.itemNo = itemNo;}
+    public void clearItemNo() {
+        setItemNo(null);
     }
     //endregion
 
@@ -139,8 +137,8 @@ public class SubSection implements Categorized, Comparable<SubSection> {
     private String plainRegulationText;
     @javax.jdo.annotations.Column(allowsNull="false", length=10000)
    // @Property(regexPattern="\\w[@&:\\-\\,\\.\\+ \\w]*")
-    @MemberOrder(name="SubSection", sequence="15")
-    @PropertyLayout(typicalLength=10000, multiLine=8, named = "Text")
+    @MemberOrder(name="TextItem", sequence="10")
+    @PropertyLayout(named = "Text", typicalLength=10000, multiLine=8)
     public String getPlainRegulationText() {
       return plainRegulationText;
     }
@@ -181,95 +179,19 @@ public class SubSection implements Categorized, Comparable<SubSection> {
     //empolyee=RegulationRule=FreeText
 
     // mapping is done to this property:
-    // Mapping back from SubSection to FreeText
+    // Mapping back from SubsectionTextItem to SubSection
+    //Link to SubSection from textItem
     @javax.jdo.annotations.Column(allowsNull="true")
-    @Property(editing= Editing.DISABLED,editingDisabledReason="Section Number cannot be updated from here")
-    @MemberOrder(name="SubSection", sequence="50")
-    @PropertyLayout(hidden=Where.REFERENCES_PARENT, named = "Section")
-    private FreeText freeTextSection;
-    @javax.jdo.annotations.Column(allowsNull="true",name = "Section")
-    public FreeText getFreeTextSection() { return freeTextSection; }
+    @Property(editing= Editing.DISABLED,editingDisabledReason="SubSection cannot be updated from here")
+    @PropertyLayout(hidden=Where.REFERENCES_PARENT, named = "SubSection")
+    @MemberOrder(name="TextItem", sequence="50")
+    private SubSection subSection;
     @javax.jdo.annotations.Column(allowsNull="true")
-    public void setFreeTextSection(FreeText freeTextSection) { this.freeTextSection= freeTextSection; }
-
+    public SubSection getSubSection() { return subSection; }
+    @javax.jdo.annotations.Column(allowsNull="true")
+    public void setSubSection(SubSection subSection) { this.subSection= subSection; }
     // End   Regulation to RegulationRule
 
-
-    // BEGIN REGION Link to SubSectionTextItems, a list of text items from SubSection to SubSectionTextItems.
-    @javax.jdo.annotations.Persistent(mappedBy="subSection")
-    @javax.jdo.annotations.Join // Make a separate join table.
-    private SortedSet<SubSectionTextItem> subSectionTextItems= new TreeSet<SubSectionTextItem>();
-    @SuppressWarnings("deprecation")
-    @CollectionLayout(named = "List of Items" , sortedBy=SubSectionTextItemComparator.class,render=RenderType.EAGERLY)
-    @MemberOrder(name="List of Items",sequence = "10")
-    public SortedSet<SubSectionTextItem> getSubSectionTextItems() {
-        return subSectionTextItems;
-    }
-    public void setSubSectionTextItems(SortedSet<SubSectionTextItem> subSectionTextItem) {
-        this.subSectionTextItems = subSectionTextItem;
-    }
-    public void removeFromSubSectionTextItems(final SubSectionTextItem item) {
-        if(item == null || !getSubSectionTextItems().contains(item)) return;
-        getSubSectionTextItems().remove(item);
-    }
-
-    // / overrides the natural ordering
-    public static class SubSectionTextItemComparator implements Comparator<SubSectionTextItem> {
-        @Override
-        public int compare(SubSectionTextItem p, SubSectionTextItem q) {
-            Ordering<SubSectionTextItem> byItemNo= new Ordering<SubSectionTextItem>() {
-                public int compare(final SubSectionTextItem p, final SubSectionTextItem q) {
-                    return Ordering.natural().nullsFirst().compare(p.getItemNo(),q.getItemNo());
-                }
-            };
-            return byItemNo
-                    .compound(Ordering.<SubSectionTextItem>natural())
-                    .compare(p, q);
-        }
-    }
-
-    //This is the add-Button!!!
-
-    @Action()
-    @ActionLayout(named = "Add New Item")
-    @MemberOrder(name = "List of Items", sequence = "70")
-    public SubSection addNewSubSectionTextItem(final @ParameterLayout(typicalLength=5,named = "Item No") String itemNo,
-                                   final  @ParameterLayout(typicalLength=1000, multiLine=8,named = "Text") String plainRegulationText
-    )
-    {
-        getSubSectionTextItems().add(newSubSectionTextItemCall.newSubSectionTextItem(itemNo, plainRegulationText));
-        return this;
-    }
-
-    //This is the Remove-Button!!
-    @MemberOrder(name="List of Items", sequence = "80")
-    @ActionLayout(named = "Delete Item")
-    public SubSection removeSubSectionTextItem(final @ParameterLayout(typicalLength=5) SubSectionTextItem item) {
-        // By wrapping the call, Isis will detect that the collection is modified
-        // and it will automatically send a CollectionInteractionEvent to the Event Bus.
-        // ToDoItemSubscriptions is a demo subscriber to this event
-        wrapperFactory.wrapSkipRules(this).removeFromSubSectionTextItems(item);
-        container.removeIfNotAlready(item);
-        return this;
-    }
-
-    // disable action dependent on state of object
-    public String disableRemoveSubSectionTextItem(final SubSectionTextItem item) {
-        return getSubSectionTextItems().isEmpty()? "No Item to remove": null;
-    }
-    // validate the provided argument prior to invoking action
-    public String validateRemoveSubSectionTextItem(final SubSectionTextItem item) {
-        if(!getSubSectionTextItems().contains(item)) {
-            return "Not an Item";
-        }
-        return null;
-    }
-
-    // provide a drop-down
-    public java.util.Collection<SubSectionTextItem> choices0RemoveSubSectionTextItem() {
-        return getSubSectionTextItems();
-    }
-    //endregion region Link  SubSection --> to (several) items SubSectionTextItems
 
 
 
@@ -353,12 +275,12 @@ public class SubSection implements Categorized, Comparable<SubSection> {
 
 
     //region > events
-    public static abstract class AbstractActionInteractionEvent extends ActionInteractionEvent<SubSection> {
+    public static abstract class AbstractActionInteractionEvent extends ActionInteractionEvent<SubSectionTextItem> {
         private static final long serialVersionUID = 1L;
         private final String description;
         public AbstractActionInteractionEvent(
                 final String description,
-                final SubSection source,
+                final SubSectionTextItem source,
                 final Identifier identifier,
                 final Object... arguments) {
             super(source, identifier, arguments);
@@ -372,7 +294,7 @@ public class SubSection implements Categorized, Comparable<SubSection> {
     public static class DeletedEvent extends AbstractActionInteractionEvent {
         private static final long serialVersionUID = 1L;
         public DeletedEvent(
-                final SubSection source,
+                final SubSectionTextItem source,
                 final Identifier identifier,
                 final Object... arguments) {
             super("deleted", source, identifier, arguments);
@@ -386,15 +308,15 @@ public class SubSection implements Categorized, Comparable<SubSection> {
     @Override
     public String toString() {
 //        return ObjectContracts.toString(this, "description,complete,dueBy,ownedBy");
-        return ObjectContracts.toString(this, "subSectionNo,plainRegulationText, freeTextSection, ownedBy");
+        return ObjectContracts.toString(this, "itemNo, plainRegulationText, ownedBy");
     }
 
     /**
      * Required so can store in {@link SortedSet sorted set}s (eg {@link #getDependencies()}). 
      */
     @Override
-    public int compareTo(final SubSection other) {
-        return ObjectContracts.compare(this, other, "subSectionNo,plainRegulationText, freeTextSection, ownedBy");
+    public int compareTo(final SubSectionTextItem other) {
+        return ObjectContracts.compare(this, other, "itemNo, plainRegulationText, ownedBy");
     }
     //endregion
 
@@ -403,10 +325,7 @@ public class SubSection implements Categorized, Comparable<SubSection> {
     private DomainObjectContainer container;
 
     @javax.inject.Inject
-    private SubSections subSections;
-
-    @javax.inject.Inject
-    private SubSectionTextItems newSubSectionTextItemCall;
+    private TextItems textItems;
 
     @javax.inject.Inject
     private RESTclientTest restClientTest;

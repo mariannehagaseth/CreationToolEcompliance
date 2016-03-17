@@ -16,9 +16,7 @@
  */
 package org.isisaddons.wicket.summernote.fixture.scripts;
 
-import org.apache.isis.applib.annotation.Action;
-import org.apache.isis.applib.annotation.MemberOrder;
-import org.apache.isis.applib.annotation.SemanticsOf;
+import org.apache.isis.applib.annotation.*;
 import org.apache.isis.applib.fixturescripts.FixtureResult;
 import org.apache.isis.applib.fixturescripts.FixtureScript;
 import org.apache.isis.applib.fixturescripts.FixtureScripts;
@@ -29,14 +27,13 @@ import java.util.List;
 /**
  * Enables fixtures to be installed from the application.
  */
-// MHAGA @DomainService()
-/* MHAGA
+@DomainService()
 @DomainServiceLayout(
         named = "Prototyping",
-        menuBar = DomainServiceLayout.MenuBar.SECONDARY,
+        menuBar = DomainServiceLayout.MenuBar.TERTIARY,
         menuOrder = "499"
 )
-*/
+
 public class SummernoteEditorAppFixturesService extends FixtureScripts {
 
     public SummernoteEditorAppFixturesService() {

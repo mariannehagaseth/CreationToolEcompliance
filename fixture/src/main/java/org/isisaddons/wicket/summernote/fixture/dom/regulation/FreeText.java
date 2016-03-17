@@ -29,14 +29,18 @@ import org.apache.isis.applib.services.eventbus.EventBusService;
 import org.apache.isis.applib.services.wrapper.WrapperFactory;
 import org.apache.isis.applib.util.ObjectContracts;
 import org.apache.isis.applib.util.TitleBuffer;
+import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.SKOSConceptOccurrence;
+import org.isisaddons.wicket.summernote.fixture.dom.regulation.SolasChapter.ChapterAnnex;
 
 import javax.jdo.JDOHelper;
 import javax.jdo.annotations.IdentityType;
 import javax.jdo.annotations.VersionStrategy;
-import javax.xml.soap.Text;
+import javax.ws.rs.core.Response;
 import java.util.Comparator;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 @javax.jdo.annotations.PersistenceCapable(identityType=IdentityType.DATASTORE)
 @javax.jdo.annotations.DatastoreIdentity(
@@ -74,7 +78,7 @@ import java.util.TreeSet;
 @DomainObjectLayout(bookmarking= BookmarkPolicy.AS_ROOT)
 @MemberGroupLayout (
 		columnSpans={4,0,0,8},
-		left={"Section"},
+		left={"Section", "Annotation"},
 		middle={},
         right={})
 public class FreeText implements Categorized, Comparable<FreeText> {
@@ -90,10 +94,22 @@ public class FreeText implements Categorized, Comparable<FreeText> {
     // region > title, icon
     public String title() {
         final TitleBuffer buf = new TitleBuffer();
-        buf.append("SOLAS CHAPTER ");
+        if (getSolasChapter().getChapterAnnex().equals(ChapterAnnex.CHAPTER)) {buf.append("SOLAS CHAPTER ");}
+        if (getSolasChapter().getChapterAnnex().equals(ChapterAnnex.ANNEX)) {buf.append("SOLAS ANNEX ");}
+        if (getSolasChapter().getChapterAnnex().equals(ChapterAnnex.DIRECTIVE))  {buf.append("EU DIRECTIVE ");}
         buf.append(getSolasChapter().getSolasChapterNumber());
-        if (!getSolasChapter().getSolasPartNumber().equalsIgnoreCase("-")) {buf.append(" PART "); buf.append(getSolasChapter().getSolasPartNumber());}
-        buf.append(" REGULATION ");
+        if (!getSolasChapter().getSolasPartNumber().equalsIgnoreCase("-")) {
+            if ((getSolasChapter().getChapterAnnex().equals(ChapterAnnex.CHAPTER)) || (getSolasChapter().getChapterAnnex().equals(ChapterAnnex.ANNEX))) {
+                buf.append(" PART ");
+            }
+            if ((getSolasChapter().getChapterAnnex().equals(ChapterAnnex.DIRECTIVE))) {
+                buf.append(" TITLE ");
+            }
+        }
+        buf.append(getSolasChapter().getSolasPartNumber());
+        if (getSolasChapter().getChapterAnnex().equals(ChapterAnnex.CHAPTER)) {buf.append(" REGULATION "); }
+        if (getSolasChapter().getChapterAnnex().equals(ChapterAnnex.ANNEX)) {buf.append(" CHAPTER ");}
+        if (getSolasChapter().getChapterAnnex().equals(ChapterAnnex.DIRECTIVE)) {buf.append(" ARTICLE ");}
         buf.append(getSolasChapter().getSolasRegulationNumber());
         buf.append("SECTION ");
         buf.append(getSectionNo());
@@ -125,8 +141,8 @@ public class FreeText implements Categorized, Comparable<FreeText> {
     private String plainRegulationText;
     @javax.jdo.annotations.Column(allowsNull="true", length=10000)
    // @Property(regexPattern="\\w[@&:\\-\\,\\.\\+ \\w]*")
-    @MemberOrder(name="Section", sequence="10")
-    @PropertyLayout(typicalLength=10000, multiLine=8)
+    @MemberOrder(name="Section", sequence="15")
+    @PropertyLayout(typicalLength=10000, multiLine=8, named = "Text")
     public String getPlainRegulationText() {
       return plainRegulationText;
     }
@@ -142,7 +158,86 @@ public class FreeText implements Categorized, Comparable<FreeText> {
     //endregion
 
 
-    
+    // Region semantifiedRegulationText
+    private String semantifiedRegulationText;
+    @javax.jdo.annotations.Column(allowsNull="true", length=10000)
+    @MemberOrder(name="Section", sequence="30")
+    @PropertyLayout(typicalLength=10000, multiLine=8, named = "Annotated Text")
+    @Property(editing = Editing.DISABLED,editingDisabledReason = "Update using action that calls an API from the consolidation services")
+    public String getSemantifiedRegulationText() {
+        return semantifiedRegulationText;
+    }
+    public void setSemantifiedRegulationText(final String semantifiedRegulationText) {
+        this.semantifiedRegulationText = semantifiedRegulationText;
+    }
+    public void modifySemantifiedRegulationText(final String semantifiedRegulationText) {
+        setSemantifiedRegulationText(semantifiedRegulationText);
+    }
+    public void clearSemantifiedRegulationText() {
+        setSemantifiedRegulationText(null);
+    }
+    @Action(semantics = SemanticsOf.IDEMPOTENT)
+    @ActionLayout(named = "Annotate (Get Rule)", position = ActionLayout.Position.PANEL)
+    @MemberOrder(name="Section",
+            sequence="40")
+    public FreeText updateSemantifiedRegulationText() {
+        // Call API to do semantification:
+//        String AsyncRestTest = restClientTest.SkosFreetextAsync();
+       // String asyncRestCall = restClient.GetTarget();
+        // Get target is fetching the whole RULE
+        String asyncRestCall = restClient.GetRule();
+        System.out.println("asyncRest  (restClient.GetRule) = " + asyncRestCall);
+        this.setSemantifiedRegulationText(asyncRestCall);
+        container.flush();
+        container.informUser("Annotation completed for " + container.titleOf(this));
+        System.out.println("Fetching RULE here using GetRule!!");
+        // MHAGA: Must show target in blue!! Other values also!!
+        return this;
+    }
+    //endregion
+
+    // Region skosTerm
+    private String skosTerms;
+    @javax.jdo.annotations.Column(allowsNull="true", length=10000)
+    @MemberOrder(name="Annotation", sequence="10")
+    @PropertyLayout(typicalLength=10000, multiLine=8, named = "SKOS Terms")
+    @Property(editing = Editing.DISABLED,editingDisabledReason = "Update using action that calls an API from the consolidation services")
+    public String getSkosTerms() {
+        return skosTerms;
+    }
+    public void setSkosTerms(final String skosTerms) {
+        this.skosTerms = skosTerms;
+    }
+    public void modifySkosTerms(final String skosTerms) {
+        setSkosTerms(skosTerms);
+    }
+
+    public void clearSkosTerms() {
+        setSkosTerms(null);
+    }
+    @Action(semantics = SemanticsOf.IDEMPOTENT)
+    @ActionLayout(named = "Annotate (Get SKOS Terms)", position = ActionLayout.Position.PANEL)
+    @MemberOrder(name="Annotation",
+            sequence="20")
+    public FreeText updateSkosTerms() {
+        // Call API to do semantification:
+//        String AsyncRestTest = restClientTest.SkosFreetextAsync();
+        // String asyncRestCall = restClient.GetTarget();
+        // Get target is fetching the whole RULE
+        System.out.println("plainRegulationText = " + plainRegulationText);
+        String asyncRestCall = restClient.GetSkos2(plainRegulationText);
+       System.out.println("asyncRest  (restClient.GetSkos) = " + asyncRestCall);
+       this.setSkosTerms(asyncRestCall);
+        container.flush();
+        container.informUser("Annotation (GetSkos) completed for " + container.titleOf(this));
+        System.out.println("Fetching SKOS Terms here using GetSkos!!");
+        // MHAGA: Must show SKOS in yellow!! Other values also!!
+        // Must show different values
+        return this;
+    }
+    //endregion
+
+
     //region > ownedBy (property)
     @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
     private String ownedBy;
@@ -169,6 +264,7 @@ public class FreeText implements Categorized, Comparable<FreeText> {
     // mapping is done to this property:
     @javax.jdo.annotations.Column(allowsNull="true")
     @Property(editing= Editing.DISABLED,editingDisabledReason="SOLAS Chapter cannot be updated from here")
+    @PropertyLayout(hidden=Where.REFERENCES_PARENT, named = "SOLAS Link")
     @MemberOrder(name="Section", sequence="50")
     private SolasChapter solasChapter;
     @javax.jdo.annotations.Column(allowsNull="true")
@@ -477,7 +573,7 @@ public class FreeText implements Categorized, Comparable<FreeText> {
     private SubSections newSubSectionCall;
 
     @javax.inject.Inject
-    private RESTclientTest restClientTest;
+    private RESTclient restClient;
 
     @SuppressWarnings("deprecation")
 	Bulk.InteractionContext bulkInteractionContext;
