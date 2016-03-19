@@ -225,7 +225,7 @@ public class FreeText implements Categorized, Comparable<FreeText> {
         // String asyncRestCall = restClient.GetTarget();
         // Get target is fetching the whole RULE
         System.out.println("plainRegulationText = " + plainRegulationText);
-        String asyncRestCall = restClient.GetSkos2(plainRegulationText);
+        String asyncRestCall = restClient.GetSkos(plainRegulationText);
        System.out.println("asyncRest  (restClient.GetSkos) = " + asyncRestCall);
        this.setSkosTerms(asyncRestCall);
         container.flush();

@@ -6,9 +6,9 @@ import org.apache.isis.applib.annotation.DomainService;
 import org.apache.isis.applib.annotation.DomainServiceLayout;
 import org.apache.isis.applib.annotation.Programmatic;
 import org.apache.isis.applib.query.QueryDefault;
+import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.FragmentSKOSConceptOccurrences;
 import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.MySKOSConcept;
 import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.SKOSConceptOccurrence;
-import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.SKOSConceptProperty;
 
 import javax.ws.rs.client.*;
 import javax.ws.rs.core.MediaType;
@@ -95,7 +95,7 @@ public class RESTclient extends AbstractService   {
 				//Parameters:
 				//response - response data.
 				System.out.println("Response status code =" + response.getStatus());
-	/*MHAGA: Target Class will repace MYSKOSConcept*/
+	//MHAGA: Target Class will repace MYSKOSConcept
 				final MySKOSConcept skosConceptOccurrence = response.readEntity(MySKOSConcept.class);
 				System.out.print("skosConceptOccurrence.toString()= ");
 				System.out.println(skosConceptOccurrence.toString());
@@ -133,69 +133,7 @@ public class RESTclient extends AbstractService   {
 	}
 
 
-	@Action
 	public String GetSkos(String regulationText) {
-
- 		class SkosCallback implements InvocationCallback<Response> {
-
-			@Override
-			public void completed(Response response) {
-				//Called when the invocation was successfully completed. Note that this does not necessarily mean the response has bean fully read, which depends on the parameterized invocation callback response type.
-				//Once this invocation callback method returns, the underlying Response instance will be automatically closed by the runtime.
-				//Parameters:
-				//response - response data.
-				System.out.println("Response status code in completed =" + response.getStatus());
- 				final SKOSConceptOccurrence skosConceptOccurrence = response.readEntity(SKOSConceptOccurrence.class);
-				System.out.print("skosConceptOccurrence.toString()= ");
-				System.out.println(skosConceptOccurrence.toString());
-				int skosBegin=skosConceptOccurrence.getBegin();
-				System.out.println("skosBegin = "+skosBegin);
-				String skosText=skosConceptOccurrence.getText();
-				System.out.println("skosText = "+skosText);
-		//		SKOSConceptProperty skosConceptProperty = skosConceptOccurrence.getSkosConceptProperty();
-		//		System.out.println("skosConceptProperty.value() = "+skosConceptProperty.value());
-
-			}
-			@Override
-			public void failed(Throwable throwable) {
-				System.out.println("Invocation failed.!!");
-				throwable.printStackTrace();
-			}
-		}
-		System.out.println("-------------------\nRESTClient http://192.168.33.10:9000/api/semantic/skos");
-		Client client = ClientBuilder.newClient();
- 		WebTarget webTarget = client.target("http://192.168.33.10:9000/api/semantic/skos");
-		Invocation.Builder invocationBuilder = webTarget.request(MediaType.APPLICATION_XML);
-		invocationBuilder.header("Content-type", "text/plain");
- 		AsyncInvoker async_invoker = invocationBuilder.async();
-		InvocationCallback<Response> sftc = new SkosCallback();
-//		Future<Response> response = async_invoker.post(Entity.entity("A string entity to be POSTed", MediaType.TEXT_PLAIN), sftc);
-		System.out.println("regulationText = " + regulationText);
-		Future<Response> response = async_invoker.post(Entity.entity(regulationText, MediaType.TEXT_PLAIN), sftc);
-//		Future<Response> response = async_invoker.post(Entity.entity(regulationText, MediaType.APPLICATION_XML), sftc); reason=Unsupported Media Type}}
-		String responseGot="";
-		// SKOSConceptOccurrence responseEntity = null;
-
-		try {
-			responseGot=response.get().toString();
-			System.out.println("The response got in GetSkos() = "+response.get().toString());
-			System.out.println("The entity got in GetSkos() = "+response.get().getEntity().toString());
-			//	responseEntity = response.readEntity(SKOSConceptOccurrence.class);
-		//	System.out.println("responseEntity.getText() = "+responseEntity.getText());
-		//	responseEntity = response.get().readEntity(SKOSConceptOccurrence.class);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		} catch (ExecutionException e) {
-			e.printStackTrace();
-		}
-		System.out.println("responseGot= response.get().toString()= "+ responseGot);
-
-		return responseGot;
-		//return responseEntity.getText();
-	}
-
-
-	public String GetSkos2(String regulationText) {
 
 		class SkosCallback implements InvocationCallback<Response> {
 
@@ -206,15 +144,33 @@ public class RESTclient extends AbstractService   {
 				//Parameters:
 				//response - response data.
 				System.out.println("Response status code in completed =" + response.getStatus());
-				SKOSConceptOccurrence skosConceptOccurrence = response.readEntity(SKOSConceptOccurrence.class);
-				System.out.print("skosConceptOccurrence.toString()= ");
-				System.out.println(skosConceptOccurrence.toString());
-				int skosBegin=skosConceptOccurrence.getBegin();
-				System.out.println("skosBegin = "+skosBegin);
-				String skosText=skosConceptOccurrence.getText();
-				System.out.println("skosText = "+skosText);
-				//		SKOSConceptProperty skosConceptProperty = skosConceptOccurrence.getSkosConceptProperty();
-				//		System.out.println("skosConceptProperty.value() = "+skosConceptProperty.value());
+//				SKOSConceptOccurrence skosConceptOccurrence = response.readEntity(SKOSConceptOccurrence.class);
+				FragmentSKOSConceptOccurrences fragmentSKOSConceptOccurrences = response.readEntity(FragmentSKOSConceptOccurrences.class);
+				System.out.print("fragmentSKOSConceptOccurrences.toString()= ");
+				System.out.println(fragmentSKOSConceptOccurrences.toString());
+				String fragmentUri=fragmentSKOSConceptOccurrences.getFragmentUri();
+				System.out.println("FragmentUri = "+fragmentUri);
+
+
+				List<SKOSConceptOccurrence> skosList = fragmentSKOSConceptOccurrences.getSkosConceptOccurrence();
+				int lastSkosConcept = fragmentSKOSConceptOccurrences.getSkosConceptOccurrence().size();
+				for (int i=0;i< lastSkosConcept; i++) {
+ 					int skosBegin = skosList.get(i).getBegin();
+					System.out.println("skosBegin = "+"i="+i+" " + skosBegin);
+
+ 					int skosEnd = skosList.get(i).getEnd();
+					System.out.println("skosEnd = "+"i="+i+" " + skosEnd);
+
+					String skosConceptPropertyLabel = skosList.get(i).getSkosConceptProperty().value();
+					System.out.println("skosConceptPropertyLabel = "+"i="+i+" " + skosConceptPropertyLabel);
+
+					String skosConceptUri = skosList.get(i).getUri();
+					String skosConceptProperyValue = skosConceptUri.substring(skosConceptUri.indexOf("#") + 1);
+					System.out.println("skosConceptProperyValue = "+"i="+i+" " + skosConceptProperyValue);
+
+					String usedTerm = regulationText.substring(skosBegin, skosEnd);
+					System.out.println("usedTerm = "+"i="+i+" " + usedTerm);
+					}
 
 			}
 			@Override
@@ -227,16 +183,15 @@ public class RESTclient extends AbstractService   {
 		Client client = ClientBuilder.newClient();
 		WebTarget webTarget = client.target("http://192.168.33.10:9000/api/semantic/skos");
 	//	Invocation.Builder invocationBuilder = webTarget.request(MediaType.APPLICATION_XML);
-		//webTarget.;
+
 		Invocation.Builder invocationBuilder = webTarget.request(MediaType.APPLICATION_XML);
 		invocationBuilder.header("Content-type", "text/plain");
-	//	invocationBuilder.property("skosconcept", );
+
 		AsyncInvoker async_invoker = invocationBuilder.async();
 		InvocationCallback<Response> sftc = new SkosCallback();
 //		Future<Response> response = async_invoker.post(Entity.entity("A string entity to be POSTed", MediaType.TEXT_PLAIN), sftc);
 		System.out.println("regulationText = " + regulationText);
-//		Future<Response> response = async_invoker.post(Entity.entity(regulationText, MediaType.TEXT_PLAIN), sftc);
-		Future<Response> response = async_invoker.post(Entity.entity("The captain.", MediaType.TEXT_PLAIN), sftc);
+		Future<Response> response = async_invoker.post(Entity.entity(regulationText, MediaType.TEXT_PLAIN), sftc);
 //		Future<Response> response = async_invoker.post(Entity.entity(regulationText, MediaType.APPLICATION_XML), sftc); reason=Unsupported Media Type}}
 		String responseGot="";
 		SKOSConceptOccurrence skosResponse = null;
@@ -244,18 +199,23 @@ public class RESTclient extends AbstractService   {
 
 		try {
 			responseGot=response.get().toString();
-			System.out.println("The response got in GetSkos() = "+response.get().toString());
+			System.out.println("The response got in GetSkos1() = "+response.get().toString());
+	//		String fragmentUri =response.get().readEntity(FragmentSKOSConceptOccurrences.class).getFragmentUri(); FAILS!!
+	//		System.out.println("fragmentUri fetched ="+fragmentUri);
 			//System.out.println("The entity got in GetSkos() = "+response.get().getEntity().toString());
-
-			//skosResponse = responseEntity.readEntity(SKOSConceptOccurrence.class);
-			//System.out.println("responseEntity.getText() = "+skosResponse.getText());
+//			FragmentSKOSConceptOccurrences skosConcept= responseEntity.readEntity(FragmentSKOSConceptOccurrences.class);
+//			System.out.println("skosConcept = "+skosConcept.getSkosConceptOccurrence().get(0).getSkosConceptProperty());
 		} catch (InterruptedException e) {
+			System.out.println("Interrupted Exception");
 			e.printStackTrace();
 		} catch (ExecutionException e) {
+			System.out.println("Execution Exception");
 			e.printStackTrace();
-		} finally {
-			responseEntity.close();
 		}
+		//finally {
+	//		System.out.println("Close");
+//			responseEntity.close();
+//		}
 		System.out.println("responseGot= response.get().toString()= "+ responseGot);
 
 		return responseGot;
@@ -281,8 +241,11 @@ public class RESTclient extends AbstractService   {
 			System.out.println("skosBegin = "+skosBegin);
 			String skosText=skosConceptOccurrence.getText();
 			System.out.println("skosText = "+skosText);
-			SKOSConceptProperty skosConceptProperty=skosConceptOccurrence.getSkosConceptProperty();
-			System.out.println("skosConceptProperty = "+skosConceptProperty.value());
+			String skosConceptPropertyLabel=skosConceptOccurrence.getSkosConceptProperty().value();
+			System.out.println("skosConceptPropertyLabel = "+skosConceptPropertyLabel);
+			String skosConceptUri=skosConceptOccurrence.getUri();
+			String skosConceptProperyValue = skosConceptUri.substring(skosConceptUri.indexOf("#"));
+			System.out.println("skosConceptProperyValue = "+skosConceptProperyValue);
 		}
 
 		@Override
