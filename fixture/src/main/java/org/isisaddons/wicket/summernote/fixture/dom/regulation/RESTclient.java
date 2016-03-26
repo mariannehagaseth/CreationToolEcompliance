@@ -9,6 +9,7 @@ import org.apache.isis.applib.query.QueryDefault;
 import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.FragmentSKOSConceptOccurrences;
 import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.MySKOSConcept;
 import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.SKOSConceptOccurrence;
+import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.ShipClass;
 
 import javax.ws.rs.client.*;
 import javax.ws.rs.core.MediaType;
@@ -28,57 +29,44 @@ public class RESTclient extends AbstractService   {
 //		er kopiert fra: https://bitbucket.org/droythorne/jersey/src/8f6d940ff0dd2e5b5bed0dc52c5a558b511a1c3e/src/main/java/Main.java?at=master 
 	//Target is basically fetching the full rule.
 	@Action
-	public String GetRule() {
-// Copied from SKOSfreeTextAsync
-//		class SKOSFreetextCallback implements InvocationCallback<Response> {
- 	class SemanticRuleCallback implements InvocationCallback<Response> {
+	public ShipClass GetRule(String regulationText) {
+		ShipClass shipClassInRule = null;
+  	class SemanticRuleCallback implements InvocationCallback<Response> {
 
 			@Override
 	public void completed(Response response) {
-		//Called when the invocation was successfully completed. Note that this does not necessarily mean the response has bean fully read, which depends on the parameterized invocation callback response type.
-		//Once this invocation callback method returns, the underlying Response instance will be automatically closed by the runtime.
-		//Parameters:
-		//response - response data.
-		System.out.println("Response status code =" + response.getStatus());
-	/*MHAGA: Target Class will replace MYSKOSConcept*/
-	/*MHAGA: Target Class will replace MYSKOSConcept*/
-	/*MHAGA: Target Class will replace MYSKOSConcept*/
-	/*MHAGA: Target Class will replace MYSKOSConcept*/
-				final MySKOSConcept skosConceptOccurrence = response.readEntity(MySKOSConcept.class);
-	System.out.print("skosConceptOccurrence.toString()= ");
-	System.out.println(skosConceptOccurrence.toString());
-	int skosBegin=skosConceptOccurrence.getBegin();
-	System.out.println("skosBegin = "+skosBegin);
-		String skosText=skosConceptOccurrence.getText();
-		System.out.println("skosText = "+skosText);
  	}
+
 	@Override
 	public void failed(Throwable throwable) {
 	System.out.println("Invocation failed.");
 	throwable.printStackTrace();
 	}
 	}
+
 	System.out.println("-------------------\nhttp://192.168.33.10:9000/api/semantic/target");
+// Doesnt work		System.out.println("-------------------\nhttp://192.168.33.10:9000/api/semantic/applicability");
 		Client client = ClientBuilder.newClient();
-//		WebTarget webTarget = client.target("http://192.168.33.10:9000/api/semantic/skos");
-		WebTarget webTarget = client.target("http://192.168.33.10:9000/api/semantic/target");
+ 		WebTarget webTarget = client.target("http://192.168.33.10:9000/api/semantic/target");
 		Invocation.Builder invocationBuilder = webTarget.request(MediaType.APPLICATION_XML);
 	invocationBuilder.header("Content-type", "text/plain");
-	// AsyncInvoker async_invoker = invocationBuilder.async().get(sftc);
-	AsyncInvoker async_invoker = invocationBuilder.async();
+ 	AsyncInvoker async_invoker = invocationBuilder.async();
 	InvocationCallback<Response> sftc = new SemanticRuleCallback();
-	Future<Response> response = async_invoker.post(Entity.entity("A string entity to be POSTed", MediaType.TEXT_PLAIN), sftc);
-		String responseGot="";
+	Future<Response> response = async_invoker.post(Entity.entity(regulationText, MediaType.TEXT_PLAIN), sftc);
+		Response responseEntity = null;
 			try {
-				responseGot=response.get().toString();
-				System.out.println(" The entity got in getRule() = "+response.get().getEntity().toString());
+ 				responseEntity=response.get();
+				System.out.println("ResponseEntity in GetRule() = "+responseEntity.toString());
+				ShipClass shipClassFound = responseEntity.readEntity(ShipClass.class);
+ 				System.out.println("shipClassFound set... ");
+				shipClassInRule = shipClassFound;
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			} catch (ExecutionException e) {
 				e.printStackTrace();
 			}
-		System.out.println("response.get().toString()= "+ responseGot);
-		return responseGot;
+		System.out.println("return shipClassInRule");
+		return shipClassInRule;
 	}
 
 	//192.168.33.10:9000/api/semantic/applicability is fetching the target!!
@@ -133,12 +121,15 @@ public class RESTclient extends AbstractService   {
 	}
 
 
-	public String GetSkos(String regulationText) {
+	public FragmentSKOSConceptOccurrences  GetSkos(String regulationText) {
+
+		FragmentSKOSConceptOccurrences fragment=null;
 
 		class SkosCallback implements InvocationCallback<Response> {
 
 			@Override
 			public void completed(Response response) {
+/*
 				//Called when the invocation was successfully completed. Note that this does not necessarily mean the response has bean fully read, which depends on the parameterized invocation callback response type.
 				//Once this invocation callback method returns, the underlying Response instance will be automatically closed by the runtime.
 				//Parameters:
@@ -171,8 +162,8 @@ public class RESTclient extends AbstractService   {
 					String usedTerm = regulationText.substring(skosBegin, skosEnd);
 					System.out.println("usedTerm = "+"i="+i+" " + usedTerm);
 					}
-
-			}
+*/
+  			}
 			@Override
 			public void failed(Throwable throwable) {
 				System.out.println("Invocation failed.!!");
@@ -193,18 +184,22 @@ public class RESTclient extends AbstractService   {
 		System.out.println("regulationText = " + regulationText);
 		Future<Response> response = async_invoker.post(Entity.entity(regulationText, MediaType.TEXT_PLAIN), sftc);
 //		Future<Response> response = async_invoker.post(Entity.entity(regulationText, MediaType.APPLICATION_XML), sftc); reason=Unsupported Media Type}}
-		String responseGot="";
+
 		SKOSConceptOccurrence skosResponse = null;
 		Response responseEntity = null;
 
 		try {
-			responseGot=response.get().toString();
-			System.out.println("The response got in GetSkos1() = "+response.get().toString());
-	//		String fragmentUri =response.get().readEntity(FragmentSKOSConceptOccurrences.class).getFragmentUri(); FAILS!!
+			responseEntity=response.get();
+			System.out.println("ResponseEntity in GetSkos1() = "+responseEntity.toString());
+			FragmentSKOSConceptOccurrences fragmentSKOS = responseEntity.readEntity(FragmentSKOSConceptOccurrences.class);
+ 	//		String fragmentUri =response.get().readEntity(FragmentSKOSConceptOccurrences.class).getFragmentUri(); FAILS!!
 	//		System.out.println("fragmentUri fetched ="+fragmentUri);
 			//System.out.println("The entity got in GetSkos() = "+response.get().getEntity().toString());
 //			FragmentSKOSConceptOccurrences skosConcept= responseEntity.readEntity(FragmentSKOSConceptOccurrences.class);
 //			System.out.println("skosConcept = "+skosConcept.getSkosConceptOccurrence().get(0).getSkosConceptProperty());
+			// FragmentSKOSConceptOccurrences fragmentSKOSConceptOccurrences = responseEntity.readEntity(FragmentSKOSConceptOccurrences.class);
+			System.out.println("fragmentSKOS set: ");
+			fragment = fragmentSKOS;
 		} catch (InterruptedException e) {
 			System.out.println("Interrupted Exception");
 			e.printStackTrace();
@@ -216,68 +211,13 @@ public class RESTclient extends AbstractService   {
 	//		System.out.println("Close");
 //			responseEntity.close();
 //		}
-		System.out.println("responseGot= response.get().toString()= "+ responseGot);
+		System.out.println("Return fragment");
 
-		return responseGot;
+		return fragment;
 		//return responseEntity.getText();
 	}
 
 
-	@Programmatic
-//public MySKOSConcept fetchSKOSconcept(){
-	public SKOSConceptOccurrence fetchSKOSconcept(){
-	class SKOSFreetextCallback implements InvocationCallback<Response> {
-
-		SKOSConceptOccurrence skosConceptOccurrence;
-
-		@Override
-		public void completed(Response response) {
-			System.out.println("Response status code "
-					+ response.getStatus() + " received.");
-			skosConceptOccurrence = response.readEntity(SKOSConceptOccurrence.class);
-			System.out.print("skosConceptOccurrence.toString()= ");
-			System.out.println(skosConceptOccurrence.toString());
-			int skosBegin=skosConceptOccurrence.getBegin();
-			System.out.println("skosBegin = "+skosBegin);
-			String skosText=skosConceptOccurrence.getText();
-			System.out.println("skosText = "+skosText);
-			String skosConceptPropertyLabel=skosConceptOccurrence.getSkosConceptProperty().value();
-			System.out.println("skosConceptPropertyLabel = "+skosConceptPropertyLabel);
-			String skosConceptUri=skosConceptOccurrence.getUri();
-			String skosConceptProperyValue = skosConceptUri.substring(skosConceptUri.indexOf("#"));
-			System.out.println("skosConceptProperyValue = "+skosConceptProperyValue);
-		}
-
-		@Override
-		public void failed(Throwable throwable) {
-			System.out.println("Invocation failed.");
-			throwable.printStackTrace();
-		}
-	}
-	System.out.println("-------------------\nRESTCient async POST Request Test");	Client client = ClientBuilder.newClient();
-	//WebTarget webTarget = client.target("http://192.168.33.10:9000/skos/freetext");
-	//WebTarget webTarget = client.target("http://192.168.33.10:9000/skos/textgenerator");
-	WebTarget webTarget = client.target("http://192.168.33.10:9000/api/semantic/skos");
-	Invocation.Builder invocationBuilder = webTarget.request(MediaType.APPLICATION_XML);
-	invocationBuilder.header("Content-type", "text/plain");
-	// AsyncInvoker async_invoker = invocationBuilder.async().get(sftc);
-	AsyncInvoker async_invoker = invocationBuilder.async();
-	InvocationCallback<Response> sftc = new SKOSFreetextCallback();
-	Future<Response> response = async_invoker.post(Entity.entity("A string entity to be POSTed", MediaType.TEXT_PLAIN), sftc);
-	String responseGot="";
-	System.out.println("responseGot is blank");
-	try {
-		System.out.println("responseGot=response.get().toString();");
-		responseGot=response.get().toString();
-	} catch (InterruptedException e) {
-		e.printStackTrace();
-	} catch (ExecutionException e) {
-		e.printStackTrace();
-	}
-	System.out.println("response.get().toString()= " + responseGot);
-	System.out.println("return skosConceptOccurrence");
-	return null;
-}
 
 	@Action
 	 public void SkosUriRequest() {

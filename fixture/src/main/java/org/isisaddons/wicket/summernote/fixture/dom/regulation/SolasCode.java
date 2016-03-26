@@ -20,7 +20,8 @@ package org.isisaddons.wicket.summernote.fixture.dom.regulation;
 
 //import java.math.BigDecimal;
 
-import com.google.common.collect.Ordering;
+import org.isisaddons.wicket.summernote.fixture.dom.regulation.SolasCodes;
+import org.isisaddons.wicket.summernote.cpt.applib.SummernoteEditor;
 import org.apache.isis.applib.DomainObjectContainer;
 import org.apache.isis.applib.Identifier;
 import org.apache.isis.applib.annotation.*;
@@ -29,16 +30,14 @@ import org.apache.isis.applib.services.eventbus.EventBusService;
 import org.apache.isis.applib.services.wrapper.WrapperFactory;
 import org.apache.isis.applib.util.ObjectContracts;
 import org.apache.isis.applib.util.TitleBuffer;
-import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.MySKOSConcept;
 import org.joda.time.LocalDate;
+import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.MySKOSConcept;
 
 import javax.jdo.JDOHelper;
 import javax.jdo.annotations.IdentityType;
 import javax.jdo.annotations.VersionStrategy;
-import java.util.Comparator;
+import java.util.List;
 import java.util.SortedSet;
-import java.util.TreeSet;
-
 
 @javax.jdo.annotations.PersistenceCapable(identityType=IdentityType.DATASTORE)
 @javax.jdo.annotations.DatastoreIdentity(
@@ -50,60 +49,47 @@ import java.util.TreeSet;
 @javax.jdo.annotations.Uniques({
     @javax.jdo.annotations.Unique(
             name="Regulation_description_must_be_unique", 
-            members={"chapterAnnex","solasChapterNumber","solasPartNumber","solasRegulationNumber"})
+            members={"ownedBy","regulationTitle"})
 })
 @javax.jdo.annotations.Queries( {
-
         @javax.jdo.annotations.Query(
                 name = "findByOwnedBy", language = "JDOQL",
                 value = "SELECT "
-                        + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.SolasChapter "
-                        + "WHERE ownedBy == :ownedBy")
-        ,
+                        + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.SolasCode "
+                        + "WHERE ownedBy == :ownedBy"),
         @javax.jdo.annotations.Query(
-                name = "findChaptersAnnexes", language = "JDOQL",
-                value = "SELECT "
-                        + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.SolasChapter "
-                        + "WHERE chapterAnnex == :chapterAnnex")
-        ,
-        @javax.jdo.annotations.Query(
-        name = "findCodesBySolasChapter", language = "JDOQL",
+        name = "findCodes", language = "JDOQL",
         value = "SELECT "
-                + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.SolasChapter "
-                + "WHERE solasChapterNumber== :solasChapterNumber")
-        ,
+                + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.SolasCode "
+                + "WHERE solasChapter == solasChapter"),
         @javax.jdo.annotations.Query(
-                name = "findChapterTitleBySolasChapterNo", language = "JDOQL",
+                name = "findRegulations", language = "JDOQL",
                 value = "SELECT "
-                        + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.SolasChapter "
-                        + "WHERE solasChapterNumber== :solasChapterNumber")
-        ,
-    @javax.jdo.annotations.Query(
+                        + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.RegulationText "),
+        @javax.jdo.annotations.Query(
             name = "findByOwnedByAndCompleteIsFalse", language = "JDOQL",
             value = "SELECT "
-                    + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.SolasChapter "
+                    + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.RegulationText "
                     + "WHERE ownedBy == :ownedBy "
                     + "   && finalized == false"),
     @javax.jdo.annotations.Query(
             name = "findByOwnedByAndCompleteIsTrue", language = "JDOQL",
             value = "SELECT "
-                    + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.SolasChapter "
+                    + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.RegulationText "
                     + "WHERE ownedBy == :ownedBy "
                     + "&& finalized == true"),
     @javax.jdo.annotations.Query(
             name = "findByOwnedByAndKpi", language = "JDOQL",
             value = "SELECT "
-                    + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.SolasChapter "
+                    + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.RegulationText "
                     + "WHERE ownedBy == :ownedBy "
                     + "&& kpi == :kpi"),
-  /*
     @javax.jdo.annotations.Query(
             name = "findByOwnedByAndRegulationTitleContains", language = "JDOQL",
             value = "SELECT "
-                    + "FROM dom.regulation.SolasChapter "
+                    + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.RegulationText "
                     + "WHERE ownedBy == :ownedBy && "
                     + "regulationTitle.indexOf(:regulationTitle) >= 0"),
-  */
    @javax.jdo.annotations.Query(
             name = "findByClauseOwnedBy", language = "JDOQL",
             value = "SELECT "
@@ -115,272 +101,70 @@ import java.util.TreeSet;
                                 + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.ListItem "
                                 + "WHERE ownedBy == :ownedBy"),
         @javax.jdo.annotations.Query(
-                name = "findBySolasChapter", language = "JDOQL",
-                value = "SELECT " + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.SolasChapter "
+                name = "findByRegulationText", language = "JDOQL",
+                value = "SELECT " + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.RegulationText "
                         + "WHERE ownedBy == :ownedBy"),
     @javax.jdo.annotations.Query(
             name = "findByDefinitionItem", language = "JDOQL",
             value = "SELECT "
                   + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.DefinitionItem "
                   + "WHERE ownedBy == :ownedBy")
-,
-        @javax.jdo.annotations.Query(
-                name = "findByFreeText", language = "JDOQL",
-                value = "SELECT "
-                        + "FROM dom.regulation.FreeText "
-                        + "WHERE ownedBy == :ownedBy")
+
 })
-@DomainObject(objectType="SOLASCHAPTER",autoCompleteRepository=SolasChapters.class, autoCompleteAction="autoComplete", bounded = true)
+@DomainObject(objectType="SOLASCODE",autoCompleteRepository=SolasCodes.class, autoCompleteAction="autoComplete")
  // default unless overridden by autoCompleteNXxx() method
 @DomainObjectLayout(bookmarking= BookmarkPolicy.AS_ROOT)
 @MemberGroupLayout (
-		columnSpans={6,0,0,6},
-		left={"SOLAS","Regulation Text (Edit)","Annotated Text","Annotation","Definition (Update)","Regulation Tags (Edit)","Search Term (Interpretation)","Select Ship Class (Interpretation)"},
-		middle={},
-        right={})
-public class SolasChapter implements Categorized, Comparable<SolasChapter> {
+		columnSpans={4,4,4,12},
+		left={"Regulation Text (Edit)","Semantified Text","Regulation Tags (Edit)"},
+		middle={"Rule (Update)","Definition (Update)"},
+        right={"Search Term (Interpretation)","Select Ship Class (Interpretation)"})
+public class SolasCode implements Categorized, Comparable<SolasCode> {
 
     //region > LOG
     /**
      * It isn't common for entities to log, but they can if required.  
      * Isis uses slf4j API internally (with log4j as implementation), and is the recommended API to use.
      */
-    private final static org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(SolasChapter.class);
+    private final static org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(SolasCode.class);
       //endregion
 
     // region > title, icon
     public String title() {
         final TitleBuffer buf = new TitleBuffer();
-        if (getChapterAnnex().equals(ChapterAnnex.CHAPTER)) {buf.append("SOLAS CHAPTER ");}
-        if (getChapterAnnex().equals(ChapterAnnex.ANNEX))  {buf.append("SOLAS ANNEX ");}
-        if (getChapterAnnex().equals(ChapterAnnex.DIRECTIVE))  {buf.append("EU DIRECTIVE ");}
-        buf.append(getSolasChapterNumber());
-      //  if (getSolasPartNumber() != "-") {buf.append(" PART "); buf.append(getSolasPartNumber());}
-        if (!getSolasPartNumber().equalsIgnoreCase("-")) {
-            if ((getChapterAnnex().equals(ChapterAnnex.CHAPTER)) || (getChapterAnnex().equals(ChapterAnnex.ANNEX))) {
-                buf.append(" PART ");
-            }
-            if ((getChapterAnnex().equals(ChapterAnnex.DIRECTIVE))) {
-                buf.append(" TITLE ");
-            }
-        }
-        buf.append(getSolasPartNumber());
-        if (getChapterAnnex().equals(ChapterAnnex.CHAPTER)) {buf.append(" REGULATION "); }
-        if (getChapterAnnex().equals(ChapterAnnex.ANNEX)) {buf.append(" CHAPTER ");}
-        if (getChapterAnnex().equals(ChapterAnnex.DIRECTIVE)) {buf.append(" ARTICLE ");}
-        buf.append(getSolasRegulationNumber());
+        buf.append(getRegulationTitle());
         return buf.toString();
     }
     //endregion
 
 
-
-    public static enum ChapterAnnex {
-        CHAPTER,
-        ANNEX,
-        DIRECTIVE;
-          }
-
-    private ChapterAnnex chapterAnnex;
-    @javax.jdo.annotations.Column(allowsNull="false")
-    @MemberOrder(name="SOLAS", sequence="29")
-    @Property(editing = Editing.DISABLED)
-    @PropertyLayout(named = " ")
-    public ChapterAnnex getChapterAnnex() {
-        return chapterAnnex;
+    // Region plainRegulationText
+    private String plainRegulationText;
+    @javax.jdo.annotations.Column(allowsNull="false", length=10000)
+   // @Property(regexPattern="\\w[@&:\\-\\,\\.\\+ \\w]*")
+    @MemberOrder(name="Regulation Text (Edit)", sequence="10")
+    @PropertyLayout(typicalLength=10000, multiLine=8)
+    public String getPlainRegulationText() {
+      return plainRegulationText;
     }
-
-    public void setChapterAnnex(final ChapterAnnex chapterAnnex) {
-        this.chapterAnnex = chapterAnnex;
-        if (chapterAnnex == ChapterAnnex.CHAPTER) {regulationChapter = "REGULATION";};
-        if (chapterAnnex == ChapterAnnex.ANNEX) {regulationChapter = "CHAPTER";};
-        if (chapterAnnex == ChapterAnnex.DIRECTIVE) {regulationChapter = "ARTICLE";};
+    public void setPlainRegulationText(final String plainRegulationText) {
+     this.plainRegulationText = plainRegulationText;
     }
-
-
-    private String regulationChapter;
-    @javax.jdo.annotations.Column(allowsNull="false")
-    @MemberOrder(name="SOLAS", sequence="69")
-    @Property(editing = Editing.DISABLED)
-    @PropertyLayout(named = " ")
-    public String getRegulationChapter() {
-        return regulationChapter;
+    public void modifyPlainRegulationText(final String plainRegulationText) {
+        setPlainRegulationText(plainRegulationText);
     }
-    public void setRegulationChapter(final String regulationChapter) {
-        if (chapterAnnex == ChapterAnnex.CHAPTER) {this.regulationChapter = "REGULATION";};
-        if (chapterAnnex == ChapterAnnex.ANNEX) {this.regulationChapter = "CHAPTER";};
-        if (chapterAnnex == ChapterAnnex.DIRECTIVE) {this.regulationChapter = "ARTICLE";};
-    }
-
-    // Region solasChapterNumber
-    private String solasChapterNumber;
-    @javax.jdo.annotations.Column(allowsNull="false", length=10)
-    // @Property(regexPattern="\\w[@&:\\-\\,\\.\\+ \\w]*")
-    @MemberOrder(name="SOLAS", sequence="30")
-    @PropertyLayout(typicalLength=5)
-    public String getSolasChapterNumber() {
-/*
-            final List<SolasChapter> existingChapters = container.allMatches(
-                    new QueryDefault<SolasChapter>(SolasChapter.class,
-                            "findChapterTitleBySolasChapterNo",
-                            "solasChapterNumber", solasChapterNumber));
-        if (!existingChapters.isEmpty())
-        {
-             disableSolasChapterNumber();
-        } */
-        return solasChapterNumber;
-    }
-    public void setSolasChapterNumber(final String solasChapterNumber) {
-        this.solasChapterNumber = solasChapterNumber;
-    }
-    public void modifySolasChapterNumber(final String solasChapterNumber) {
-        setSolasChapterNumber(solasChapterNumber);
-    }
-    public void clearSolasChapterNumber() {
-        setSolasChapterNumber(null);
-    }
-/*
-    public String disableSolasChapterNumber() {
-        return null;
-    }
-*/
-
-    //endregion
-
-
-    // Region solasChapterTitle
-    private String solasChapterTitle;
-    @javax.jdo.annotations.Column(allowsNull="true", length=100)
-    // @Property(regexPattern="\\w[@&:\\-\\,\\.\\+ \\w]*")
-    @MemberOrder(name="SOLAS", sequence="40")
-    @PropertyLayout(named = " ",typicalLength=100)
-    public String getSolasChapterTitle() {
-        return solasChapterTitle;
-    }
-    public void setSolasChapterTitle(final String solasChapterTitle) {
-        this.solasChapterTitle = solasChapterTitle;
-    }
-    public void modifySolasChapterTitle(final String solasChapterTitle) {
-        setSolasChapterTitle(solasChapterTitle);
-    }
-    public void clearSolasChapterTitle() {
-        setSolasChapterTitle(null);
+    public void clearPlainRegulationText() {
+        setPlainRegulationText(null);
     }
     //endregion
-
-    // Region solasPartNumber
-    private String solasPartNumber;
-    @javax.jdo.annotations.Column(allowsNull="true", length=10)
-    // @Property(regexPattern="\\w[@&:\\-\\,\\.\\+ \\w]*")
-    @MemberOrder(name="SOLAS", sequence="50")
-    @PropertyLayout(typicalLength=5, named = "Part No")
-    public String getSolasPartNumber() {
-        return solasPartNumber;
-    }
-    public void setSolasPartNumber(final String solasPartNumber) {
-        if (solasPartNumber == null)
-            {this.solasPartNumber = "-";}
-        else
-        {this.solasPartNumber = solasPartNumber;}
-    }
-    public void modifySolasPartNumber(final String solasPartNumber) {
-        setSolasPartNumber(solasPartNumber);
-    }
-    public void clearSolasPartNumber() {
-        setSolasPartNumber(null);
-    }
-    //endregion
-
-
-    // Region solasPartTitle
-    private String solasPartTitle;
-    @javax.jdo.annotations.Column(allowsNull="true", length=100)
-    // @Property(regexPattern="\\w[@&:\\-\\,\\.\\+ \\w]*")
-    @MemberOrder(name="SOLAS", sequence="60")
-    @PropertyLayout(named = "Title", typicalLength=100)
-    public String getSolasPartTitle() {
-        return solasPartTitle;
-    }
-    public void setSolasPartTitle(final String solasPartTitle) {
-        this.solasPartTitle = solasPartTitle;
-    }
-    public void modifySolasPartTitle(final String solasPartTitle) {
-        setSolasPartTitle(solasPartTitle);
-    }
-    public void clearSolasPartTitle() {
-        setSolasPartTitle(null);
-    }
-    //endregion
-
-    // Region solasRegulationNumber
-    private String solasRegulationNumber;
-    @javax.jdo.annotations.Column(allowsNull="true", length=10)
-    // @Property(regexPattern="\\w[@&:\\-\\,\\.\\+ \\w]*")
-    @MemberOrder(name="SOLAS", sequence="70")
-    @PropertyLayout(named = " ",typicalLength=5)
-    public String getSolasRegulationNumber() {
-        return solasRegulationNumber;
-    }
-    public void setSolasRegulationNumber(final String solasRegulationNumber) {
-        this.solasRegulationNumber = solasRegulationNumber;
-    }
-    public void modifySolasRegulationNumber(final String solasRegulationNumber) {
-        setSolasRegulationNumber(solasRegulationNumber);
-    }
-    public void clearSolasRegulationNumber() {
-        setSolasRegulationNumber(null);
-    }
-    //endregion
-
-
-    // Region solasRegulationTitle
-    private String solasRegulationTitle;
-    @javax.jdo.annotations.Column(allowsNull="true", length=100)
-    // @Property(regexPattern="\\w[@&:\\-\\,\\.\\+ \\w]*")
-    @MemberOrder(name="SOLAS", sequence="80")
-    @PropertyLayout(named = "Title",typicalLength=100)
-    public String getSolasRegulationTitle() {
-        return solasRegulationTitle;
-    }
-    public void setSolasRegulationTitle(final String solasRegulationTitle) {
-        this.solasRegulationTitle = solasRegulationTitle;
-    }
-    public void modifySolasRegulationTitle(final String solasRegulationTitle) {
-        setSolasPartTitle(solasRegulationTitle);
-    }
-    public void clearSolasRegulationTitle() {
-        setSolasRegulationTitle(null);
-    }
-    //endregion
-
-    // Region solasRegulationTitle
-    private String solasRegulationIntroText;
-    @javax.jdo.annotations.Column(allowsNull="true", length=100)
-    // @Property(regexPattern="\\w[@&:\\-\\,\\.\\+ \\w]*")
-    @MemberOrder(name="SOLAS", sequence="90")
-    @PropertyLayout(named = "Intro Text (Applicability)", typicalLength=1000, multiLine = 5)
-    public String getSolasRegulationIntroText() {
-        return solasRegulationIntroText;
-    }
-    public void setSolasRegulationIntroText(final String solasRegulationIntroText) {
-        this.solasRegulationIntroText = solasRegulationIntroText;
-    }
-    public void modifySolasRegulationIntroText(final String solasRegulationIntroText) {
-        setSolasPartTitle(solasRegulationIntroText);
-    }
-    public void clearSolasRegulationIntroText() {
-        setSolasRegulationIntroText(null);
-    }
-    //endregion
-
 
 
     // Region semantifiedRegulationText
     private String semantifiedRegulationText;
     @javax.jdo.annotations.Column(allowsNull="true", length=10000)
    // @Property(regexPattern="\\w[@&:\\-\\,\\.\\+ \\w]*")
-    @MemberOrder(name="SOLAS", sequence="95")
-    @PropertyLayout(typicalLength=10000, multiLine=8, named = "Annotated Text")
+    @MemberOrder(name="Semantified Text", sequence="10")
+    @PropertyLayout(typicalLength=10000, multiLine=8)
     @Property(editing = Editing.DISABLED,editingDisabledReason = "Update using action that calls an SPI from the consolidation services")
     public String getSemantifiedRegulationText() {
         return semantifiedRegulationText;
@@ -395,49 +179,29 @@ public class SolasChapter implements Categorized, Comparable<SolasChapter> {
         setSemantifiedRegulationText(null);
     }
     @Action(semantics = SemanticsOf.IDEMPOTENT)
-    @ActionLayout(named = "Annotate", position = ActionLayout.Position.PANEL)
+    @ActionLayout(named = "Semantify", position = ActionLayout.Position.PANEL)
     @MemberOrder(name="semantifiedRegulationText",
             sequence="10")
-    public SolasChapter updateSemantifiedRegulationText() {
+    public SolasCode updateSemantifiedRegulationText() {
                 // Call API to do semantification:
                 String AsyncRestTest = restClientTest.SkosFreetextAsync();
-        System.out.println("AsyncRestTest = " + AsyncRestTest);
-        this.setSemantifiedRegulationText(AsyncRestTest);
+                this.setSemantifiedRegulationText(AsyncRestTest);
                 container.flush();
-                container.informUser("Annotation completed for " + container.titleOf(this));
-                System.out.println("Calling Semantify here!!");
+                container.informUser("Semantify compeleted for " + container.titleOf(this));
+                System.out.print("Calling Semantify here!!");
                 return this;
      }
      //endregion
 
-
-    // Region target
-    private String term;
-    @javax.jdo.annotations.Column(allowsNull="true", length=3000)
-    //@Property(regexPattern="\\w[@&:\\-\\,\\.\\+ \\w]*")
-    @MemberOrder(name="Annotation", sequence="11")
-    @PropertyLayout(typicalLength=3000, multiLine=3)
-    public String getTerm() {
-        return term;
-    }
-    public void setTerm(final String term) {
-        this.term = term;
-    }
-    public void modifyTerm(final String term) {
-        setTarget(term);
-    }
-    public void clearTerm() {
-        setTerm(null);
-    }
-    //endregion
 
 
     // Region target
     private String target;
     @javax.jdo.annotations.Column(allowsNull="true", length=3000)
     //@Property(regexPattern="\\w[@&:\\-\\,\\.\\+ \\w]*")
-    @MemberOrder(name="Annotation", sequence="11")
+    @MemberOrder(name="Rule (Update)", sequence="10")
     @PropertyLayout(typicalLength=3000, multiLine=3)
+    @SummernoteEditor(height = 100, maxHeight = 300)
     public String getTarget() {
         return target;
     }
@@ -452,18 +216,29 @@ public class SolasChapter implements Categorized, Comparable<SolasChapter> {
     }
     //endregion
 
-    @PropertyLayout(hidden=Where.EVERYWHERE)
+
     // Region requirement
     private String requirement;
     @javax.jdo.annotations.Column(allowsNull="true", length=3000)
     //@Property(regexPattern="\\w[@&:\\-\\,\\.\\+ \\w]*")
-    @MemberOrder(name="Annotation", sequence="20")
+    @MemberOrder(name="Rule (Update)", sequence="20")
     @PropertyLayout(typicalLength=3000, multiLine=3)
+    @SummernoteEditor(height = 100, maxHeight = 300)
     public String getRequirement() {
         return requirement;
     }
-    public void setRequirement(final String requirement) {
+ /*   public void setRequirement(final String requirement) {
         this.requirement = requirement;
+    } */
+    public void setRequirement(final String requirement) {
+       /* this.requirement = "<span style=\"background-color: yellow;\">every\"\" ship</span> must have a polar code certificate.<br>"; */
+       /*THIS WORKS: this.requirement = "<span style=\"color: rgb(34, 34, 34); font-family: arial, sans-serif;" +
+                "font-size: small; line-height: normal;\"><span style=\"background-color:" +
+                "yellow;\">Passenger ships</span> have more than 12 passengers.</span>";
+    */
+        /*THIS WORKS OK AS WELL:*/
+   //     this.requirement = "<span style=\"background-color: rgb(0, 255, 0);\">Every ship</span> must have a polar code certificate.<br>";
+        this.requirement = setColour();
     }
     public void modifyRequirement(final String requirement) {
         setRequirement(requirement);
@@ -473,13 +248,15 @@ public class SolasChapter implements Categorized, Comparable<SolasChapter> {
     }
     //endregion
 
-
-    @PropertyLayout(hidden=Where.EVERYWHERE)
+@Programmatic
+public String setColour () {
+    return "<span style=\"background-color: rgb(0, 255, 0);\">Every ship</span> must have a polar code certificate.";
+}
     // Region context
     private String context;
     @javax.jdo.annotations.Column(allowsNull="true", length=3000)
     //@Property(regexPattern="\\w[@&:\\-\\,\\.\\+ \\w]*")
-    @MemberOrder(name="Annotation", sequence="30")
+    @MemberOrder(name="Rule (Update)", sequence="30")
     @PropertyLayout(typicalLength=3000, multiLine=3)
     public String getContext() {
         return context;
@@ -497,11 +274,10 @@ public class SolasChapter implements Categorized, Comparable<SolasChapter> {
 
 
     // Region exception
-    @PropertyLayout(hidden=Where.EVERYWHERE)
     private String exception;
     @javax.jdo.annotations.Column(allowsNull="true", length=3000)
     //@Property(regexPattern="\\w[@&:\\-\\,\\.\\+ \\w]*")
-    @MemberOrder(name="Annotation", sequence="40")
+    @MemberOrder(name="Rule (Update)", sequence="40")
     @PropertyLayout(typicalLength=3000, multiLine=3)
     public String getException() {
         return exception;
@@ -561,10 +337,10 @@ public class SolasChapter implements Categorized, Comparable<SolasChapter> {
     //endregion
 
 
-/*
+
     // Region regulationTitle
     private String regulationTitle;
-    @javax.jdo.annotations.Column(allowsNull="true", length=255)
+    @javax.jdo.annotations.Column(allowsNull="false", length=255)
     @Property(regexPattern="\\w[@&:\\-\\,\\.\\+ \\w]*")
     @MemberOrder(name="Regulation Tags (Edit)", sequence="10")
     @PropertyLayout(typicalLength=80)
@@ -581,7 +357,7 @@ public class SolasChapter implements Categorized, Comparable<SolasChapter> {
         setRegulationTitle(null);
     }
     //endregion
-*/
+
     //region > regulationType (property)
     public static enum RegulationType {
         Certificate,
@@ -641,7 +417,6 @@ public class SolasChapter implements Categorized, Comparable<SolasChapter> {
     //endregion
 
 
-    @PropertyLayout(hidden=Where.EVERYWHERE)
     // Region regulationAND
     private boolean regulationAND;
     @javax.jdo.annotations.Column(allowsNull="true")
@@ -780,26 +555,24 @@ public class SolasChapter implements Categorized, Comparable<SolasChapter> {
         return id.substring(0,indexEnd);
     }
 
- /***
-  *  // region > ParentRegulation
-    private SolasChapter parentRegulation;
+    // region > ParentRegulation
+    private SolasCode parentRegulation;
     @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
     @javax.jdo.annotations.Column(allowsNull="true")
     // @Mandatory
     @MemberOrder(name="Regulation Tags (Edit)",sequence = "70")
    // @Property(editing=Editing.DISABLED)
-    public SolasChapter getParentRegulation()
+    public SolasCode getParentRegulation()
     { return parentRegulation; }
-    public void setParentRegulation(final SolasChapter parentRegulation)
+    public void setParentRegulation(final SolasCode parentRegulation)
     { this.parentRegulation = parentRegulation; }
-    public List<SolasChapter> choicesParentRegulation()
-    { List<SolasChapter> list = container.allInstances(SolasChapter.class);
+    public List<SolasCode> choicesParentRegulation()
+    { List<SolasCode> list = container.allInstances(SolasCode.class);
         list.remove(this);
      return list;
     }
 // end region ParentRegulation.
 
-**/
 
 
     // Region searchTerm
@@ -821,7 +594,7 @@ public class SolasChapter implements Categorized, Comparable<SolasChapter> {
     }
     @MemberOrder(name="searchTerm", sequence="11")
     @Action(semantics = SemanticsOf.IDEMPOTENT)
-    public SolasChapter searchTerm() {
+    public SolasCode searchTerm() {
         String restTest = restClientTest.SkosFreetext();
         this.setDefinitionTerm(restTest);
         container.flush();
@@ -833,7 +606,6 @@ public class SolasChapter implements Categorized, Comparable<SolasChapter> {
 
 
     // Region broaderTerm
-    @PropertyLayout(hidden=Where.EVERYWHERE)
     private String broaderTerm;
     @javax.jdo.annotations.Column(allowsNull="true", length=1000)
     @MemberOrder(name="Search Term (Interpretation)", sequence="20")
@@ -887,7 +659,6 @@ public class SolasChapter implements Categorized, Comparable<SolasChapter> {
 
 
     // Region searchShipTerm
-    @PropertyLayout(hidden=Where.EVERYWHERE)
     private String searchShipClass;
     @javax.jdo.annotations.Column(allowsNull="true", length=1000)
     @MemberOrder(name="Select Ship Class (Interpretation)", sequence="10")
@@ -906,7 +677,7 @@ public class SolasChapter implements Categorized, Comparable<SolasChapter> {
     //@javax.jdo.annotations.Column(allowsNull="true")
     @Action(semantics = SemanticsOf.IDEMPOTENT)
    // public ShipType searchShipClass() {
-    public SolasChapter searchShipClass() {
+    public SolasCode searchShipClass() {
         // Must change to shipType:  ShipType restTest = restClientTest.fetchSKOSconcept();
         System.out.println("restTestSKOSconcept = restClientTest.fetchSKOSconcept();");
         MySKOSConcept restTestSKOSconcept = restClientTest.fetchSKOSconcept();
@@ -934,7 +705,7 @@ public class SolasChapter implements Categorized, Comparable<SolasChapter> {
     //@javax.jdo.annotations.Column(allowsNull="true")
     @Action(semantics = SemanticsOf.IDEMPOTENT)
     // public ShipType searchShipClass() {
-    public SolasChapter selectShipClass() {
+    public SolasCode selectShipClass() {
         // Must change to shipType:  ShipType restTest = restClientTest.fetchSKOSconcept();
         // Must change this!Must add a link to an instance containing the position in the string, the listed name and the ship class.
         this.setSelectedShipClass("Selected ship class");
@@ -989,144 +760,6 @@ public class SolasChapter implements Categorized, Comparable<SolasChapter> {
         this.selectedShipClass = selectedShipClass;}
 // end region
 
-
-/**
-    //region > someTextObjects (collection)
-    public java.util.List<TextObject> getSomeTextObjects() {
-        return textObjects.listAll();
-    }
-    //endregion
-    **/
-
-
-@javax.jdo.annotations.Persistent(mappedBy="solasChapter")
-@javax.jdo.annotations.Join // Make a separate join table.
-private SortedSet<FreeText> freeTexts = new TreeSet<FreeText>();
-//    @MemberOrder(name="Sections", sequence = "82")
-
-     //   @PropertyLayout(named="FreeTextSection")
-    @SuppressWarnings("deprecation")
-    //@CollectionInteraction
-  //  @Collection(domainEvent=SolasChapter .FreeTexts.class)
-    @CollectionLayout(named = "Sections" , sortedBy=FreeTextsComparator.class,render=RenderType.EAGERLY)
-     public SortedSet<FreeText> getFreeTexts() {
-        return freeTexts;
-    }
-    public void setFreeTexts(SortedSet<FreeText> freeText) {
-        this.freeTexts = freeText;
-    }
-    public void removeFromFreeTexts(final FreeText freeText) {
-        if(freeText == null || !getFreeTexts().contains(freeText)) return;
-        getFreeTexts().remove(freeText);
-    }
-
-
-    // / overrides the natural ordering
-    public static class FreeTextsComparator implements Comparator<FreeText> {
-        @Override
-        public int compare(FreeText p, FreeText q) {
-            Ordering<FreeText> bySectionNo = new Ordering<FreeText>() {
-                public int compare(final FreeText p, final FreeText q) {
-                    return Ordering.natural().nullsFirst().compare(p.getSectionNo(),q.getSectionNo());
-                }
-            };
-            return bySectionNo
-                    .compound(Ordering.<FreeText>natural())
-                    .compare(p, q);
-        }
-    }
-
-
-
-    //This is the add-Button!!!
-
-    /* do not need the add button...
-     public java.util.List<FreeText> autoComplete0AddFreeText(final String search) {
-        final java.util.List<FreeText> list = container.allMatches(new QueryDefault<FreeText>(FreeText.class,"findByOwnedBy", "ownedBy", "ecompliance"));
-        list.removeAll(getFreeTexts());//Remove those FreeTexts already linked to the SOLASchapter
-        return list;
-    }
-    @Action()
-    @ActionLayout(named = "Add")
-    @MemberOrder(name = "freeTexts", sequence = "13")
-    public SolasChapter addFreeText(final FreeText freeText) {
-         wrapperFactory.wrapSkipRules(freeText).setSolasChapter(this);
-        getFreeTexts().add(freeText);
-        return this;
-    }
-*/
-    @Action()
-    @ActionLayout(named = "Add New Section")
-    @MemberOrder(name = "freeTexts", sequence = "15")
-    public SolasChapter addNewFreeText(final @ParameterLayout(typicalLength=10,named = "Section No") String sectionNo,
-                                       final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=1000, multiLine=8,named = "Regulation Text") String plainRegulationText
-                                        //,final SolasChapter solasChapter
-                                        )
-    {
-       // getFreeTexts().add(freeText);
-//        getFreeTexts().add(newFreeTextCall.newFreeText(sectionNo, plainRegulationText, solasChapter));
-        getFreeTexts().add(newFreeTextCall.newFreeText(sectionNo, plainRegulationText));
-        /* addParticipant(participantsRepo.newParticipant(firstname, surname, dob));*/
-        return this;
-    }
-    /*from here
-
-    @Action()
-    @ActionLayout(named = "Add")
-    @MemberOrder(name = "participations", sequence = "1")
-    public Activity addParticipant(final Participant participant) {
-        if (findParticipation(participant) == null) {
-            participantsRepo.createParticipation(this, participant);
-        } else {
-            container.informUser("A Participant (" +
-                    participant.getFullName() + ") is already participating in this Activity");
-        }
-        return this;
-    }
-
-    @Action()
-    @ActionLayout(named = "Add New")
-    @MemberOrder(name = "participations", sequence = "2")
-    public Activity addNewParticipant(final @ParameterLayout(named = "First
-            name") String firstname, final @ParameterLayout(named = "Surname") String surname,
-            final @ParameterLayout(named = "Date of Birth") LocalDate dob) {
-        addParticipant(participantsRepo.newParticipant(firstname, surname, dob));
-        return this;
-    }
- to here */
-
-
-    //This is the Remove-Button!!
-    @MemberOrder(name="freeTexts", sequence = "20")
-    @ActionLayout(named = "Delete Section")
-    public SolasChapter removeFreeText(final @ParameterLayout(typicalLength=30) FreeText freeText) {
-        // By wrapping the call, Isis will detect that the collection is modified
-        // and it will automatically send a CollectionInteractionEvent to the Event Bus.
-        // ToDoItemSubscriptions is a demo subscriber to this event
-        wrapperFactory.wrapSkipRules(this).removeFromFreeTexts(freeText);
-        container.removeIfNotAlready(freeText);
-        return this;
-    }
-
-
-    // disable action dependent on state of object
-    public String disableRemoveFreeText(final FreeText freeText) {
-                 return getFreeTexts().isEmpty()? "No Text to remove": null;
-    }
-    // validate the provided argument prior to invoking action
-    public String validateRemoveFreeText(final FreeText freeText) {
-        if(!getFreeTexts().contains(freeText)) {
-            return "Not a FreeText";
-        }
-        return null;
-    }
-
-    // provide a drop-down
-    public java.util.Collection<FreeText> choices0RemoveFreeText() {
-        return getFreeTexts();
-    }
-    //endregion region Link Regulation --> to (several) Rules
-
     //region > lifecycle callbacks
 
     public void created() {
@@ -1164,32 +797,34 @@ private SortedSet<FreeText> freeTexts = new TreeSet<FreeText>();
      */
     //endregion
 
-    //region Fetch all the annexes (codes) relevant for this SOLAS chapter. May be only one.
-    // Only fetching is done here, no updates.
-    // Do not need to store the !result
+
+    //region similar Regulations found by semantic-ontological search.
+    // Search Similar Regulations (Interpretation)
+    // Do not need to store the search result!!
+    // Combined semantic and ontological search!
     //region > dependencies (property), add (action), remove (action)
-   /**
-    private Set<SolasCode> solasCodes = new TreeSet<>();
+/**
+    private Set<SolasCode> similarRegulations = new TreeSet<>();
+    //private SortedSet<ToDoItem> dependencies = new TreeSet<>();  // not compatible with neo4j (as of DN v3.2.3)
     @Collection()
     @CollectionLayout(  render = RenderType.EAGERLY) // not compatible with neo4j (as of DN v3.2.3)
-    public Set<SolasCode> getSolasCodes() {return solasCodes;}
-    public void setSolasCodes(Set<SolasCode> solasCodes) {this.solasCodes=solasCodes;}
-    @MemberOrder(name="SolasCodes", sequence="20")
-    public SolasChapter FetchSolasCodes(){
-        setSolasCodes(restClientTest.findSolasCodes(this));
+    public Set<SolasCode> getSimilarRegulations() {return similarRegulations;}
+    public void setSimilarRegulations(Set<SolasCode> similarRegulations) {this.similarRegulations=similarRegulations;}
+    @MemberOrder(name="similarRegulations", sequence="20")
+    public SolasCode SearchSimilarRegulations(){
+        setSimilarRegulations(restClientTest.findSimilarRegulations(this));
         return this;
     }
-    //endregion similar Regulations found by semantic-ontological search.
+     //endregion similar Regulations found by semantic-ontological search.
 **/
 
-
     //region > events
-    public static abstract class AbstractActionInteractionEvent extends ActionInteractionEvent<SolasChapter> {
+    public static abstract class AbstractActionInteractionEvent extends ActionInteractionEvent<SolasCode> {
         private static final long serialVersionUID = 1L;
         private final String description;
         public AbstractActionInteractionEvent(
                 final String description,
-                final SolasChapter source,
+                final SolasCode source,
                 final Identifier identifier,
                 final Object... arguments) {
             super(source, identifier, arguments);
@@ -1203,7 +838,7 @@ private SortedSet<FreeText> freeTexts = new TreeSet<FreeText>();
     public static class DeletedEvent extends AbstractActionInteractionEvent {
         private static final long serialVersionUID = 1L;
         public DeletedEvent(
-                final SolasChapter source,
+                final SolasCode source,
                 final Identifier identifier,
                 final Object... arguments) {
             super("deleted", source, identifier, arguments);
@@ -1217,28 +852,25 @@ private SortedSet<FreeText> freeTexts = new TreeSet<FreeText>();
     @Override
     public String toString() {
 //        return ObjectContracts.toString(this, "description,complete,dueBy,ownedBy");
-        return ObjectContracts.toString(this, "solasChapterNumber,solasRegulationNumber, ownedBy");
+        return ObjectContracts.toString(this, "regulationTitle,plainRegulationText, ownedBy");
     }
 
     /**
      * Required so can store in {@link SortedSet sorted set}s (eg {@link #getDependencies()}). 
      */
     @Override
-    public int compareTo(final SolasChapter other) {
-        return ObjectContracts.compare(this, other, "solasChapterNumber,solasRegulationNumber, ownedBy");
+    public int compareTo(final SolasCode other) {
+        return ObjectContracts.compare(this, other, "regulationTitle,plainRegulationText, ownedBy");
     }
     //endregion
 
     //region > injected services
-
-  @javax.inject.Inject
-    private FreeTexts newFreeTextCall;
-
     @javax.inject.Inject
     private DomainObjectContainer container;
 
+    // This makes SolasCode appear as a separate menu item.
     @javax.inject.Inject
-    private SolasChapters solasChapters;
+    private SolasCodes solasCodes;
 
     @javax.inject.Inject
     private RESTclientTest restClientTest;
@@ -1262,4 +894,3 @@ private SortedSet<FreeText> freeTexts = new TreeSet<FreeText>();
 
     //endregion
 }
-
