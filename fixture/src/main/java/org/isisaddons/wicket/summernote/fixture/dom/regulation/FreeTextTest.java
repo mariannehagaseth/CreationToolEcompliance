@@ -61,20 +61,14 @@ import java.util.TreeSet;
         @javax.jdo.annotations.Query(
                 name = "findByOwnedBy", language = "JDOQL",
                 value = "SELECT "
-                        + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.FreeText "
+                        + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.FreeTextTest "
                         + "WHERE ownedBy == :ownedBy"),
         @javax.jdo.annotations.Query(
         name = "findFreeTexts", language = "JDOQL",
         value = "SELECT "
-                + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.FreeText "),
-    @javax.jdo.annotations.Query(
-            name = "findByOwnedByAndCompleteIsFalse", language = "JDOQL",
-            value = "SELECT "
-                    + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.FreeText "
-                    + "WHERE ownedBy == :ownedBy "
-                    + "   && finalized == false")
+                + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.FreeTextTest ")
 })
-@DomainObject(objectType="FREETEXT",autoCompleteRepository=FreeTexts.class, autoCompleteAction="autoComplete")
+@DomainObject(objectType="FREETEXTTEST",autoCompleteRepository=FreeTextTests.class, autoCompleteAction="autoComplete")
  // default unless overridden by autoCompleteNXxx() method
 @DomainObjectLayout(bookmarking= BookmarkPolicy.AS_ROOT)
 @MemberGroupLayout (
@@ -82,37 +76,20 @@ import java.util.TreeSet;
 		left={"Section", "Annotation","RegulationAnd"},
 		middle={},
         right={})
-public class FreeText implements Categorized, Comparable<FreeText> {
+public class FreeTextTest implements Categorized, Comparable<FreeTextTest> {
 
     //region > LOG
     /**
      * It isn't common for entities to log, but they can if required.  
      * Isis uses slf4j API internally (with log4j as implementation), and is the recommended API to use.
      */
-    private final static org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(FreeText.class);
+    private final static org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(FreeTextTest.class);
       //endregion
 
     // region > title, icon
     public String title() {
         final TitleBuffer buf = new TitleBuffer();
-        if (getSolasChapter().getChapterAnnex().equals(ChapterAnnex.CHAPTER)) {buf.append("SOLAS CHAPTER ");}
-        if (getSolasChapter().getChapterAnnex().equals(ChapterAnnex.ANNEX)) {buf.append("SOLAS ANNEX ");}
-        if (getSolasChapter().getChapterAnnex().equals(ChapterAnnex.DIRECTIVE))  {buf.append("EU DIRECTIVE ");}
-        buf.append(getSolasChapter().getSolasChapterNumber());
-        if (!getSolasChapter().getSolasPartNumber().equalsIgnoreCase("-")) {
-            if ((getSolasChapter().getChapterAnnex().equals(ChapterAnnex.CHAPTER)) || (getSolasChapter().getChapterAnnex().equals(ChapterAnnex.ANNEX))) {
-                buf.append(" PART ");
-            }
-            if ((getSolasChapter().getChapterAnnex().equals(ChapterAnnex.DIRECTIVE))) {
-                buf.append(" TITLE ");
-            }
-        }
-        buf.append(getSolasChapter().getSolasPartNumber());
-        if (getSolasChapter().getChapterAnnex().equals(ChapterAnnex.CHAPTER)) {buf.append(" REGULATION "); }
-        if (getSolasChapter().getChapterAnnex().equals(ChapterAnnex.ANNEX)) {buf.append(" CHAPTER ");}
-        if (getSolasChapter().getChapterAnnex().equals(ChapterAnnex.DIRECTIVE)) {buf.append(" ARTICLE ");}
-        buf.append(getSolasChapter().getSolasRegulationNumber());
-        buf.append("SECTION ");
+         buf.append("SECTION ");
         buf.append(getSectionNo());
         return buf.toString();
     }
@@ -180,28 +157,6 @@ public class FreeText implements Categorized, Comparable<FreeText> {
     public void clearAnnotatedText() {
         setAnnotatedText(null);
     }
-/*
-    @Action()
-    @ActionLayout(named = "Annotate (Get Rule)", position = ActionLayout.Position.PANEL)
-    @MemberOrder(name="Section",
-            sequence="40")
-//    public FreeText updateSemantifiedRegulationText() {
-    public FreeText fetchRule() {
-            // Call API to do semantification:
-//        String AsyncRestTest = restClientTest.SkosFreetextAsync();
-       // String asyncRestCall = restClient.GetTarget();
-        // Get target is fetching the whole RULE
-        String asyncRestCall = restClient.GetRule();
-        System.out.println("asyncRest  (restClient.GetRule) = " + asyncRestCall);
-        this.setSemantifiedRegulationText(asyncRestCall);
-        container.flush();
-        container.informUser("Annotation completed for " + container.titleOf(this));
-        System.out.println("Fetching RULE here using GetRule!!");
-        // MHAGA: Must show target in blue!! Other values also!!
-        return this;
-    }
-    //endregion
-*/
 
     // Begin Region skosTerm
     private String skosTerms;
@@ -228,7 +183,7 @@ public class FreeText implements Categorized, Comparable<FreeText> {
  //  @ActionLayout(named = "Check Terms", position = ActionLayout.Position.PANEL)
     @ActionLayout(position = ActionLayout.Position.PANEL)
     @MemberOrder(name="Terms", sequence="20")
-  public FreeText CheckTerms() {
+  public FreeTextTest CheckTerms() {
         // Call API to fetch SKOS terms
          String fragmentUri = "";
         List<SKOSConceptOccurrence> skosList = null;
@@ -411,7 +366,7 @@ public class FreeText implements Categorized, Comparable<FreeText> {
     //  @ActionLayout(named = "Check Terms", position = ActionLayout.Position.PANEL)
     @ActionLayout(position = ActionLayout.Position.PANEL)
     @MemberOrder(name="Terms", sequence="20")
-    public FreeText ShowRule() {
+    public FreeTextTest ShowRule() {
         // Call API to fetch Target, that is the Rule.
 
         String ruleFound = "";
@@ -546,18 +501,6 @@ public class FreeText implements Categorized, Comparable<FreeText> {
     // department=regulation=SOLASchapter
     //empolyee=RegulationRule=FreeText
 
-    // mapping is done to this property:
-    @javax.jdo.annotations.Column(allowsNull="true")
-    @Property(editing= Editing.DISABLED,editingDisabledReason="SOLAS Chapter cannot be updated from here")
-    @PropertyLayout(hidden=Where.REFERENCES_PARENT, named = "SOLAS Link")
-    @MemberOrder(name="Section", sequence="50")
-    private SolasChapter solasChapter;
-    @javax.jdo.annotations.Column(allowsNull="true")
-    public SolasChapter getSolasChapter() { return solasChapter; }
-    @javax.jdo.annotations.Column(allowsNull="true")
-    public void setSolasChapter(SolasChapter solasChapter) { this.solasChapter = solasChapter; }
-
-    // End   Regulation to RegulationRule
 
 
 
@@ -574,272 +517,6 @@ public class FreeText implements Categorized, Comparable<FreeText> {
     }
     //end region
 
-
-
-    // BEGIN REGION Link to TextItems, a list of text items.
-    @javax.jdo.annotations.Persistent(mappedBy="freeText")
-    @javax.jdo.annotations.Join // Make a separate join table.
-    private SortedSet<TextItem> textItems= new TreeSet<TextItem>();
-    @SuppressWarnings("deprecation")
-    @CollectionLayout(named = "List of Items" , sortedBy=TextItemComparator.class,render=RenderType.EAGERLY)
-    @MemberOrder(name="List of Items",sequence = "10")
-    public SortedSet<TextItem> getTextItems() {
-        return textItems;
-    }
-    public void setTextItems(SortedSet<TextItem> textItem) {
-        this.textItems = textItem;
-    }
-    public void removeFromTextItems(final TextItem item) {
-        if(item == null || !getTextItems().contains(item)) return;
-        getTextItems().remove(item);
-    }
-
-    // / overrides the natural ordering
-    public static class TextItemComparator implements Comparator<TextItem> {
-        @Override
-        public int compare(TextItem p, TextItem q) {
-            Ordering<TextItem> byItemNo= new Ordering<TextItem>() {
-                public int compare(final TextItem p, final TextItem q) {
-                    return Ordering.natural().nullsFirst().compare(p.getItemNo(),q.getItemNo());
-                }
-            };
-            return byItemNo
-                    .compound(Ordering.<TextItem>natural())
-                    .compare(p, q);
-        }
-    }
-
-    //This is the add-Button!!!
-
-    @Action()
-    @ActionLayout(named = "Add New Item")
-    @MemberOrder(name = "List of Items", sequence = "70")
-    public FreeText addNewTextItem(final @ParameterLayout(typicalLength=10,named = "Item No") String itemNo,
-                                   final  @ParameterLayout(typicalLength=1000, multiLine=8,named = "Text") String plainRegulationText
-    )
-    {
-        getTextItems().add(newTextItemCall.newTextItem(itemNo, plainRegulationText));
-        return this;
-    }
-
-    //This is the Remove-Button!!
-    @MemberOrder(name="List of Items", sequence = "80")
-    @ActionLayout(named = "Delete Item")
-    public FreeText removeTextItem(final @ParameterLayout(typicalLength=30) TextItem item) {
-        // By wrapping the call, Isis will detect that the collection is modified
-        // and it will automatically send a CollectionInteractionEvent to the Event Bus.
-        // ToDoItemSubscriptions is a demo subscriber to this event
-        wrapperFactory.wrapSkipRules(this).removeFromTextItems(item);
-        container.removeIfNotAlready(item);
-        return this;
-    }
-
-    // disable action dependent on state of object
-    public String disableRemoveTextItem(final TextItem item) {
-        return getTextItems().isEmpty()? "No Item to remove": null;
-    }
-    // validate the provided argument prior to invoking action
-    public String validateRemoveTextItem(final TextItem item) {
-        if(!getTextItems().contains(item)) {
-            return "Not an Item";
-        }
-        return null;
-    }
-
-    // provide a drop-down
-    public java.util.Collection<TextItem> choices0RemoveTextItem() {
-        return getTextItems();
-    }
-    //endregion region Link FreeText (Section) --> to (several) TextItems
-
-    @Programmatic
-    public String makeColourText() {
-        // Call API to do semantification:
-//        String AsyncRestTest = restClientTest.SkosFreetextAsync();
-        // String asyncRestCall = restClient.GetTarget();
-        // Get target is fetching the whole RULE
-        String fragmentUri = "";
-        List<SKOSConceptOccurrence> skosList = null;
-        List <String> skosListRead =null;
-        // VAriable used to build the SKOS term list to show to the user.
-        String builtSkosTerms = "";
-        // Variable used to put colours on the annotated text for the user.
-        // this.requirement = "<span style=\"background-color: rgb(255, 255, 0);\">Every ship</span> must have a polar code certificate.<br>";
-        final String startYellow = "<span style=\"background-color: rgb(255, 255, 0);\">";
-        final String startGreen = "<span style=\"background-color: rgb(0, 255, 0);\">";
-        final String endColour = "</span>";
-        final String endString = "<br>";
-        String colourText = "";
-        System.out.println("plainRegulationText = " + plainRegulationText);
-        FragmentSKOSConceptOccurrences fragment = restClient.GetSkos(plainRegulationText);
-
-        if (fragment == null){
-            System.out.println("fragment is null");
-        }
-        else
-        {
-            fragmentUri=fragment.getFragmentUri();
-            System.out.println("FragmentUri = "+fragmentUri);
-
-            int nextChar = 0;
-
-            skosList = fragment.getSkosConceptOccurrence();
-
-            int lastSkosConcept = fragment.getSkosConceptOccurrence().size();
-            if (lastSkosConcept >0) {
-                for (int i = 0; i < lastSkosConcept; i++) {
-                    int skosBegin = skosList.get(i).getBegin();
-                    System.out.println("skosBegin = " + "i=" + i + " " + skosBegin);
-
-                    int skosEnd = skosList.get(i).getEnd();
-                    System.out.println("skosEnd = " + "i=" + i + " " + skosEnd);
-
-                    String skosConceptPropertyLabel = skosList.get(i).getSkosConceptProperty().value();
-                    System.out.println("skosConceptPropertyLabel = " + "i=" + i + " " + skosConceptPropertyLabel);
-
-                    String skosConceptUri = skosList.get(i).getUri();
-                    String skosConceptProperyValue = skosConceptUri.substring(skosConceptUri.indexOf("#") + 1);
-                    skosConceptProperyValue = skosConceptProperyValue.replace("_"," ");
-                    System.out.println("skosConceptProperyValue = " + "i=" + i + " " + skosConceptProperyValue);
-
-                    String usedTerm = plainRegulationText.substring(skosBegin, skosEnd);
-                    System.out.println("usedTerm = " + "i=" + i + " " + usedTerm);
-                    colourText = colourText+plainRegulationText.substring(nextChar, skosBegin);
-                    if (skosConceptPropertyLabel =="altLabel") {
-                        // The alternative label is used. Show the preferred label.
-                        System.out.println("skosConceptProperyValue-1="+skosConceptProperyValue);
-                        System.out.println("usedTerm-1="+usedTerm);
-                        builtSkosTerms = builtSkosTerms+"\""+skosConceptProperyValue+"\""+" should be used instead of "+"\""+usedTerm+"\"."+"\n";
-                        // set yellow colour of the term
-                        colourText = colourText+startYellow;
-                    }
-                    if (skosConceptPropertyLabel == "prefLabel") {
-                        // Set gr-een colour of the term.
-                        colourText = colourText+startGreen;
-                    }
-                    colourText = colourText+usedTerm;
-                    colourText = colourText+endColour;
-                    nextChar = skosEnd;
-                }//for
-            }//if
-            else {
-                colourText = plainRegulationText;
-            }
-
-        }//else
-        setSkosTerms(builtSkosTerms);
-        // MHAGA: Must show alternative SKOS in yellow!! Preferred SKOS terms shown in green.
-        // Must show different values
-        //  setSemantifiedRegulationText(colourText+endString);
-      setAnnotatedText(colourText);
-        container.flush();
-        container.informUser("Fetched SKOS terms completed for " + container.titleOf(this));
-        System.out.println("Fetching SKOS Terms here using GetSkos!!");
-        return colourText;
-    }
-
-    /*
-        public void updateSkosTerms() {
-            // clearing the fields when updating the text...
-            clearSkosTerms();
-            clearSemantifiedRegulationText();
-        }
-*/
-
- /* MHAGA
-    //BEGIN Check Terms by opening a creating object.
-    //mhaga: Cannot have the full list, since we do not want to store the coloring..
-    @Action()
-    @ActionLayout(named = "Check Terms Separately",position = ActionLayout.Position.PANEL)
-    @MemberOrder(name = "Section", sequence = "15")
- //   public FreeText addNewAnnotation()
-    public Annotation addNewAnnotation()
-    {
-        String colourtext = makeColourText();
-        System.out.println("Starting newAnnotation");
-        Annotation thisAnnotation = newAnnotation.newAnnotation(colourtext);
-        System.out.println("FInish newAnnotation");
-        return thisAnnotation ;
-    }
-    //END Check Terms by opening a creating object.
-*/
-
-        // BEGIN REGION Link to SubSections
-    //    @javax.jdo.annotations.Persistent(mappedBy="solasChapter")
-        @javax.jdo.annotations.Persistent(mappedBy="freeTextSection")
-        @javax.jdo.annotations.Join // Make a separate join table.
-        private SortedSet<SubSection> subSections= new TreeSet<SubSection>();
-         @SuppressWarnings("deprecation")
-         @CollectionLayout(named = "SubSections" , sortedBy=SubSectionsComparator.class,render=RenderType.EAGERLY)
-         @MemberOrder(name="SubSections",sequence = "20")
-         public SortedSet<SubSection> getSubSections() {
-            return subSections;
-        }
-        public void setSubSections(SortedSet<SubSection> subSection) {
-            this.subSections = subSection;
-        }
-        public void removeFromSubSections(final SubSection subSection) {
-            if(subSection == null || !getSubSections().contains(subSection)) return;
-            getSubSections().remove(subSection);
-        }
-
-        // / overrides the natural ordering
-        public static class SubSectionsComparator implements Comparator<SubSection> {
-            @Override
-            public int compare(SubSection p, SubSection q) {
-                Ordering<SubSection> bySubSectionNo = new Ordering<SubSection>() {
-                    public int compare(final SubSection p, final SubSection q) {
-                        return Ordering.natural().nullsFirst().compare(p.getSubSectionNo(),q.getSubSectionNo());
-                    }
-                };
-                return bySubSectionNo
-                        .compound(Ordering.<SubSection>natural())
-                        .compare(p, q);
-            }
-        }
-
-        //This is the add-Button!!!
-
-        @Action()
-        @ActionLayout(named = "Add New SubSection")
-        @MemberOrder(name = "subSections", sequence = "15")
-        public FreeText addNewSubSection(final @ParameterLayout(typicalLength=10,named = "Sub Section No") String subSectionNo,
-                                           final  @ParameterLayout(typicalLength=1000, multiLine=8,named = "Regulation Text") String plainRegulationText
-        )
-        {
-             getSubSections().add(newSubSectionCall.newSubSection(subSectionNo, plainRegulationText));
-             return this;
-        }
-
-        //This is the Remove-Button!!
-        @MemberOrder(name="subSections", sequence = "20")
-        @ActionLayout(named = "Delete SubSection")
-        public FreeText removeSubSection(final @ParameterLayout(typicalLength=30) SubSection subSection) {
-            // By wrapping the call, Isis will detect that the collection is modified
-            // and it will automatically send a CollectionInteractionEvent to the Event Bus.
-            // ToDoItemSubscriptions is a demo subscriber to this event
-            wrapperFactory.wrapSkipRules(this).removeFromSubSections(subSection);
-            container.removeIfNotAlready(subSection);
-            return this;
-        }
-
-        // disable action dependent on state of object
-        public String disableRemoveSubSection(final SubSection subSection) {
-            return getSubSections().isEmpty()? "No Text to remove": null;
-        }
-        // validate the provided argument prior to invoking action
-        public String validateRemoveSubSection(final SubSection subSection) {
-            if(!getSubSections().contains(subSection)) {
-                return "Not a SubSection";
-            }
-            return null;
-        }
-
-        // provide a drop-down
-        public java.util.Collection<SubSection> choices0RemoveSubSection() {
-            return getSubSections();
-        }
-        //endregion region Link FreeText (Section) --> to (several) SubSections
 
 
 
@@ -925,12 +602,12 @@ public class FreeText implements Categorized, Comparable<FreeText> {
 
 
         //region > events
-        public static abstract class AbstractActionInteractionEvent extends ActionInteractionEvent<FreeText> {
+        public static abstract class AbstractActionInteractionEvent extends ActionInteractionEvent<FreeTextTest> {
             private static final long serialVersionUID = 1L;
             private final String description;
             public AbstractActionInteractionEvent(
                     final String description,
-                    final FreeText source,
+                    final FreeTextTest source,
                     final Identifier identifier,
                     final Object... arguments) {
                 super(source, identifier, arguments);
@@ -944,7 +621,7 @@ public class FreeText implements Categorized, Comparable<FreeText> {
         public static class DeletedEvent extends AbstractActionInteractionEvent {
             private static final long serialVersionUID = 1L;
             public DeletedEvent(
-                    final FreeText source,
+                    final FreeTextTest source,
                     final Identifier identifier,
                     final Object... arguments) {
                 super("deleted", source, identifier, arguments);
@@ -958,15 +635,15 @@ public class FreeText implements Categorized, Comparable<FreeText> {
         @Override
         public String toString() {
     //        return ObjectContracts.toString(this, "description,complete,dueBy,ownedBy");
-            return ObjectContracts.toString(this, "sectionNo,plainRegulationText, solasChapter, ownedBy");
+            return ObjectContracts.toString(this, "sectionNo,plainRegulationText, ownedBy");
         }
 
         /**
          * Required so can store in {@link SortedSet sorted set}s (eg {@link #getDependencies()}).
          */
     @Override
-    public int compareTo(final FreeText other) {
-        return ObjectContracts.compare(this, other, "sectionNo,plainRegulationText, solasChapter, ownedBy");
+    public int compareTo(final FreeTextTest other) {
+        return ObjectContracts.compare(this, other, "sectionNo,plainRegulationText, ownedBy");
     }
     //endregion
 
@@ -977,11 +654,6 @@ public class FreeText implements Categorized, Comparable<FreeText> {
    // @javax.inject.Inject
    // private FreeTexts freeTexts;
 
-    @javax.inject.Inject
-    private TextItems newTextItemCall;
-
-    @javax.inject.Inject
-    private SubSections newSubSectionCall;
 
 //    @javax.inject.Inject
 //    private Annotations newAnnotation;
