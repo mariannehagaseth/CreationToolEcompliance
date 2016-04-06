@@ -86,23 +86,23 @@ public class TextItem implements Categorized, Comparable<TextItem> {
     public String title() {
         final TitleBuffer buf = new TitleBuffer();
 
-        if (getFreeText().getSolasChapter().getChapterAnnex().equals(SolasChapter.ChapterAnnex.CHAPTER)) {buf.append("SOLAS CHAPTER ");}
-        if (getFreeText().getSolasChapter().getChapterAnnex().equals(SolasChapter.ChapterAnnex.ANNEX)) {buf.append("SOLAS ANNEX ");}
-        if (getFreeText().getSolasChapter().getChapterAnnex().equals(SolasChapter.ChapterAnnex.DIRECTIVE))  {buf.append("EU DIRECTIVE ");}
-        buf.append(getFreeText().getSolasChapter().getSolasChapterNumber());
-        if (!getFreeText().getSolasChapter().getSolasPartNumber().equalsIgnoreCase("-")) {
-            if ((getFreeText().getSolasChapter().getChapterAnnex().equals(SolasChapter.ChapterAnnex.CHAPTER)) || (getFreeText().getSolasChapter().getChapterAnnex().equals(SolasChapter.ChapterAnnex.ANNEX))) {
+        if (getFreeText().getRegulationLink().getChapterAnnexArticle().equals(Chapter.ChapterAnnex.CHAPTER)) {buf.append("SOLAS CHAPTER ");}
+        if (getFreeText().getRegulationLink().getChapterAnnexArticle().equals(Chapter.ChapterAnnex.ANNEX)) {buf.append("SOLAS ANNEX ");}
+        if (getFreeText().getRegulationLink().getChapterAnnexArticle().equals(Chapter.ChapterAnnex.DIRECTIVE))  {buf.append("EU DIRECTIVE ");}
+        buf.append(getFreeText().getRegulationLink().getChapterNumber());
+        if (!getFreeText().getRegulationLink().getPartNumber().equalsIgnoreCase("-")) {
+            if ((getFreeText().getRegulationLink().getChapterAnnexArticle().equals(Chapter.ChapterAnnex.CHAPTER)) || (getFreeText().getRegulationLink().getChapterAnnexArticle().equals(Chapter.ChapterAnnex.ANNEX))) {
                 buf.append(" PART ");
             }
-            if ((getFreeText().getSolasChapter().getChapterAnnex().equals(SolasChapter.ChapterAnnex.DIRECTIVE))) {
+            if ((getFreeText().getRegulationLink().getChapterAnnexArticle().equals(Chapter.ChapterAnnex.DIRECTIVE))) {
                 buf.append(" TITLE ");
             }
         }
-        buf.append(getFreeText().getSolasChapter().getSolasPartNumber());
-        if (getFreeText().getSolasChapter().getChapterAnnex().equals(SolasChapter.ChapterAnnex.CHAPTER)) {buf.append(" REGULATION "); }
-        if (getFreeText().getSolasChapter().getChapterAnnex().equals(SolasChapter.ChapterAnnex.ANNEX)) {buf.append(" CHAPTER ");}
-        if (getFreeText().getSolasChapter().getChapterAnnex().equals(SolasChapter.ChapterAnnex.DIRECTIVE)) {buf.append(" ARTICLE ");}
-        buf.append(getFreeText().getSolasChapter().getSolasRegulationNumber());
+        buf.append(getFreeText().getRegulationLink().getPartNumber());
+        if (getFreeText().getRegulationLink().getChapterAnnexArticle().equals(Chapter.ChapterAnnex.CHAPTER)) {buf.append(" REGULATION "); }
+        if (getFreeText().getRegulationLink().getChapterAnnexArticle().equals(Chapter.ChapterAnnex.ANNEX)) {buf.append(" CHAPTER ");}
+        if (getFreeText().getRegulationLink().getChapterAnnexArticle().equals(Chapter.ChapterAnnex.DIRECTIVE)) {buf.append(" ARTICLE ");}
+        buf.append(getFreeText().getRegulationLink().getRegulationNumber());
         buf.append("SECTION ");
         buf.append(getFreeText().getSectionNo());
 
@@ -166,12 +166,6 @@ public class TextItem implements Categorized, Comparable<TextItem> {
         this.ownedBy = ownedBy;
     }
     //endregion
-
-
-    // Add Regulation to RegulationRule
-    // Add FreeText to SOLASchapter
-    // department=regulation=SOLASchapter
-    //empolyee=RegulationRule=FreeText
 
     // mapping is done to this property:
     // Mapping back from TextItem to FreeText
