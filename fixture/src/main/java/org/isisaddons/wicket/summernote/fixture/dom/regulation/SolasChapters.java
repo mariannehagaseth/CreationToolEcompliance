@@ -30,7 +30,7 @@ import java.util.List;
 
 //@DomainServiceLayout(named="Regulation Hierarchy",menuOrder="10")
 @DomainService(repositoryFor = SolasChapter.class)
-@DomainServiceLayout(named="SOLAS Chapter",menuOrder="10")
+@DomainServiceLayout(menuBar= DomainServiceLayout.MenuBar.TERTIARY,named="SOLAS Chapter",menuOrder="10")
 public class SolasChapters {
 
        //region > newSolasChapter (action)

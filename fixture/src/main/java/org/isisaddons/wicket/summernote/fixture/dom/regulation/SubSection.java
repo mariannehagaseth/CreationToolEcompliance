@@ -72,7 +72,7 @@ import java.util.TreeSet;
  // default unless overridden by autoCompleteNXxx() method
 @DomainObjectLayout(bookmarking= BookmarkPolicy.AS_ROOT)
 @MemberGroupLayout (
-		columnSpans={4,0,0,8},
+		columnSpans={6,0,0,6},
 		left={"SubSection"},
 		middle={},
         right={})
@@ -90,23 +90,23 @@ public class SubSection implements Categorized, Comparable<SubSection> {
     public String title() {
         final TitleBuffer buf = new TitleBuffer();
 
-        if (getFreeTextSection().getSolasChapter().getChapterAnnex().equals(SolasChapter.ChapterAnnex.CHAPTER)) {buf.append("SOLAS CHAPTER ");}
-        if (getFreeTextSection().getSolasChapter().getChapterAnnex().equals(SolasChapter.ChapterAnnex.ANNEX)) {buf.append("SOLAS ANNEX ");}
-        if (getFreeTextSection().getSolasChapter().getChapterAnnex().equals(SolasChapter.ChapterAnnex.DIRECTIVE))  {buf.append("EU DIRECTIVE ");}
-        buf.append(getFreeTextSection().getSolasChapter().getSolasChapterNumber());
-        if (!getFreeTextSection().getSolasChapter().getSolasPartNumber().equalsIgnoreCase("-")) {
-            if ((getFreeTextSection().getSolasChapter().getChapterAnnex().equals(SolasChapter.ChapterAnnex.CHAPTER)) || (getFreeTextSection().getSolasChapter().getChapterAnnex().equals(SolasChapter.ChapterAnnex.ANNEX))) {
+        if (getFreeTextSection().getRegulationLink().getChapterAnnexArticle().equals(SolasChapter.ChapterAnnex.CHAPTER)) {buf.append("SOLAS CHAPTER ");}
+        if (getFreeTextSection().getRegulationLink().getChapterAnnexArticle().equals(SolasChapter.ChapterAnnex.ANNEX)) {buf.append("SOLAS ANNEX ");}
+        if (getFreeTextSection().getRegulationLink().getChapterAnnexArticle().equals(SolasChapter.ChapterAnnex.DIRECTIVE))  {buf.append("EU DIRECTIVE ");}
+        buf.append(getFreeTextSection().getRegulationLink().getChapterNumber());
+        if (!getFreeTextSection().getRegulationLink().getPartNumber().equalsIgnoreCase("-")) {
+            if ((getFreeTextSection().getRegulationLink().getChapterAnnexArticle().equals(SolasChapter.ChapterAnnex.CHAPTER)) || (getFreeTextSection().getRegulationLink().getChapterAnnexArticle().equals(SolasChapter.ChapterAnnex.ANNEX))) {
                 buf.append(" PART ");
             }
-            if ((getFreeTextSection().getSolasChapter().getChapterAnnex().equals(SolasChapter.ChapterAnnex.DIRECTIVE))) {
+            if ((getFreeTextSection().getRegulationLink().getChapterAnnexArticle().equals(SolasChapter.ChapterAnnex.DIRECTIVE))) {
                 buf.append(" TITLE ");
             }
         }
-        buf.append(getFreeTextSection().getSolasChapter().getSolasPartNumber());
-        if (getFreeTextSection().getSolasChapter().getChapterAnnex().equals(SolasChapter.ChapterAnnex.CHAPTER)) {buf.append(" REGULATION "); }
-        if (getFreeTextSection().getSolasChapter().getChapterAnnex().equals(SolasChapter.ChapterAnnex.ANNEX)) {buf.append(" CHAPTER ");}
-        if (getFreeTextSection().getSolasChapter().getChapterAnnex().equals(SolasChapter.ChapterAnnex.DIRECTIVE)) {buf.append(" ARTICLE ");}
-        buf.append(getFreeTextSection().getSolasChapter().getSolasRegulationNumber());
+        buf.append(getFreeTextSection().getRegulationLink().getPartNumber());
+        if (getFreeTextSection().getRegulationLink().getChapterAnnexArticle().equals(SolasChapter.ChapterAnnex.CHAPTER)) {buf.append(" REGULATION "); }
+        if (getFreeTextSection().getRegulationLink().getChapterAnnexArticle().equals(SolasChapter.ChapterAnnex.ANNEX)) {buf.append(" CHAPTER ");}
+        if (getFreeTextSection().getRegulationLink().getChapterAnnexArticle().equals(SolasChapter.ChapterAnnex.DIRECTIVE)) {buf.append(" ARTICLE ");}
+        buf.append(getFreeTextSection().getRegulationLink().getRegulationNumber());
         buf.append("SECTION ");
         buf.append(getFreeTextSection().getSectionNo());
         buf.append("SUBSECTION ");

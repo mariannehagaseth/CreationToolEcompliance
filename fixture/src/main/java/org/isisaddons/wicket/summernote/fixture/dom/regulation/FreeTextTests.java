@@ -29,7 +29,7 @@ import java.util.List;
 
 //@DomainServiceLayout(named="Regulation Hierarchy",menuOrder="10")
 //@DomainServiceLayout(menuBar= DomainServiceLayout.MenuBar.SECONDARY, named="Sections",menuOrder="60")
-@DomainServiceLayout(menuBar= DomainServiceLayout.MenuBar.PRIMARY, named="Sections",menuOrder="60")
+@DomainServiceLayout(menuBar= DomainServiceLayout.MenuBar.TERTIARY, named="Sections",menuOrder="60")
 @DomainService(repositoryFor = FreeTextTest.class)
 public class FreeTextTests {
 

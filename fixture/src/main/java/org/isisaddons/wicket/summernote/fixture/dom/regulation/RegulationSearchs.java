@@ -29,7 +29,7 @@ import java.util.List;
 //import java.math.BigDecimal;
 
 //@DomainServiceLayout(named="Regulation Hierarchy",menuOrder="10")
-@DomainServiceLayout(menuBar= DomainServiceLayout.MenuBar.TERTIARY,named="RegulationSearch",menuOrder="20")
+@DomainServiceLayout(menuBar= DomainServiceLayout.MenuBar.PRIMARY,named="Search",menuOrder="60")
 @DomainService(repositoryFor = RegulationSearch.class)
 public class RegulationSearchs {
 

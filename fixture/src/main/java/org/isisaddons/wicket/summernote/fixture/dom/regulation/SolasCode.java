@@ -660,9 +660,11 @@ public String setColour () {
 
     // Region searchShipTerm
     private String searchShipClass;
+    @PropertyLayout(hidden=Where.EVERYWHERE)
+     @ActionLayout(hidden=Where.EVERYWHERE)
     @javax.jdo.annotations.Column(allowsNull="true", length=1000)
     @MemberOrder(name="Select Ship Class (Interpretation)", sequence="10")
-    @PropertyLayout(typicalLength=100, named = "Ship Class")
+   // @PropertyLayout(typicalLength=100, named = "Ship Class")
     //@Property(editing=Editing.DISABLED)
     public String getSearchShipClass() {
         return searchShipClass;}
@@ -703,6 +705,8 @@ public String setColour () {
 // region select ship class
     @MemberOrder(name="listOfShipClasses", sequence="30")
     //@javax.jdo.annotations.Column(allowsNull="true")
+    @PropertyLayout(hidden=Where.EVERYWHERE)
+    @ActionLayout(hidden=Where.EVERYWHERE)
     @Action(semantics = SemanticsOf.IDEMPOTENT)
     // public ShipType searchShipClass() {
     public SolasCode selectShipClass() {
@@ -734,9 +738,11 @@ public String setColour () {
 **/
     // Region listOfShipClasses: Must be updated to list of ship classes.
     private String listOfShipClasses;
+    @PropertyLayout(hidden=Where.EVERYWHERE)
+    @ActionLayout(hidden=Where.EVERYWHERE)
     @javax.jdo.annotations.Column(allowsNull="true", length=100)
     @MemberOrder(name="Select Ship Class (Interpretation)", sequence="40")
-    @PropertyLayout(typicalLength=100)
+    //@PropertyLayout(typicalLength=100)
     // @Property(editing=Editing.DISABLED)
     public String getListOfShipClasses() {
         return listOfShipClasses;}
@@ -752,7 +758,9 @@ public String setColour () {
     private String selectedShipClass;
     @javax.jdo.annotations.Column(allowsNull="true", length=1000)
     @MemberOrder(name="Select Ship Class (Interpretation)", sequence="50")
-    @PropertyLayout(typicalLength=100, named = "Selected Ship Class")
+    @PropertyLayout(hidden=Where.EVERYWHERE)
+    @ActionLayout(hidden=Where.EVERYWHERE)
+    //@PropertyLayout(typicalLength=100, named = "Selected Ship Class")
     //@Property(editing=Editing.DISABLED)
     public String getSelectedShipClass() {
         return searchShipClass;}

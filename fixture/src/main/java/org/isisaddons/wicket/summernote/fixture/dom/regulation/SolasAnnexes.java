@@ -22,7 +22,6 @@ import org.apache.isis.applib.DomainObjectContainer;
 import org.apache.isis.applib.annotation.*;
 import org.apache.isis.applib.query.QueryDefault;
 import org.apache.isis.applib.services.clock.ClockService;
-import org.isisaddons.wicket.summernote.fixture.dom.regulation.SolasChapter.ChapterAnnex;
 
 import java.util.List;
 
@@ -33,6 +32,73 @@ import java.util.List;
 public class SolasAnnexes {
 
 
+    //region > newSolasChapter (action)
+    @MemberOrder( sequence = "50")
+    @ActionLayout(named="NEW Annex")
+    public Chapter newSolasAnnex(
+
+            final @Parameter(optionality=Optionality.MANDATORY) @ParameterLayout(typicalLength=100, named="Chapter No") String chapterNumber,
+            final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=50, named="Chapter Title") String chapterTitle
+    )
+    {
+
+        return newChapter(
+                Chapter.ChapterAnnex.ANNEX,
+                chapterNumber,
+                chapterTitle,
+                currentUserName()
+        );
+    }
+
+    //region > allRegulationTexts (action)
+    @Action(semantics=SemanticsOf.SAFE,restrictTo=RestrictTo.PROTOTYPING)
+    @MemberOrder(sequence = "60")
+    @PropertyLayout(named="List Annexes")
+    public  List<Chapter> allChapters() {
+        final  List<Chapter> items = container.allMatches(
+                new QueryDefault<Chapter>(Chapter.class,
+                        "findChaptersAnnexes",
+                        "chapterAnnexArticle", Chapter.ChapterAnnex.ANNEX));
+        if(items.isEmpty()) {
+            container.warnUser("No Solas ANNEXES found.");
+        }
+        return items;
+    }
+    //endregion
+
+
+    //region > helpers
+    @Programmatic
+    /*The @Programmatic annotation can be used to cause Apache Isis to complete ignore a class member.
+     * This means it won't appear in any viewer, its value will not be persisted,
+     * and it won't appear in any XML snapshots .*/
+    public Chapter newChapter(
+            final Chapter.ChapterAnnex chapterAnnex,
+            final String chapterNumber,
+            final String chapterTitle,
+            final String userName
+    )
+    {
+        final  Chapter chapter = container.newTransientInstance(Chapter.class);
+        chapter.setChapterAnnexArticle(chapterAnnex);
+        // start with manually add the solas chapter number:
+        chapter.setChapterNumber(chapterNumber);
+        chapter.setChapterTitle(chapterTitle);
+        chapter.setAmendmentDate(clockService.now());
+        chapter.setOwnedBy(userName);
+        container.persist(chapter);
+        container.flush();
+        // Generate id: solasChapter.setSolasChapterNumber(solasChapter.getIdString());
+        return chapter;
+    }
+
+    private String currentUserName() {
+        return container.getUser().getName();
+    }
+    //endregion
+
+
+/*
     //region > newSolasChapter (action)
     @MemberOrder(sequence = "10")
     @ActionLayout(named="NEW Annex")
@@ -46,10 +112,7 @@ public class SolasAnnexes {
             // final @Parameter( optionality=Optionality.MANDATORY) @ParameterLayout(typicalLength=100, named="SOLAS") String regulationChapter,
             final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=100, named="Chapter No") String solasRegulationNumber
             ,final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=50, named="Chapter Title") String solasRegulationTitle
-            //   ,final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=1000, multiLine=5, named="SOLAS Regulation Intro Text") String solasRegulationIntroText
-            //,
-            //final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(named="Amendment Date") LocalDate amendmentDate,
-            //final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(named="Finalized") boolean finalized
+
     )
     {
 
@@ -62,24 +125,11 @@ public class SolasAnnexes {
                 "CHAPTER", //regulationChapter
                 solasRegulationNumber,
                  solasRegulationTitle,
-                //        solasRegulationIntroText,
-                // amendmentDate,
-                // finalized,
+
                 currentUserName()
         );
     }
-    //  public String default0NewRegulationText() {
-    //     return "";
-    //}
-    //public String default1NewRegulationText() {
-    //   return "";
-    // }
-    //public LocalDate default2NewRegulationText() {
-    //   return clockService.now();
-    // }
-    //public String default3NewSolasChapter() {
-    //    if chapterAnnex = ChapterAnnex.CHAPTER) return ;
-    //}
+
 
     //region > allRegulationTexts (action)
     @Action(semantics=SemanticsOf.SAFE,restrictTo=RestrictTo.PROTOTYPING)
@@ -99,9 +149,9 @@ public class SolasAnnexes {
 
     //region > helpers
     @Programmatic
-    /*The @Programmatic annotation can be used to cause Apache Isis to complete ignore a class member. 
-     * This means it won't appear in any viewer, its value will not be persisted, 
-     * and it won't appear in any XML snapshots .*/
+    //*The @Programmatic annotation can be used to cause Apache Isis to complete ignore a class member.
+    // * This means it won't appear in any viewer, its value will not be persisted,
+     //* and it won't appear in any XML snapshots .
     public SolasChapter newSolasChapter(
             final ChapterAnnex chapterAnnex,
           final String solasChapterNumber,
@@ -111,9 +161,7 @@ public class SolasAnnexes {
              String regulationChapter,
             final String solasRegulationNumber,
         final String solasRegulationTitle,
-          //  final String solasRegulationIntroText,
-             //       final LocalDate amendmentDate,
-   //         final boolean finalized,
+
             final String userName
             )
     {
@@ -136,10 +184,10 @@ public class SolasAnnexes {
        // Generate id: solasChapter.setSolasChapterNumber(solasChapter.getIdString());
         return solasChapter;
     }
-    private String currentUserName() {
-        return container.getUser().getName();
-    }
+
     //endregion
+
+*/
 
 
     //region > injected services

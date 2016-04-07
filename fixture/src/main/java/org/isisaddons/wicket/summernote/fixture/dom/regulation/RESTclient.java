@@ -69,6 +69,48 @@ public class RESTclient extends AbstractService   {
 		return shipClassInRule;
 	}
 
+
+	public ShipClass GetApplicability(String regulationText) {
+		ShipClass shipClassInRule = null;
+		class SemanticRuleCallback implements InvocationCallback<Response> {
+
+			@Override
+			public void completed(Response response) {
+			}
+
+			@Override
+			public void failed(Throwable throwable) {
+				System.out.println("Invocation failed.");
+				throwable.printStackTrace();
+			}
+		}
+
+		//System.out.println("-------------------\nhttp://192.168.33.10:9000/api/semantic/target");
+  		System.out.println("-------------------\nhttp://192.168.33.10:9000/api/semantic/applicability");
+		Client client = ClientBuilder.newClient();
+		WebTarget webTarget = client.target("http://192.168.33.10:9000/api/semantic/target");
+		Invocation.Builder invocationBuilder = webTarget.request(MediaType.APPLICATION_XML);
+		invocationBuilder.header("Content-type", "text/plain");
+		AsyncInvoker async_invoker = invocationBuilder.async();
+		InvocationCallback<Response> sftc = new SemanticRuleCallback();
+		Future<Response> response = async_invoker.post(Entity.entity(regulationText, MediaType.TEXT_PLAIN), sftc);
+		Response responseEntity = null;
+		try {
+			responseEntity=response.get();
+			System.out.println("ResponseEntity in GetRule() = "+responseEntity.toString());
+			ShipClass shipClassFound = responseEntity.readEntity(ShipClass.class);
+			System.out.println("shipClassFound set... ");
+			shipClassInRule = shipClassFound;
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		} catch (ExecutionException e) {
+			e.printStackTrace();
+		}
+		System.out.println("return shipClassInRule");
+		return shipClassInRule;
+	}
+
+/*
 	//192.168.33.10:9000/api/semantic/applicability is fetching the target!!
 	@Action
 	public String GetTarget() {
@@ -119,7 +161,7 @@ public class RESTclient extends AbstractService   {
 		System.out.println("response.get().toString()= "+ responseGot);
 		return responseGot;
 	}
-
+*/
 
 	public FragmentSKOSConceptOccurrences  GetSkos(String regulationText) {
 

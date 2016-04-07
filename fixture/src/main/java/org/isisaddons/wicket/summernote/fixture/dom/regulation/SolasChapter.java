@@ -561,27 +561,6 @@ public class SolasChapter implements Categorized, Comparable<SolasChapter> {
     //endregion
 
 
-/*
-    // Region regulationTitle
-    private String regulationTitle;
-    @javax.jdo.annotations.Column(allowsNull="true", length=255)
-    @Property(regexPattern="\\w[@&:\\-\\,\\.\\+ \\w]*")
-    @MemberOrder(name="Regulation Tags (Edit)", sequence="10")
-    @PropertyLayout(typicalLength=80)
-    public String getRegulationTitle() {
-        return regulationTitle;
-    }
-    public void setRegulationTitle(final String regulationTitle) {
-        this.regulationTitle = regulationTitle;
-    }
-    public void modifyRegulationTitle(final String regulationTitle) {
-        setRegulationTitle(regulationTitle);
-    }
-    public void clearRegulationTitle() {
-        setRegulationTitle(null);
-    }
-    //endregion
-*/
     //region > regulationType (property)
     public static enum RegulationType {
         Certificate,
@@ -998,7 +977,7 @@ public class SolasChapter implements Categorized, Comparable<SolasChapter> {
     //endregion
     **/
 
-
+/*
 @javax.jdo.annotations.Persistent(mappedBy="solasChapter")
 @javax.jdo.annotations.Join // Make a separate join table.
 private SortedSet<FreeText> freeTexts = new TreeSet<FreeText>();
@@ -1037,24 +1016,6 @@ private SortedSet<FreeText> freeTexts = new TreeSet<FreeText>();
     }
 
 
-
-    //This is the add-Button!!!
-
-    /* do not need the add button...
-     public java.util.List<FreeText> autoComplete0AddFreeText(final String search) {
-        final java.util.List<FreeText> list = container.allMatches(new QueryDefault<FreeText>(FreeText.class,"findByOwnedBy", "ownedBy", "ecompliance"));
-        list.removeAll(getFreeTexts());//Remove those FreeTexts already linked to the SOLASchapter
-        return list;
-    }
-    @Action()
-    @ActionLayout(named = "Add")
-    @MemberOrder(name = "freeTexts", sequence = "13")
-    public SolasChapter addFreeText(final FreeText freeText) {
-         wrapperFactory.wrapSkipRules(freeText).setSolasChapter(this);
-        getFreeTexts().add(freeText);
-        return this;
-    }
-*/
     @Action()
     @ActionLayout(named = "Add New Section")
     @MemberOrder(name = "freeTexts", sequence = "15")
@@ -1066,34 +1027,9 @@ private SortedSet<FreeText> freeTexts = new TreeSet<FreeText>();
        // getFreeTexts().add(freeText);
 //        getFreeTexts().add(newFreeTextCall.newFreeText(sectionNo, plainRegulationText, solasChapter));
         getFreeTexts().add(newFreeTextCall.newFreeText(sectionNo, plainRegulationText));
-        /* addParticipant(participantsRepo.newParticipant(firstname, surname, dob));*/
+       // addParticipant(participantsRepo.newParticipant(firstname, surname, dob));
         return this;
     }
-    /*from here
-
-    @Action()
-    @ActionLayout(named = "Add")
-    @MemberOrder(name = "participations", sequence = "1")
-    public Activity addParticipant(final Participant participant) {
-        if (findParticipation(participant) == null) {
-            participantsRepo.createParticipation(this, participant);
-        } else {
-            container.informUser("A Participant (" +
-                    participant.getFullName() + ") is already participating in this Activity");
-        }
-        return this;
-    }
-
-    @Action()
-    @ActionLayout(named = "Add New")
-    @MemberOrder(name = "participations", sequence = "2")
-    public Activity addNewParticipant(final @ParameterLayout(named = "First
-            name") String firstname, final @ParameterLayout(named = "Surname") String surname,
-            final @ParameterLayout(named = "Date of Birth") LocalDate dob) {
-        addParticipant(participantsRepo.newParticipant(firstname, surname, dob));
-        return this;
-    }
- to here */
 
 
     //This is the Remove-Button!!
@@ -1126,6 +1062,7 @@ private SortedSet<FreeText> freeTexts = new TreeSet<FreeText>();
         return getFreeTexts();
     }
     //endregion region Link Regulation --> to (several) Rules
+*/
 
     //region > lifecycle callbacks
 
