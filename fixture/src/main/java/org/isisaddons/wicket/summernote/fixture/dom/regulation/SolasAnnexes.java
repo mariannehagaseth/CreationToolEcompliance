@@ -27,7 +27,7 @@ import java.util.List;
 
 //import java.math.BigDecimal;
 
-@DomainService(repositoryFor = SolasChapter.class)
+@DomainService(repositoryFor = Chapter.class)
 @DomainServiceLayout(named="SOLAS Annex",menuOrder="20")
 public class SolasAnnexes {
 

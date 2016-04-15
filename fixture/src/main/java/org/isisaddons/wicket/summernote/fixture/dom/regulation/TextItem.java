@@ -180,7 +180,7 @@ public class TextItem implements Categorized, Comparable<TextItem> {
     @javax.jdo.annotations.Column(allowsNull="true")
     public void setFreeText(FreeText freeText) { this.freeText= freeText; }
 
-    // End   Regulation to RegulationRule
+    // End   TextITem to FreeTExt
 
 
 
@@ -317,8 +317,6 @@ public class TextItem implements Categorized, Comparable<TextItem> {
     @javax.inject.Inject
     private TextItems textItems;
 
-    @javax.inject.Inject
-    private RESTclientTest restClientTest;
 
     @SuppressWarnings("deprecation")
 	Bulk.InteractionContext bulkInteractionContext;

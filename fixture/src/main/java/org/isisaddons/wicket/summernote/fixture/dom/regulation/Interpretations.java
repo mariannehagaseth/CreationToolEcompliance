@@ -29,7 +29,7 @@ import java.util.List;
 //import java.math.BigDecimal;
 
 @DomainService(repositoryFor = Interpretation.class)
-@DomainServiceLayout(named="Interpretation",menuOrder="50")
+@DomainServiceLayout(named="Interpretation Tool",menuOrder="50")
 public class Interpretations {
 
 
@@ -42,8 +42,8 @@ public class Interpretations {
         FragmentSKOSConceptOccurrences fragment = restClient.GetSkos(term);
         System.out.println("Interpret: fragment OK");
         List<String> annotation = new ArrayList<String>();
-        String skosTerms =creationController.CheckTerms(term, fragment).get(0);
-        String annotatedText =creationController.CheckTerms(term, fragment).get(1);
+        String skosTerms =creationController.ShowTerms(term, fragment).get(0);
+        String annotatedText =creationController.ShowTerms(term, fragment).get(1);
         System.out.println("Interpret: skosTerms="+skosTerms);
         System.out.println("Interpret: annotatedText="+annotatedText);
         container.flush();
@@ -55,18 +55,17 @@ public class Interpretations {
 
     //region > Show Annotations (action)
     @MemberOrder( sequence = "20")
-    @ActionLayout(named="Show Annotations")
+    @ActionLayout(named="Check Annotations")
     @Action(semantics=SemanticsOf.SAFE,restrictTo=RestrictTo.PROTOTYPING)
-    public Interpretation showAnnotations(final String term) {
+    public Interpretation showAnnotations(final @Parameter(optionality=Optionality.MANDATORY) @ParameterLayout(typicalLength=100, multiLine=5,named="Regulation Text for Annotation:") String term) {
         FragmentSKOSConceptOccurrences fragment = restClient.GetSkos(term);
         System.out.println("Interpret: fragment OK");
         List<String> annotation = new ArrayList<String>();
-        String skosTerms =creationController.CheckTerms(term, fragment).get(0);
-        String annotatedText =creationController.CheckTerms(term, fragment).get(1);
+        String skosTerms =creationController.ShowTerms(term, fragment).get(0);
+        String annotatedText =creationController.ShowTerms(term, fragment).get(1);
         System.out.println("Interpret: skosTerms="+skosTerms);
         System.out.println("Interpret: annotatedText="+annotatedText);
         container.flush();
-        container.informUser("Fetched SKOS terms completed for " + container.titleOf(this));
         return newInterpretation(
             term,
             currentUserName()

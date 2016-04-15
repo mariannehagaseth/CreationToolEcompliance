@@ -90,22 +90,22 @@ public class SubSection implements Categorized, Comparable<SubSection> {
     public String title() {
         final TitleBuffer buf = new TitleBuffer();
 
-        if (getFreeTextSection().getRegulationLink().getChapterAnnexArticle().equals(SolasChapter.ChapterAnnex.CHAPTER)) {buf.append("SOLAS CHAPTER ");}
-        if (getFreeTextSection().getRegulationLink().getChapterAnnexArticle().equals(SolasChapter.ChapterAnnex.ANNEX)) {buf.append("SOLAS ANNEX ");}
-        if (getFreeTextSection().getRegulationLink().getChapterAnnexArticle().equals(SolasChapter.ChapterAnnex.DIRECTIVE))  {buf.append("EU DIRECTIVE ");}
+        if (getFreeTextSection().getRegulationLink().getChapterAnnexArticle().equals(Chapter.ChapterAnnex.CHAPTER)) {buf.append("SOLAS CHAPTER ");}
+        if (getFreeTextSection().getRegulationLink().getChapterAnnexArticle().equals(Chapter.ChapterAnnex.ANNEX)) {buf.append("SOLAS ANNEX ");}
+        if (getFreeTextSection().getRegulationLink().getChapterAnnexArticle().equals(Chapter.ChapterAnnex.DIRECTIVE))  {buf.append("EU DIRECTIVE ");}
         buf.append(getFreeTextSection().getRegulationLink().getChapterNumber());
         if (!getFreeTextSection().getRegulationLink().getPartNumber().equalsIgnoreCase("-")) {
-            if ((getFreeTextSection().getRegulationLink().getChapterAnnexArticle().equals(SolasChapter.ChapterAnnex.CHAPTER)) || (getFreeTextSection().getRegulationLink().getChapterAnnexArticle().equals(SolasChapter.ChapterAnnex.ANNEX))) {
+            if ((getFreeTextSection().getRegulationLink().getChapterAnnexArticle().equals(Chapter.ChapterAnnex.CHAPTER)) || (getFreeTextSection().getRegulationLink().getChapterAnnexArticle().equals(Chapter.ChapterAnnex.ANNEX))) {
                 buf.append(" PART ");
             }
-            if ((getFreeTextSection().getRegulationLink().getChapterAnnexArticle().equals(SolasChapter.ChapterAnnex.DIRECTIVE))) {
+            if ((getFreeTextSection().getRegulationLink().getChapterAnnexArticle().equals(Chapter.ChapterAnnex.DIRECTIVE))) {
                 buf.append(" TITLE ");
             }
         }
         buf.append(getFreeTextSection().getRegulationLink().getPartNumber());
-        if (getFreeTextSection().getRegulationLink().getChapterAnnexArticle().equals(SolasChapter.ChapterAnnex.CHAPTER)) {buf.append(" REGULATION "); }
-        if (getFreeTextSection().getRegulationLink().getChapterAnnexArticle().equals(SolasChapter.ChapterAnnex.ANNEX)) {buf.append(" CHAPTER ");}
-        if (getFreeTextSection().getRegulationLink().getChapterAnnexArticle().equals(SolasChapter.ChapterAnnex.DIRECTIVE)) {buf.append(" ARTICLE ");}
+        if (getFreeTextSection().getRegulationLink().getChapterAnnexArticle().equals(Chapter.ChapterAnnex.CHAPTER)) {buf.append(" REGULATION "); }
+        if (getFreeTextSection().getRegulationLink().getChapterAnnexArticle().equals(Chapter.ChapterAnnex.ANNEX)) {buf.append(" CHAPTER ");}
+        if (getFreeTextSection().getRegulationLink().getChapterAnnexArticle().equals(Chapter.ChapterAnnex.DIRECTIVE)) {buf.append(" ARTICLE ");}
         buf.append(getFreeTextSection().getRegulationLink().getRegulationNumber());
         buf.append("SECTION ");
         buf.append(getFreeTextSection().getSectionNo());
@@ -408,8 +408,6 @@ public class SubSection implements Categorized, Comparable<SubSection> {
     @javax.inject.Inject
     private SubSectionTextItems newSubSectionTextItemCall;
 
-    @javax.inject.Inject
-    private RESTclientTest restClientTest;
 
     @SuppressWarnings("deprecation")
 	Bulk.InteractionContext bulkInteractionContext;

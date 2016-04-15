@@ -20,9 +20,7 @@ package org.isisaddons.wicket.summernote.fixture.dom.regulation;
 
 //import java.math.BigDecimal;
 
-import org.isisaddons.wicket.summernote.fixture.dom.regulation.RESTclientTest;
-import org.isisaddons.wicket.summernote.fixture.dom.regulation.RegulationSearchs;
-import org.isisaddons.wicket.summernote.fixture.dom.regulation.ShipType;
+import com.google.common.collect.Ordering;
 import org.apache.isis.applib.DomainObjectContainer;
 import org.apache.isis.applib.Identifier;
 import org.apache.isis.applib.annotation.*;
@@ -35,10 +33,14 @@ import org.joda.time.LocalDate;
 
 import javax.jdo.JDOHelper;
 import javax.jdo.annotations.IdentityType;
+import javax.jdo.annotations.NotPersistent;
 import javax.jdo.annotations.VersionStrategy;
-import java.util.Set;
+import javax.naming.directory.SearchResult;
+import java.util.Comparator;
+import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 @javax.jdo.annotations.PersistenceCapable(identityType=IdentityType.DATASTORE)
 @javax.jdo.annotations.DatastoreIdentity(
@@ -69,7 +71,7 @@ import java.util.TreeSet;
 @DomainObjectLayout(named="Semantified Search",bookmarking= BookmarkPolicy.AS_ROOT)
 @MemberGroupLayout (
 		columnSpans={5,2,5,12},
-		left={"Ship Type Search"},
+		left={"Regulation Search based on Ship Particulars"},
 		middle={"AndOr"},
         right={"Regulation Search"})
 
@@ -92,46 +94,11 @@ public class RegulationSearch implements Categorized, Comparable<RegulationSearc
     //endregion
 
 
-    //Region List and select ShipType:
-    // Search ShipType (Interpretation)
-    // Do not need to store the search result!!
-    // Later
-    private Set<ShipType> possibleShipTypes = new TreeSet<>();
-    //@MemberOrder(sequence="10")
-    @PropertyLayout(hidden = Where.EVERYWHERE , typicalLength=100)
-    @Collection()
-    @CollectionLayout(hidden = Where.EVERYWHERE, named = "Fetch Ship Type", render = RenderType.EAGERLY) // not compatible with neo4j (as of DN v3.2.3)
-    public Set<ShipType> getPossibleShipTypes() {return restClientTest.findShipType();}
-    @ActionLayout(hidden = Where.EVERYWHERE)
-    public void setPossibleShipTypes() {this.possibleShipTypes=restClientTest.findShipType();}
-    @MemberOrder(name="shipTypeName", sequence="10")
-    @ActionLayout(position = ActionLayout.Position.PANEL)
-    public RegulationSearch selectShipType (  @ParameterLayout(typicalLength = 20) final ShipType shipType){
-        updateSelectedShipType(shipType);
-        return this;
-    }
-    // provide a drop-down
-    public java.util.Collection<ShipType> choices0SelectShipType() {return getPossibleShipTypes();}
-    //endregion
-    // end region List and select ShipType
-
-
-    @Programmatic
-    private void updateSelectedShipType(ShipType shipType){
-        // Sets the values of the selected Ship Types.
-        this.setShipTypeName(shipType.getShipTypeName());
-        this.setShipTypeTonnage(shipType.getShipTypeTonnage());
-        this.setShipTypeLength(shipType.getShipTypeLength());
-        this.setShipTypePassengerNumber(shipType.getShipTypePassengerNumber());
-        this.setShipTypeDraft(shipType.getShipTypeDraft());
-        this.setShipTypeCrewNumber(shipType.getShipTypeCrewNumber());
-        this.setShipTypeKeelLaidDate(shipType.getShipTypeKeelLaidDate());
-    }
 
     // Region searchName
     private String searchName;
     @javax.jdo.annotations.Column(allowsNull="true", length=100)
-    @MemberOrder(name="Ship Type Search",  sequence="20")
+    @MemberOrder(name="Regulation Search based on Ship Particulars",  sequence="10")
     @PropertyLayout(hidden = Where.ALL_EXCEPT_STANDALONE_TABLES , typicalLength=100)
     public String getSearchName() {
         return searchName;
@@ -141,111 +108,82 @@ public class RegulationSearch implements Categorized, Comparable<RegulationSearc
     //endregion
 
 
-
-
-
-
-    // Region shipTypeName
-    private String shipTypeName;
+    // Region type
+    private String type;
     @javax.jdo.annotations.Column(allowsNull="true", length=100)
-    @MemberOrder(name="Ship Type Search",  sequence="30")
+    @MemberOrder(name="Regulation Search based on Ship Particulars",  sequence="20")
     @PropertyLayout(typicalLength=100)
-    public String getShipTypeName() {
-        return shipTypeName;
+    public String getType() {
+        return type;
     }
-    public void setShipTypeName(final String shipTypeName) {this.shipTypeName = shipTypeName;
+    public void setType(final String type) {this.type = type;
     }
     //endregion
-
-
 
     // Region shipTypeTonnage
-    private String shipTypeTonnage;
-    @javax.jdo.annotations.Column(allowsNull="true", length=100)
-    @MemberOrder(name="Ship Type Search",  sequence="32")
+    @javax.jdo.annotations.Column(allowsNull="false")
+    @MemberOrder(name="Regulation Search based on Ship Particulars",  sequence="30")
     @PropertyLayout(typicalLength=100)
-    public String getShipTypeTonnage() {
-        return shipTypeTonnage;
+    private double tonnage;
+    public double getTonnage() {
+        return tonnage;
     }
-    public void setShipTypeTonnage(final String shipTypeTonnage) {this.shipTypeTonnage = shipTypeTonnage;
-    }
-    @Action(semantics = SemanticsOf.IDEMPOTENT)
-    @ActionLayout(named = "><=", position = ActionLayout.Position.RIGHT)
-    @MemberOrder(name="shipTypeTonnage",
-            sequence="20")
-    public RegulationSearch setTonnageComparator() {
-        //
-        container.flush();
-        container.informUser("Semantify compeleted for " + container.titleOf(this));
-        System.out.print("Calling Semantify here!!");
-        return this;
+    public void setTonnage(final double tonnage) {this.tonnage = tonnage;
     }
     //endregion
 
 
 
     // Region shipTypeLength
-    private String shipTypeLength;
-    @javax.jdo.annotations.Column(allowsNull="true", length=100)
-    @MemberOrder(name="Ship Type Search",  sequence="34")
+    @javax.jdo.annotations.Column(allowsNull="false")
+    @MemberOrder(name="Regulation Search based on Ship Particulars",  sequence="40")
     @PropertyLayout(typicalLength=100)
-    public String getShipTypeLength() {
-        return shipTypeLength;
+    private double length;
+    public double getLength() {
+        return length;
     }
-    public void setShipTypeLength(final String shipTypeLength) {this.shipTypeLength = shipTypeLength;
+    public void setLength(final double length) {this.length = length;
     }
     //endregion
+
 
 
     // Region shipTypeLength
-    private String shipTypePassengerNumber;
-    @javax.jdo.annotations.Column(allowsNull="true", length=100)
-    @MemberOrder(name="Ship Type Search",  sequence="36")
+    @javax.jdo.annotations.Column(allowsNull="false")
+    @MemberOrder(name="Regulation Search based on Ship Particulars",  sequence="50")
     @PropertyLayout(typicalLength=100)
-    public String getShipTypePassengerNumber() {
-        return shipTypePassengerNumber;
+    private int passengerNumber;
+    public int getPassengerNumber() {
+        return passengerNumber;
     }
-    public void setShipTypePassengerNumber(final String shipTypePassengerNumber) {this.shipTypePassengerNumber = shipTypePassengerNumber;
+    public void setPassengerNumber(final int passengerNumber) {this.passengerNumber = passengerNumber;
     }
     //endregion
+
 
     // Region shipTypeDraft
-    private String shipTypeDraft;
-    @javax.jdo.annotations.Column(allowsNull="true", length=100)
-    @MemberOrder(name="Ship Type Search",  sequence="38")
+    @javax.jdo.annotations.Column(allowsNull="false")
+    @MemberOrder(name="Regulation Search based on Ship Particulars",  sequence="60")
     @PropertyLayout(typicalLength=100)
-    public String getShipTypeDraft() {
-        return shipTypeDraft;
+    private double draft;
+    public double getDraft() {
+        return draft;
     }
-    public void setShipTypeDraft(final String shipTypeDraft) {this.shipTypeDraft = shipTypeDraft;
+    public void setDraft(final double draft) {this.draft = draft;
     }
     //endregion
-
-
-
-    // Region shipTypeCrewNumber
-    private String shipTypeCrewNumber;
-    @javax.jdo.annotations.Column(allowsNull="true", length=100)
-    @MemberOrder(name="Ship Type Search",  sequence="40")
-    @PropertyLayout(typicalLength=100)
-    public String getShipTypeCrewNumber() {
-        return shipTypeCrewNumber;
-    }
-    public void setShipTypeCrewNumber(final String shipTypeCrewNumber) {this.shipTypeCrewNumber = shipTypeCrewNumber;
-    }
-    //endregion
-
 
 
 
     // Region shipTypeKeelLaidDate
-    private LocalDate shipTypeKeelLaidDate;
-    @javax.jdo.annotations.Column(allowsNull="true")
-    @MemberOrder(name="Ship Type Search",  sequence="42")
-    public LocalDate getShipTypeKeelLaidDate() {
-        return shipTypeKeelLaidDate;
+    @javax.jdo.annotations.Column(allowsNull="false")
+    @MemberOrder(name="Regulation Search based on Ship Particulars",  sequence="80")
+    @PropertyLayout(typicalLength=100)
+    private int keelLaidDate;
+    public int getKeelLaidDate() {
+        return keelLaidDate;
     }
-    public void setShipTypeKeelLaidDate(final LocalDate shipTypeKeelLaidDate) {this.shipTypeKeelLaidDate = shipTypeKeelLaidDate;
+    public void setKeelLaidDate(final int keelLaidDate) {this.keelLaidDate = keelLaidDate;
     }
     //endregion
 
@@ -253,8 +191,8 @@ public class RegulationSearch implements Categorized, Comparable<RegulationSearc
     public enum LogicType {
         AND,
         OR}
-    @javax.jdo.annotations.Persistent(defaultFetchGroup="true") // ok ???
     private LogicType andOr;
+ //   @javax.jdo.annotations.Persistent(defaultFetchGroup="true") // ok ???
     @PropertyLayout(named="")
     @javax.jdo.annotations.Column(allowsNull="true")
     @MemberOrder(name="AndOr", sequence="10")
@@ -267,11 +205,6 @@ public class RegulationSearch implements Categorized, Comparable<RegulationSearc
     //endregion
 
 
-    public enum ComparatorType {
-        Greater,
-        Less,
-        Equal
-    }
 
 
     // Region regulationTitle
@@ -287,29 +220,32 @@ public class RegulationSearch implements Categorized, Comparable<RegulationSearc
     //endregion
 
 
-    //region > regulationType (property)
-    public static enum RegulationType {
-        Certificate,
-        Procedure,
-        Checklist,
-        TechnicalSpecification,
-        OperationalSpecification,
-        FunctionalRequirement,
-        GoalBasedRegulation,
-        Guideline,
-        ReportSpecification,
-        Template,
-        Other;
-    }
-    @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
-    private RegulationType regulationType;
+
+   // @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
+    private CreationController.RegulationType regulationType;
+  //  @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
     @javax.jdo.annotations.Column(allowsNull="true")
     @MemberOrder(name="Regulation Search", sequence="20")
-    public RegulationType getRegulationType() {
+    public CreationController.RegulationType getRegulationType() {
         return regulationType;
     }
-    public void setRegulationType(final RegulationType regulationType) {
+    public void setRegulationType(final CreationController.RegulationType regulationType) {
         this.regulationType = regulationType;
+    }
+    //endregion
+
+  @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
+    private CreationController.KPI kpi;
+     @javax.jdo.annotations.Column(allowsNull="true")
+    //   @Property(editing= Editing.DISABLED,editingDisabledReason="Use action to update kpi")
+    /*The @Disabled annotation means that the member cannot be used in any instance of the class. When applied to the property it means that the user may not modify the value of that property (though it may still be modified programmatically). When applied to an action method, it means that the user cannot invoke that method.*/
+    @MemberOrder(name="Regulation Search", sequence="21")
+    @PropertyLayout(hidden=Where.ALL_TABLES,named = "KPI")
+    public CreationController.KPI getKpi() {
+        return kpi;
+    }
+    public void setKpi(final CreationController.KPI kpi) {
+        this.kpi = kpi;
     }
     //endregion
 
@@ -327,42 +263,18 @@ public class RegulationSearch implements Categorized, Comparable<RegulationSearc
     }
     // endregion
 
-    //region > applicableInType (property)
-    public static enum ApplicableInType {
-        EU,
-        Denmark,
-        Sweden,
-                Cyprus,
-        Finland,
-                Belgium,
-        Italy,
-                France,
-        Latvia,
-        UnitedKingdom,
-        Lithuania,
-                Bulgaria,
-        Netherlands,
-                Malta,
-        Poland,
-                Hungary,
-        CzechRepublic,
-        Germany,
-                Estonia,
-        Portugal,
-                Spain,
-        Greece
-    }
-    @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
-    private ApplicableInType applicableIn;
+//    @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
+    private CreationController.ApplicableInType applicableIn;
     @javax.jdo.annotations.Column(allowsNull="true")
     @MemberOrder(name="Regulation Search", sequence="40")
-    public ApplicableInType getApplicableIn() {
+    public CreationController.ApplicableInType getApplicableIn() {
         return applicableIn;
     }
-    public void setApplicableIn(final ApplicableInType applicableIn) {
+    public void setApplicableIn(final CreationController.ApplicableInType applicableIn) {
         this.applicableIn = applicableIn;
     }
     //endregion
+
 
     //region > ownedBy (property)
     @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
@@ -428,6 +340,27 @@ public class RegulationSearch implements Categorized, Comparable<RegulationSearc
         return id.substring(0,indexEnd);
     }
 
+
+
+    // BEGIN REGION Link from RegulationSearch to SearchResult.
+    // Collection of SearchResults that is fetched from the oi.getRegulationsForShipInstance(myship);
+public List<Chapter> listChapter(){
+    return chapters.allChapters().stream()
+            //.filter()
+            .collect(Collectors.toList());
+}
+
+
+    //END
+
+
+    // Derived collection to fetch FREETEXTS based on the Regulation Tags:
+    @NotPersistent
+    public List <FreeText> searchResults () {
+        return newFreeTextCall.allFreeTexts().stream()
+                //.filter(x -> x.isFlag())
+        .collect(Collectors.toList());
+    }
 
     //region > lifecycle callbacks
 
@@ -521,8 +454,6 @@ public class RegulationSearch implements Categorized, Comparable<RegulationSearc
     @javax.inject.Inject
     private RegulationSearchs regulationSearchs;
 
-    @javax.inject.Inject
-    private RESTclientTest restClientTest;
 
     @SuppressWarnings("deprecation")
 	Bulk.InteractionContext bulkInteractionContext;
@@ -541,5 +472,13 @@ public class RegulationSearch implements Categorized, Comparable<RegulationSearc
     @javax.inject.Inject
     private WrapperFactory wrapperFactory;
 
+    @javax.inject.Inject
+    private FreeTexts newFreeTextCall;
+
+    @javax.inject.Inject
+    private Chapters chapters;
+
+
     //endregion
+
 }

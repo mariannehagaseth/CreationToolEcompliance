@@ -31,7 +31,7 @@ import org.apache.isis.applib.services.wrapper.WrapperFactory;
 import org.apache.isis.applib.util.ObjectContracts;
 import org.apache.isis.applib.util.TitleBuffer;
 import org.joda.time.LocalDate;
-import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.MySKOSConcept;
+//import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.MySKOSConcept;
 
 import javax.jdo.JDOHelper;
 import javax.jdo.annotations.IdentityType;
@@ -184,8 +184,8 @@ public class SolasCode implements Categorized, Comparable<SolasCode> {
             sequence="10")
     public SolasCode updateSemantifiedRegulationText() {
                 // Call API to do semantification:
-                String AsyncRestTest = restClientTest.SkosFreetextAsync();
-                this.setSemantifiedRegulationText(AsyncRestTest);
+     //           String AsyncRestTest = restClientTest.SkosFreetextAsync();
+     //           this.setSemantifiedRegulationText(AsyncRestTest);
                 container.flush();
                 container.informUser("Semantify compeleted for " + container.titleOf(this));
                 System.out.print("Calling Semantify here!!");
@@ -388,30 +388,16 @@ public String setColour () {
 
 
 //region > kpi (property)
-    	   public static enum KPI {
-    		   ManagementLeadershipAndAccountability,
-    		   RecruitmentAndManagementOfShoreBasedPersonnel,
-    		   RecruitmentAndManagementOfShipPersonnel,
-    		   ReliabilityAndMaintenanceStandards,
-    		   NavigationalSafety,
-    		   CargoAndBallastOperations,
-    		   ManagementOfChange,
-    		   IncidentInvestigationAndAnalysis,
-    		   SafetyManagementShoreBasedMonitoring,
-    		   EnvironmentalManagement,
-    		   EmergencyPreparednessAndContingencyPlanning,
-    		   MeasurementAnalysisAndImprovement;
-    }
- @javax.jdo.annotations.Persistent(defaultFetchGroup="true")  
-    private KPI kpi;
+ @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
+    private CreationController.KPI kpi;
     @javax.jdo.annotations.Column(allowsNull="true")
   //   @Property(editing= Editing.DISABLED,editingDisabledReason="Use action to update kpi")
     /*The @Disabled annotation means that the member cannot be used in any instance of the class. When applied to the property it means that the user may not modify the value of that property (though it may still be modified programmatically). When applied to an action method, it means that the user cannot invoke that method.*/
     @MemberOrder(name="Regulation Tags (Edit)", sequence="30")
-    public KPI getKpi() {
+    public CreationController.KPI getKpi() {
         return kpi;
     }
-    public void setKpi(final KPI kpi) {
+    public void setKpi(final CreationController.KPI kpi) {
         this.kpi = kpi;
     }
     //endregion
@@ -595,8 +581,8 @@ public String setColour () {
     @MemberOrder(name="searchTerm", sequence="11")
     @Action(semantics = SemanticsOf.IDEMPOTENT)
     public SolasCode searchTerm() {
-        String restTest = restClientTest.SkosFreetext();
-        this.setDefinitionTerm(restTest);
+  //      String restTest = restClientTest.SkosFreetext();
+   //     this.setDefinitionTerm(restTest);
         container.flush();
         container.informUser("Search Term finished for " + container.titleOf(this));
         return this;
@@ -682,7 +668,7 @@ public String setColour () {
     public SolasCode searchShipClass() {
         // Must change to shipType:  ShipType restTest = restClientTest.fetchSKOSconcept();
         System.out.println("restTestSKOSconcept = restClientTest.fetchSKOSconcept();");
-        MySKOSConcept restTestSKOSconcept = restClientTest.fetchSKOSconcept();
+    //    MySKOSConcept restTestSKOSconcept = restClientTest.fetchSKOSconcept();
         // Nå returnerer bare null!!
         System.out.println("stringShip");
         // Må returnere en liste av mulige ship classes her!!
@@ -880,8 +866,6 @@ public String setColour () {
     @javax.inject.Inject
     private SolasCodes solasCodes;
 
-    @javax.inject.Inject
-    private RESTclientTest restClientTest;
 
     @SuppressWarnings("deprecation")
 	Bulk.InteractionContext bulkInteractionContext;

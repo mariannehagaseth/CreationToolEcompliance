@@ -30,10 +30,14 @@ import org.apache.isis.applib.services.wrapper.WrapperFactory;
 import org.apache.isis.applib.util.ObjectContracts;
 import org.apache.isis.applib.util.TitleBuffer;
 import org.isisaddons.wicket.summernote.cpt.applib.SummernoteEditor;
+import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.FragmentSKOSConceptOccurrences;
+import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.ShipClass;
 
 import javax.jdo.JDOHelper;
 import javax.jdo.annotations.IdentityType;
 import javax.jdo.annotations.VersionStrategy;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.SortedSet;
 
 
@@ -73,7 +77,8 @@ public class Interpretation implements Categorized, Comparable<Interpretation> {
     // Region plainRegulationText
     private String plainRegulationText;
     @javax.jdo.annotations.Column(allowsNull="true", length=10000)
-    @MemberOrder(name="Interpretation", sequence="10")
+    // @Property(regexPattern="\\w[@&:\\-\\,\\.\\+ \\w]*")
+    @MemberOrder(name="Interpretation", sequence="5")
     @PropertyLayout(typicalLength=10000, multiLine=4, named = "Text")
     public String getPlainRegulationText() {
         return plainRegulationText;
@@ -89,68 +94,18 @@ public class Interpretation implements Categorized, Comparable<Interpretation> {
     }
     //endregion
 
-    // Region termAnnotated
-    private String termAnnotated;
-    //@SummernoteEditor(height = 100, maxHeight = 300)
-    @javax.jdo.annotations.Column(allowsNull="true", length=10000)
-    @MemberOrder(name="Interpretation", sequence="15")
-   // @PropertyLayout(hidden=Where.EVERYWHERE)
-   // @ActionLayout(hidden=Where.EVERYWHERE)
-    public String getTermAnnotated() {
-        return termAnnotated;
-    }
-    public void setTermAnnotated(final String termAnnotated) {
-      this.termAnnotated = termAnnotated;
-             }
-    public void modifyTermAnnotated(final String termAnnotated) {
-        setTermAnnotated(termAnnotated);
-    }
-    public void clearTermAnnotated() {
-        setTermAnnotated(null);
-    }
-    //endregion
-
-
+    // BEGIN REGION ANNOTATED TEXT
     private String annotatedText;
     @javax.jdo.annotations.Column(allowsNull="true", length=10000)
-    @MemberOrder(name="Interpretation", sequence="20")
+    @MemberOrder(name="Interpretation", sequence="10")
     @PropertyLayout(typicalLength=10000, multiLine=3, hidden=Where.ALL_TABLES)
     @Property(editing = Editing.DISABLED,editingDisabledReason = "Update using action that calls an API from the consolidation services")
-//    @SummernoteEditor(height = 100, maxHeight = 300)
-//  @SummernoteEditor()
+  @SummernoteEditor(height = 100, maxHeight = 300)
     public String getAnnotatedText() {
         return annotatedText;
     }
     public void setAnnotatedText(final String annotatedText) {
-         System.out.println("1termAnnotated = "+termAnnotated+"." );
-        System.out.println("1this.termAnnotated = "+this.termAnnotated+"." );
-        System.out.println("1annotatedText = "+annotatedText+"." );
-        System.out.println("1this.annotatedText = "+this.annotatedText+"." );
-        System.out.println("1plainRegulationText = "+plainRegulationText+"." );
-        System.out.println("1this.plainRegulationText = "+this.plainRegulationText+"." );
-
-//        FragmentSKOSConceptOccurrences fragment = restClient.GetSkos(plainRegulationText);
-//        System.out.println("REGULATION: fragment OK");
-//        this.annotatedText = creationController.CheckTerms(plainRegulationText, fragment).get(1);
-
-//        this.annotatedText = annotatedText;
-        this.annotatedText = "Every <span style=\"background-color: rgb(0, 255, 0);\">ship</span> must have a <span style=\"background-color: rgb(0, 255, 0);\">polar code</span> <span style=\"background-color: rgb(0, 255, 0);\">certificate</span>";
-       /* MHAGA;
-        if (this.termAnnotated == null) {
-            this.annotatedText = annotatedText;
-            System.out.println("THIS.termAnnotated=NULL= "+this.termAnnotated+"." );
-            System.out.println("THIS.annotatedText = "+this.annotatedText+"." );
-        }
-        else {
-            this.annotatedText = this.termAnnotated;
-        }
-        System.out.println("2termAnnotated = "+termAnnotated+"." );
-        System.out.println("2this.1termAnnotated = "+this.termAnnotated+"." );
-        System.out.println("2annotatedText = "+annotatedText+"." );
-        System.out.println("2this.annotatedText = "+this.annotatedText+"." );
-        System.out.println("2plainRegulationText = "+plainRegulationText+"." );
-        System.out.println("2this.plainRegulationText = "+this.plainRegulationText+"." );
-*/
+        this.annotatedText = annotatedText;
     }
     public void modifyAnnotatedText(final String annotatedText) {
         setAnnotatedText(annotatedText);
@@ -158,48 +113,12 @@ public class Interpretation implements Categorized, Comparable<Interpretation> {
     public void clearAnnotatedText() {
         setAnnotatedText(null);
     }
+// END REGION ANNOTATED TEXT
 
-
-    // Region requirement
-    private String requirement;
-    @javax.jdo.annotations.Column(allowsNull="true", length=3000)
-    //@Property(regexPattern="\\w[@&:\\-\\,\\.\\+ \\w]*")
-    @MemberOrder(name="Interpretation", sequence="90")
-    @PropertyLayout(typicalLength=3000, multiLine=3)
-    @SummernoteEditor(height = 100, maxHeight = 300)
-    public String getRequirement() {
-        return requirement;
-    }
-    /*   public void setRequirement(final String requirement) {
-           this.requirement = requirement;
-       } */
-    public void setRequirement(final String requirement) {
-       /* this.requirement = "<span style=\"background-color: yellow;\">every\"\" ship</span> must have a polar code certificate.<br>"; */
-       /*THIS WORKS: this.requirement = "<span style=\"color: rgb(34, 34, 34); font-family: arial, sans-serif;" +
-                "font-size: small; line-height: normal;\"><span style=\"background-color:" +
-                "yellow;\">Passenger ships</span> have more than 12 passengers.</span>";
-    */
-        /*THIS WORKS OK AS WELL:*/
-        //     this.requirement = "<span style=\"background-color: rgb(0, 255, 0);\">Every ship</span> must have a polar code certificate.<br>";
-        this.requirement = setColour();
-    }
-    public void modifyRequirement(final String requirement) {
-        setRequirement(requirement);
-    }
-    public void clearRequirement() {
-        setRequirement(null);
-    }
-    //endregion
-
-    @Programmatic
-    public String setColour () {
-        return "<span style=\"background-color: rgb(0, 255, 0);\">Every ship</span> must have a polar code certificate.";
-    }
-
-        private String skosTerms;
+    private String skosTerms;
     @javax.jdo.annotations.Column(allowsNull="true", length=10000)
-    @MemberOrder(name="Interpretation", sequence="30")
-    @PropertyLayout(typicalLength=10000, multiLine=6, named = "Terms", hidden=Where.ALL_TABLES)
+    @MemberOrder(name="Interpretation", sequence="20")
+    @PropertyLayout(typicalLength=10000, multiLine=3, named = "Terms", hidden=Where.ALL_TABLES)
     //@Property(editing = Editing.DISABLED,editingDisabledReason = "Update using action that calls an API from the consolidation services")
     public String getSkosTerms() {
         return skosTerms;
@@ -214,6 +133,102 @@ public class Interpretation implements Categorized, Comparable<Interpretation> {
     public void clearSkosTerms() {
         setSkosTerms(null);
     }
+
+    @Action()
+    @ActionLayout(position = ActionLayout.Position.PANEL)
+    @MemberOrder(name="Interpretation", sequence="20")
+    public Interpretation CheckTerms() {
+        FragmentSKOSConceptOccurrences fragment = restClient.GetSkos(plainRegulationText);
+        System.out.println("  fragment OK");
+        List<String> annotation = new ArrayList<String>();
+        setSkosTerms(creationController.ShowTerms(plainRegulationText, fragment).get(0));
+        setAnnotatedText(creationController.ShowTerms(plainRegulationText, fragment).get(1));
+         System.out.println("  skosTerms="+skosTerms);
+        System.out.println(" annotatedText="+annotatedText);
+        container.flush();
+        container.informUser("Fetched SKOS terms completed for " + container.titleOf(this));
+        return this;
+    }
+      //endregion
+
+
+    //BEGIN show  Region target
+    private String target;
+    @javax.jdo.annotations.Column(allowsNull="true", length=10000)
+    @MemberOrder(name="Interpretation", sequence="30")
+    @PropertyLayout(typicalLength=10000, multiLine=3, named = "Target", hidden=Where.ALL_TABLES)
+    //@Property(editing = Editing.DISABLED,editingDisabledReason = "Update using action that calls an API from the consolidation services")
+    public String getTarget() {
+        return target;
+    }
+    public void setTarget(final String target) {
+        this.target= target;
+    }
+    public void modifyTarget(final String target) {setTarget(target);}
+
+    public void clearTarget() {
+        setTarget(null);
+    }
+
+    //@Action(semantics = SemanticsOf.IDEMPOTENT)
+    @Action()
+    //  @ActionLayout(named = "Check Terms", position = ActionLayout.Position.PANEL)
+    @ActionLayout(position = ActionLayout.Position.PANEL)
+    @MemberOrder(name="Interpretation", sequence="20")
+    public Interpretation ShowTarget() {
+        ShipClass shipClassFound = null;
+        // CALLS THE TARGET API
+        shipClassFound = restClient.GetTarget(plainRegulationText);
+        // shipClassFound = restClient.GetApplicability(plainRegulationText);
+        System.out.println(" :shipclassfound OK");
+        setTarget(creationController.ShowShipClass(plainRegulationText,shipClassFound));
+        System.out.println(" : target="+target);
+        container.flush();
+        container.informUser("Fetched Target completed for " + container.titleOf(this));
+        return this;
+    }
+
+// END SHOW target
+
+
+    //BEGIN show applicability
+    private String applicability;
+    @javax.jdo.annotations.Column(allowsNull="true", length=10000)
+    @MemberOrder(name="Interpretation", sequence="35")
+    @PropertyLayout(typicalLength=10000, multiLine=3, named = "Applicability", hidden=Where.ALL_TABLES)
+    //@Property(editing = Editing.DISABLED,editingDisabledReason = "Update using action that calls an API from the consolidation services")
+    public String getApplicability() {
+        return applicability;
+    }
+    public void setApplicability(final String applicability) {
+        this.applicability= applicability;
+    }
+    public void modifyApplicability(final String applicability) {
+        setApplicability(applicability);}
+
+    public void clearApplicability() {
+        setApplicability(null);
+    }
+
+    //@Action(semantics = SemanticsOf.IDEMPOTENT)
+    @Action()
+    //  @ActionLayout(named = "Check Terms", position = ActionLayout.Position.PANEL)
+    @ActionLayout(position = ActionLayout.Position.PANEL)
+    @MemberOrder(name="Interpretation", sequence="30")
+    public Interpretation ShowApplicability() {
+        ShipClass shipClassFound = null;
+        // CALLS THE APPLICABILITY API
+        //    shipClassFound = restClient.GetRule(plainRegulationText);
+        shipClassFound = restClient.GetApplicability(plainRegulationText);
+        System.out.println(":applicability shipclassfound OK");
+        setApplicability(creationController.ShowShipClass(plainRegulationText,shipClassFound));
+        System.out.println(": applicability="+applicability);
+        container.flush();
+        container.informUser("Fetched Applicability completed for " + container.titleOf(this));
+        return this;
+    }
+// END SHOW applicability
+
 
     //region > ownedBy (property)
     @javax.jdo.annotations.Persistent(defaultFetchGroup="true")

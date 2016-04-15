@@ -60,7 +60,7 @@ public class SolasCodes {
     public List<SolasCode> isFinalized() {
         final List<SolasCode> items = isFinalizedNoUi();
         if(items.isEmpty()) {
-            container.informUser("No regulations are Finalized!");
+            container.warnUser("No regulations are Finalized!");
         }
         return items;
     }

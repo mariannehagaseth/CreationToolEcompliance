@@ -1,13 +1,14 @@
 package org.isisaddons.wicket.summernote.fixture.dom.regulation;
 
 import org.apache.isis.applib.AbstractService;
+import org.apache.isis.applib.DomainObjectContainer;
 import org.apache.isis.applib.annotation.Action;
 import org.apache.isis.applib.annotation.DomainService;
 import org.apache.isis.applib.annotation.DomainServiceLayout;
 import org.apache.isis.applib.annotation.Programmatic;
 import org.apache.isis.applib.query.QueryDefault;
+import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.DocumentRoot;
 import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.FragmentSKOSConceptOccurrences;
-import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.MySKOSConcept;
 import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.SKOSConceptOccurrence;
 import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.ShipClass;
 
@@ -26,10 +27,13 @@ public class RESTclient extends AbstractService   {
 
 // target is basically a full rule, and applicability is really the target
 // 192.168.33.10:9000/api/semantic/target is fetching a full rule.
-//		er kopiert fra: https://bitbucket.org/droythorne/jersey/src/8f6d940ff0dd2e5b5bed0dc52c5a558b511a1c3e/src/main/java/Main.java?at=master 
+//		er kopiert fra: https://bitbucket.org/droythorne/jersey/src/8f6d940ff0dd2e5b5bed0dc52c5a558b511a1c3e/src/main/java/Main.java?at=master
 	//Target is basically fetching the full rule.
+
+// Calls the TARGET-API.
 	@Action
-	public ShipClass GetRule(String regulationText) {
+	public ShipClass GetTarget(String regulationText) {
+
 		ShipClass shipClassInRule = null;
   	class SemanticRuleCallback implements InvocationCallback<Response> {
 
@@ -44,9 +48,8 @@ public class RESTclient extends AbstractService   {
 	}
 	}
 
-	System.out.println("-------------------\nhttp://192.168.33.10:9000/api/semantic/target");
-// Doesnt work		System.out.println("-------------------\nhttp://192.168.33.10:9000/api/semantic/applicability");
-		Client client = ClientBuilder.newClient();
+	System.out.println("GetTarget");
+ 		Client client = ClientBuilder.newClient();
  		WebTarget webTarget = client.target("http://192.168.33.10:9000/api/semantic/target");
 		Invocation.Builder invocationBuilder = webTarget.request(MediaType.APPLICATION_XML);
 	invocationBuilder.header("Content-type", "text/plain");
@@ -69,7 +72,7 @@ public class RESTclient extends AbstractService   {
 		return shipClassInRule;
 	}
 
-
+// CALLS the APPLICABILITY-API:
 	public ShipClass GetApplicability(String regulationText) {
 		ShipClass shipClassInRule = null;
 		class SemanticRuleCallback implements InvocationCallback<Response> {
@@ -85,10 +88,9 @@ public class RESTclient extends AbstractService   {
 			}
 		}
 
-		//System.out.println("-------------------\nhttp://192.168.33.10:9000/api/semantic/target");
-  		System.out.println("-------------------\nhttp://192.168.33.10:9000/api/semantic/applicability");
+	 	System.out.println("GetApplicability");
 		Client client = ClientBuilder.newClient();
-		WebTarget webTarget = client.target("http://192.168.33.10:9000/api/semantic/target");
+		WebTarget webTarget = client.target("http://192.168.33.10:9000/api/semantic/applicability");
 		Invocation.Builder invocationBuilder = webTarget.request(MediaType.APPLICATION_XML);
 		invocationBuilder.header("Content-type", "text/plain");
 		AsyncInvoker async_invoker = invocationBuilder.async();
@@ -110,29 +112,13 @@ public class RESTclient extends AbstractService   {
 		return shipClassInRule;
 	}
 
-/*
-	//192.168.33.10:9000/api/semantic/applicability is fetching the target!!
-	@Action
-	public String GetTarget() {
-// Copied from SKOSfreeTextAsync
-//		class SKOSFreetextCallback implements InvocationCallback<Response> {
-		class SemanticTargetCallback implements InvocationCallback<Response> {
 
+	// CALLS the TARGET-API: MUST CHANGE THIS TO APPLICABILITY???
+	public ShipClassType GetShipClass(String regulationText) {
+		ShipClassType shipClassTypeInRule = null;
+		class SemanticRuleCallback implements InvocationCallback<Response> {
 			@Override
 			public void completed(Response response) {
-				//Called when the invocation was successfully completed. Note that this does not necessarily mean the response has bean fully read, which depends on the parameterized invocation callback response type.
-				//Once this invocation callback method returns, the underlying Response instance will be automatically closed by the runtime.
-				//Parameters:
-				//response - response data.
-				System.out.println("Response status code =" + response.getStatus());
-	//MHAGA: Target Class will repace MYSKOSConcept
-				final MySKOSConcept skosConceptOccurrence = response.readEntity(MySKOSConcept.class);
-				System.out.print("skosConceptOccurrence.toString()= ");
-				System.out.println(skosConceptOccurrence.toString());
-				int skosBegin=skosConceptOccurrence.getBegin();
-				System.out.println("skosBegin = "+skosBegin);
-				String skosText=skosConceptOccurrence.getText();
-				System.out.println("skosText = "+skosText);
 			}
 			@Override
 			public void failed(Throwable throwable) {
@@ -140,28 +126,60 @@ public class RESTclient extends AbstractService   {
 				throwable.printStackTrace();
 			}
 		}
-		System.out.println("-------------------\nFreetext async POST Request Test");
+ 		System.out.println("-------------------\nhttp://192.168.33.10:9000/api/semantic/target");
 		Client client = ClientBuilder.newClient();
-//		WebTarget webTarget = client.target("http://192.168.33.10:9000/api/semantic/skos");
 		WebTarget webTarget = client.target("http://192.168.33.10:9000/api/semantic/target");
 		Invocation.Builder invocationBuilder = webTarget.request(MediaType.APPLICATION_XML);
 		invocationBuilder.header("Content-type", "text/plain");
-		// AsyncInvoker async_invoker = invocationBuilder.async().get(sftc);
 		AsyncInvoker async_invoker = invocationBuilder.async();
-		InvocationCallback<Response> sftc = new SemanticTargetCallback();
-		Future<Response> response = async_invoker.post(Entity.entity("A string entity to be POSTed", MediaType.TEXT_PLAIN), sftc);
-		String responseGot="";
+		InvocationCallback<Response> sftc = new SemanticRuleCallback();
+		Future<Response> response = async_invoker.post(Entity.entity(regulationText, MediaType.TEXT_PLAIN), sftc);
+		Response responseEntity = null;
 		try {
-			responseGot=response.get().toString();
+			responseEntity=response.get();
+			System.out.println("ResponseEntity in GetRule() = "+responseEntity.toString());
+			//ShipClassType shipClassTypeFound = responseEntity.readEntity(ShipClassType.class);
+			ShipClass shipClassFound = responseEntity.readEntity(ShipClass.class);
+
+			System.out.println("shipClassFound set... ");
+			shipClassTypeInRule = newShipClassTypeCall.newShipClassType(
+			shipClassFound.getType(),
+		 	shipClassFound.getMinTonnageIn(),
+			shipClassFound.getMinTonnageEx(),
+			shipClassFound.getMinTonnageIn(),
+			shipClassFound.getMinTonnageEx(),
+			shipClassFound.getMinLengthIn(),
+			shipClassFound.getMinLengthEx(),
+			shipClassFound.getMaxLengthIn(),
+			shipClassFound.getMaxLengthEx(),
+			shipClassFound.getMinDraughtIn(),
+			shipClassFound.getMinDraughtEx(),
+			shipClassFound.getMaxDraughtIn(),
+			shipClassFound.getMaxDraughtEx(),
+			shipClassFound.getMinPassengersIn(),
+			shipClassFound.getMinPassengersEx(),
+			shipClassFound.getMaxPassengerIn(),
+			shipClassFound.getMaxPassengersEx(),
+			shipClassFound.getMinKeelLaidIn(),
+			shipClassFound.getMinKeelLaidEx(),
+			shipClassFound.getMaxKeelLaidIn(),
+			shipClassFound.getMaxKeelLaidEx(),
+			shipClassFound.getLengthUnit(),
+			shipClassFound.getTonnageUnit(),
+			shipClassFound.getDraughtUnit(),
+			currentUserName()
+			);
+
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		} catch (ExecutionException e) {
 			e.printStackTrace();
 		}
-		System.out.println("response.get().toString()= "+ responseGot);
-		return responseGot;
+		System.out.println("return shipClassTypeInRule");
+		return shipClassTypeInRule;
 	}
-*/
+
+
 
 	public FragmentSKOSConceptOccurrences  GetSkos(String regulationText) {
 
@@ -171,40 +189,7 @@ public class RESTclient extends AbstractService   {
 
 			@Override
 			public void completed(Response response) {
-/*
-				//Called when the invocation was successfully completed. Note that this does not necessarily mean the response has bean fully read, which depends on the parameterized invocation callback response type.
-				//Once this invocation callback method returns, the underlying Response instance will be automatically closed by the runtime.
-				//Parameters:
-				//response - response data.
-				System.out.println("Response status code in completed =" + response.getStatus());
-//				SKOSConceptOccurrence skosConceptOccurrence = response.readEntity(SKOSConceptOccurrence.class);
-				FragmentSKOSConceptOccurrences fragmentSKOSConceptOccurrences = response.readEntity(FragmentSKOSConceptOccurrences.class);
-				System.out.print("fragmentSKOSConceptOccurrences.toString()= ");
-				System.out.println(fragmentSKOSConceptOccurrences.toString());
-				String fragmentUri=fragmentSKOSConceptOccurrences.getFragmentUri();
-				System.out.println("FragmentUri = "+fragmentUri);
 
-
-				List<SKOSConceptOccurrence> skosList = fragmentSKOSConceptOccurrences.getSkosConceptOccurrence();
-				int lastSkosConcept = fragmentSKOSConceptOccurrences.getSkosConceptOccurrence().size();
-				for (int i=0;i< lastSkosConcept; i++) {
- 					int skosBegin = skosList.get(i).getBegin();
-					System.out.println("skosBegin = "+"i="+i+" " + skosBegin);
-
- 					int skosEnd = skosList.get(i).getEnd();
-					System.out.println("skosEnd = "+"i="+i+" " + skosEnd);
-
-					String skosConceptPropertyLabel = skosList.get(i).getSkosConceptProperty().value();
-					System.out.println("skosConceptPropertyLabel = "+"i="+i+" " + skosConceptPropertyLabel);
-
-					String skosConceptUri = skosList.get(i).getUri();
-					String skosConceptProperyValue = skosConceptUri.substring(skosConceptUri.indexOf("#") + 1);
-					System.out.println("skosConceptProperyValue = "+"i="+i+" " + skosConceptProperyValue);
-
-					String usedTerm = regulationText.substring(skosBegin, skosEnd);
-					System.out.println("usedTerm = "+"i="+i+" " + usedTerm);
-					}
-*/
   			}
 			@Override
 			public void failed(Throwable throwable) {
@@ -234,12 +219,6 @@ public class RESTclient extends AbstractService   {
 			responseEntity=response.get();
 			System.out.println("ResponseEntity in GetSkos1() = "+responseEntity.toString());
 			FragmentSKOSConceptOccurrences fragmentSKOS = responseEntity.readEntity(FragmentSKOSConceptOccurrences.class);
- 	//		String fragmentUri =response.get().readEntity(FragmentSKOSConceptOccurrences.class).getFragmentUri(); FAILS!!
-	//		System.out.println("fragmentUri fetched ="+fragmentUri);
-			//System.out.println("The entity got in GetSkos() = "+response.get().getEntity().toString());
-//			FragmentSKOSConceptOccurrences skosConcept= responseEntity.readEntity(FragmentSKOSConceptOccurrences.class);
-//			System.out.println("skosConcept = "+skosConcept.getSkosConceptOccurrence().get(0).getSkosConceptProperty());
-			// FragmentSKOSConceptOccurrences fragmentSKOSConceptOccurrences = responseEntity.readEntity(FragmentSKOSConceptOccurrences.class);
 			System.out.println("fragmentSKOS set: ");
 			fragment = fragmentSKOS;
 		} catch (InterruptedException e) {
@@ -249,14 +228,52 @@ public class RESTclient extends AbstractService   {
 			System.out.println("Execution Exception");
 			e.printStackTrace();
 		}
-		//finally {
-	//		System.out.println("Close");
-//			responseEntity.close();
-//		}
+
 		System.out.println("Return fragment");
 
 		return fragment;
-		//return responseEntity.getText();
+
+	}
+
+
+	public String CreateRdfRootNode(DocumentRoot rootNode) {
+
+		String rootURI = "";
+
+ 		class SemanticRuleCallback implements InvocationCallback<Response> {
+
+			@Override
+			public void completed(Response response) {
+			}
+
+			@Override
+			public void failed(Throwable throwable) {
+				System.out.println("Invocation failed.");
+				throwable.printStackTrace();
+			}
+		}
+
+		System.out.println("CreateRdfRootNode");
+		Client client = ClientBuilder.newClient();
+		WebTarget webTarget = client.target("http://192.168.33.10:9000/api/rdf/document/root");
+		Invocation.Builder invocationBuilder = webTarget.request(MediaType.TEXT_PLAIN);
+		invocationBuilder.header("Content-type", "text/plain");
+		AsyncInvoker async_invoker = invocationBuilder.async();
+		InvocationCallback<Response> sftc = new SemanticRuleCallback();
+		Future<Response> response = async_invoker.post(Entity.entity(rootNode, MediaType.TEXT_PLAIN), sftc);
+		Response responseEntity = null;
+		try {
+			responseEntity=response.get();
+			System.out.println("ResponseEntity in CreateRdfRootNode() = "+responseEntity.toString());
+			rootURI = responseEntity.readEntity(String.class);
+			System.out.println("ROOTURI found... = "+ rootURI);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		} catch (ExecutionException e) {
+			e.printStackTrace();
+		}
+		System.out.println("return rootURI");
+		return rootURI;
 	}
 
 
@@ -274,92 +291,7 @@ public class RESTclient extends AbstractService   {
     }
 
 
-	
-	@Action
-	public String restClient() {
-		/**
-		  Conceptually, the steps required to submit a request are the following:
-    1)obtain an Client instance
-    2)create a WebTarget pointing at a Web resource
-    3)build a request
-    4)submit a request to directly retrieve a response or get a prepared Invocation for later submission
-		 **/
-		try {
-			System.out.println("Hello Jersey Test!");
-			System.out.println("-------------------\nFreetext POST Request Test");
-	// Create a client instance:
-	Client client = ClientBuilder.newClient();
-	// Create a WebTarget:
-	String resourceString = "http://192.168.33.10:9000/skos/freetext";
-	WebTarget target = client.target(resourceString);
-	 // Build a request:
-	//Invocation.Builder invocationBuilder =	target.request(MediaType.APPLICATION_XML_TYPE);
-	Invocation.Builder invocationBuilder =	target.request(MediaType.APPLICATION_XML);
-	invocationBuilder.header("Content-type", "text/plain");
-    Response response = invocationBuilder.post(Entity.entity("A string entity to be POSTed", MediaType.TEXT_PLAIN));
-		System.out.println("response.getStatus() = " + response.getStatus());
-		final MySKOSConcept skosConceptOccurrence;
-		skosConceptOccurrence = response.readEntity(MySKOSConcept.class);
-		System.out.println("skosConceptOccurrence: " + skosConceptOccurrence.toString());
-    if (response.getStatus() != 200) {
-			throw new RuntimeException("" + response.getStatus());
-		}
-     String value = response.readEntity(String.class);
-     response.close();  // You should close connections!
-     System.out.println("value= "+value);
-     return value;
-     	} catch (Exception e) {
-			System.out.println("status:" + e.getMessage());
-			if (e.getMessage().equals("404")) {
-				System.out.println("Resource not found.");
-			}
-			if (e.getMessage().equals("500")) {
-				System.out.println("An unknown error occured.");
-			}
-			return "Exception Catched in RESTclientTest";
-		}
-	}
 
-//Region findSimilarRegulations
-	@Programmatic
-	public Set<RegulationText> findSimilarRegulations(RegulationText regulation){
-		//search regulations similar to regulation:
-		// Dummy fetch all regulations except the one given:
-		List<RegulationText> regList= (List<RegulationText>) allMatches(new QueryDefault(RegulationText.class, "findRegulations"));
-		if(regList.isEmpty()) {
-				warnUser("No regulations found.");
-			}else {regList.remove(regulation);}
-		Set<RegulationText> regSet = null;
-		try {
-			regSet = new HashSet<RegulationText>(regList);
-		} catch (Exception e) {
-			System.out.print("No similar regulations found!!");
-			e.printStackTrace();
-		}
-		return regSet;
-		}
-		//endregion
-
-	//Region findSimilar
-	@Programmatic
-	public Set<RegulationText> findSimilars(){
-		//search regulations similar to regulation:
-		// Dummy fetch all regulations except the one given:
-		List<RegulationText> regList= (List<RegulationText>) allMatches(new QueryDefault(RegulationText.class, "findRegulations"));
-		if(regList.isEmpty()) {
-			warnUser("No regulations found.");
-		}else {}
-
-		Set<RegulationText> regSet = null;
-		try {
-			regSet = new HashSet<RegulationText>(regList);
-		} catch (Exception e) {
-			System.out.print("No similar regulations found!!");
-			e.printStackTrace();
-		}
-		return regSet;
-	}
-	//endregion
 
 
 
@@ -382,4 +314,20 @@ public class RESTclient extends AbstractService   {
 		return shipTypeSet;
 	}
 	//endregion
+
+	private String currentUserName() {
+		return container.getUser().getName();
+	}
+	//endregion
+
+
+	//region > injected services
+
+	@javax.inject.Inject
+	private DomainObjectContainer container;
+
+	@javax.inject.Inject
+	private ShipClassTypes newShipClassTypeCall;
+
 }
+

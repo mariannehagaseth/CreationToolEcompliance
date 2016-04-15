@@ -317,8 +317,6 @@ public class SubSectionTextItem implements Categorized, Comparable<SubSectionTex
     @javax.inject.Inject
     private TextItems textItems;
 
-    @javax.inject.Inject
-    private RESTclientTest restClientTest;
 
     @SuppressWarnings("deprecation")
 	Bulk.InteractionContext bulkInteractionContext;

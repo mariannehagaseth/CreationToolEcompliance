@@ -30,9 +30,7 @@ import org.apache.isis.applib.services.eventbus.EventBusService;
 import org.apache.isis.applib.services.wrapper.WrapperFactory;
 import org.apache.isis.applib.util.ObjectContracts;
 import org.apache.isis.applib.util.TitleBuffer;
-import org.isisaddons.wicket.summernote.cpt.applib.SummernoteEditor;
 import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.FragmentSKOSConceptOccurrences;
-import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.SKOSConceptOccurrence;
 import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.ShipClass;
 import org.isisaddons.wicket.summernote.fixture.dom.regulation.Chapter.ChapterAnnex;
 import org.joda.time.LocalDate;
@@ -310,7 +308,7 @@ public class Regulation implements Categorized, Comparable<Regulation> {
     private String regulationTitle;
     @javax.jdo.annotations.Column(allowsNull="true", length=100)
     @MemberOrder(name="Regulation", sequence="30")
-    @PropertyLayout(named = " ",typicalLength=5)
+    @PropertyLayout(named = "Title",typicalLength=5)
     public String getRegulationTitle() {
         return regulationTitle;
     }
@@ -325,21 +323,7 @@ public class Regulation implements Categorized, Comparable<Regulation> {
     }
     //endregion
 
-    // region Invalidated (property)
-    private boolean invalidated;
-    @javax.jdo.annotations.Column(allowsNull="true")
-    @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
-    @PropertyLayout(hidden=Where.ALL_TABLES)
-    @ActionLayout(hidden=Where.ALL_TABLES)
-    @MemberOrder(name="Regulation Tags", sequence="30")
-    public boolean getInvalidated() {
-        return invalidated;
-    }
-    public void setInvalidated(final boolean invalidated) {
-        this.invalidated = invalidated;
-    }
-    // end region
-  
+
 
     
     //region > ownedBy (property)
@@ -387,25 +371,28 @@ public class Regulation implements Categorized, Comparable<Regulation> {
     //endregion
 
 
-	 //region > finalized (property)
-	   @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
-    private boolean finalized;
-   // @Property(editing= Editing.DISABLED,editingDisabledReason="Finalized is changed elsewhere")
-       @javax.jdo.annotations.Column(allowsNull="true")
-       @PropertyLayout(hidden=Where.ALL_TABLES)
-       @ActionLayout(hidden=Where.ALL_TABLES)
-       @MemberOrder(name="Regulation Tags", sequence="40")
-       public boolean getFinalized() {
-	    	        return finalized;
-	    }
-	    public void setFinalized(final boolean finalized) {
-	        this.finalized = finalized;
-	    }
-	   // public boolean isFinalized() {
-	     //   return finalized;
-	    //}
-	    //endregion
 
+
+
+
+    // Region plainRegulationText
+    private String plainRegulationText;
+    @javax.jdo.annotations.Column(allowsNull="true", length=10000)
+    @MemberOrder(name="Regulation", sequence="80")
+    @PropertyLayout(typicalLength=10000, multiLine=4, named = "Regulation Text (Applicability)",hidden=Where.ALL_TABLES)
+    public String getPlainRegulationText() {
+        return plainRegulationText;
+    }
+    public void setPlainRegulationText(final String plainRegulationText) {
+        this.plainRegulationText = plainRegulationText;
+    }
+    public void modifyPlainRegulationText(final String plainRegulationText) {
+        setPlainRegulationText(plainRegulationText);
+    }
+    public void clearPlainRegulationText() {
+        setPlainRegulationText(null);
+    }
+    //endregion
 
 
     private String annotatedText;
@@ -413,7 +400,7 @@ public class Regulation implements Categorized, Comparable<Regulation> {
     @MemberOrder(name="Annotation", sequence="5")
     @PropertyLayout(typicalLength=10000, multiLine=3, hidden=Where.ALL_TABLES)
     @Property(editing = Editing.DISABLED,editingDisabledReason = "Update using action that calls an API from the consolidation services")
-    @SummernoteEditor(height = 100, maxHeight = 300)
+    // @SummernoteEditor(height = 100, maxHeight = 300)
     //  @SummernoteEditor()
     public String getAnnotatedText() {
         return annotatedText;
@@ -432,7 +419,7 @@ public class Regulation implements Categorized, Comparable<Regulation> {
     private String skosTerms;
     @javax.jdo.annotations.Column(allowsNull="true", length=10000)
     @MemberOrder(name="Annotation", sequence="10")
-    @PropertyLayout(typicalLength=10000, multiLine=6, named = "Terms", hidden=Where.ALL_TABLES)
+    @PropertyLayout(typicalLength=10000, multiLine=3, named = "Terms", hidden=Where.ALL_TABLES)
     //@Property(editing = Editing.DISABLED,editingDisabledReason = "Update using action that calls an API from the consolidation services")
     public String getSkosTerms() {
         return skosTerms;
@@ -453,8 +440,9 @@ public class Regulation implements Categorized, Comparable<Regulation> {
         FragmentSKOSConceptOccurrences fragment = restClient.GetSkos(plainRegulationText);
         System.out.println("REGULATION: fragment OK");
         List<String> annotation = new ArrayList<String>();
-        setSkosTerms(creationController.CheckTerms(plainRegulationText, fragment).get(0));
-        setAnnotatedText(creationController.CheckTerms(plainRegulationText, fragment).get(1));
+        setSkosTerms(creationController.ShowTerms(plainRegulationText, fragment).get(0));
+       // SummernoteEditor:  setAnnotatedText(creationController.ShowTerms(plainRegulationText, fragment).get(1));
+        setAnnotatedText(plainRegulationText);
         System.out.println("REGULATION: skosTerms="+skosTerms);
         System.out.println("REGULATION: annotatedText="+annotatedText);
         container.flush();
@@ -465,41 +453,82 @@ public class Regulation implements Categorized, Comparable<Regulation> {
     //endregion
 
 
-    // Begin Region Rule = TARGET
-    private String rule;
+    //BEGIN show  Region target
+    private String target;
     @javax.jdo.annotations.Column(allowsNull="true", length=10000)
-    @MemberOrder(name="Annotation", sequence="20")
-    @PropertyLayout(typicalLength=10000, multiLine=6, named = "Target", hidden=Where.ALL_TABLES)
+    @MemberOrder(name="Annotation", sequence="30")
+    @PropertyLayout(typicalLength=10000, multiLine=3, named = "Target", hidden=Where.ALL_TABLES)
     //@Property(editing = Editing.DISABLED,editingDisabledReason = "Update using action that calls an API from the consolidation services")
-    public String getRule() {
-        return rule;
+    public String getTarget() {
+        return target;
     }
-    public void setRule(final String rule) {
-        this.rule= rule;
+    public void setTarget(final String target) {
+        this.target= target;
     }
-    public void modifyRule(final String rule) {setRule(rule);}
-    public void clearRule() {
-        setRule(null);
+    public void modifyTarget(final String target) {setTarget(target);}
+
+    public void clearTarget() {
+        setTarget(null);
     }
+
     //@Action(semantics = SemanticsOf.IDEMPOTENT)
     @Action()
     //  @ActionLayout(named = "Check Terms", position = ActionLayout.Position.PANEL)
     @ActionLayout(position = ActionLayout.Position.PANEL)
     @MemberOrder(name="Terms", sequence="20")
-    public Regulation ShowRule() {
+    public Regulation ShowTarget() {
         ShipClass shipClassFound = null;
-        shipClassFound = restClient.GetRule(plainRegulationText);
-        System.out.println("REGULATION:shipclassfound OK");
-        setRule(creationController.ShowRule(plainRegulationText,shipClassFound));
-         System.out.println("REGULATION: rule="+rule);
-         container.flush();
-        container.informUser("Fetched Rule completed for " + container.titleOf(this));
+        // CALLS THE TARGET API
+        shipClassFound = restClient.GetTarget(plainRegulationText);
+        // shipClassFound = restClient.GetApplicability(plainRegulationText);
+        System.out.println("FREETEXT:shipclassfound OK");
+        setTarget(creationController.ShowShipClass(plainRegulationText, shipClassFound));
+        System.out.println("FREETEXT: target="+target);
+        container.flush();
+        container.informUser("Fetched Target completed for " + container.titleOf(this));
         return this;
     }
 
 // END SHOW target
 
-     //region > version (derived property)
+
+    //BEGIN show applicability
+    private String applicability;
+    @javax.jdo.annotations.Column(allowsNull="true", length=10000)
+    @MemberOrder(name="Annotation", sequence="35")
+    @PropertyLayout(typicalLength=10000, multiLine=3, named = "Applicability", hidden=Where.ALL_TABLES)
+    //@Property(editing = Editing.DISABLED,editingDisabledReason = "Update using action that calls an API from the consolidation services")
+    public String getApplicability() {
+        return applicability;
+    }
+    public void setApplicability(final String applicability) {
+        this.applicability= applicability;
+    }
+    public void modifyApplicability(final String applicability) {
+        setApplicability(applicability);}
+    public void clearApplicability() {
+        setApplicability(null);
+    }
+
+     @Action()
+    //  @ActionLayout(named = "Check Terms", position = ActionLayout.Position.PANEL)
+    @ActionLayout(position = ActionLayout.Position.PANEL)
+    @MemberOrder(name="Terms", sequence="30")
+    public Regulation ShowApplicability() {
+        ShipClass shipClassFound = null;
+        // CALLS THE APPLICABILITY API
+        //    shipClassFound = restClient.GetRule(plainRegulationText);
+        shipClassFound = restClient.GetApplicability(plainRegulationText);
+        System.out.println("reg:applicability shipclassfound OK");
+        setApplicability(creationController.ShowShipClass(plainRegulationText,shipClassFound));
+        System.out.println("reg: applicability="+applicability);
+        container.flush();
+        container.informUser("Fetched Applicability completed for " + container.titleOf(this));
+        return this;
+    }
+// END SHOW applicability
+
+    //region > version (derived property)
     @PropertyLayout(hidden=Where.EVERYWHERE)
     @ActionLayout(hidden=Where.EVERYWHERE)
     public Long getVersionSequence() {
@@ -546,25 +575,6 @@ public class Regulation implements Categorized, Comparable<Regulation> {
         return id.substring(0,indexEnd);
     }
 
-
-    // Region plainRegulationText
-    private String plainRegulationText;
-    @javax.jdo.annotations.Column(allowsNull="true", length=10000)
-     @MemberOrder(name="Regulation", sequence="80")
-    @PropertyLayout(typicalLength=10000, multiLine=4, named = "Text (Applicability)",hidden=Where.ALL_TABLES)
-    public String getPlainRegulationText() {
-        return plainRegulationText;
-    }
-    public void setPlainRegulationText(final String plainRegulationText) {
-        this.plainRegulationText = plainRegulationText;
-    }
-    public void modifyPlainRegulationText(final String plainRegulationText) {
-        setPlainRegulationText(plainRegulationText);
-    }
-    public void clearPlainRegulationText() {
-        setPlainRegulationText(null);
-    }
-    //endregion
 
 
     // Add Regulation to Part:
@@ -687,36 +697,81 @@ public class Regulation implements Categorized, Comparable<Regulation> {
     }
     //endregion
 
-    //region > kpi (property)
-    public static enum KPI {
-        ManagementLeadershipAndAccountability,
-        RecruitmentAndManagementOfShoreBasedPersonnel,
-        RecruitmentAndManagementOfShipPersonnel,
-        ReliabilityAndMaintenanceStandards,
-        NavigationalSafety,
-        CargoAndBallastOperations,
-        ManagementOfChange,
-        IncidentInvestigationAndAnalysis,
-        SafetyManagementShoreBasedMonitoring,
-        EnvironmentalManagement,
-        EmergencyPreparednessAndContingencyPlanning,
-        MeasurementAnalysisAndImprovement;
-    }
+
     @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
-    private KPI kpi;
+    private CreationController.KPI kpi;
     @javax.jdo.annotations.Column(allowsNull="true")
     //   @Property(editing= Editing.DISABLED,editingDisabledReason="Use action to update kpi")
     /*The @Disabled annotation means that the member cannot be used in any instance of the class. When applied to the property it means that the user may not modify the value of that property (though it may still be modified programmatically). When applied to an action method, it means that the user cannot invoke that method.*/
     @MemberOrder(name="Regulation Tags", sequence="20")
-    @PropertyLayout(hidden=Where.ALL_TABLES)
-    public KPI getKpi() {
+    @PropertyLayout(hidden=Where.ALL_TABLES,named = "KPI")
+    public CreationController.KPI getKpi() {
         return kpi;
     }
-    public void setKpi(final KPI kpi) {
+    public void setKpi(final CreationController.KPI kpi) {
         this.kpi = kpi;
     }
     //endregion
 
+    // Start region applicabilityDate
+    @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
+    private LocalDate applicabilityDate;
+    @javax.jdo.annotations.Column(allowsNull="true")
+    @MemberOrder(name="Regulation Tags", sequence="30")
+    public LocalDate getApplicabilityDate() {
+        return applicabilityDate;
+    }
+    public void setApplicabilityDate(final LocalDate applicabilityDate) {
+        this.applicabilityDate = applicabilityDate;
+    }
+    // endregion
+
+    @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
+    private CreationController.ApplicableInType applicableIn;
+    @javax.jdo.annotations.Column(allowsNull="true")
+    @MemberOrder(name="Regulation Search", sequence="40")
+    public CreationController.ApplicableInType getApplicableIn() {
+        return applicableIn;
+    }
+    public void setApplicableIn(final CreationController.ApplicableInType applicableIn) {
+        this.applicableIn = applicableIn;
+    }
+    //endregion
+
+    // region Invalidated (property)
+    private boolean invalidated;
+    @javax.jdo.annotations.Column(allowsNull="true")
+    @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
+    @PropertyLayout(hidden=Where.ALL_TABLES)
+    @ActionLayout(hidden=Where.ALL_TABLES)
+    @MemberOrder(name="Regulation Tags", sequence="50")
+    public boolean getInvalidated() {
+        return invalidated;
+    }
+    public void setInvalidated(final boolean invalidated) {
+        this.invalidated = invalidated;
+    }
+    // end region
+
+
+    //region > finalized (property)
+    @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
+    private boolean finalized;
+    // @Property(editing= Editing.DISABLED,editingDisabledReason="Finalized is changed elsewhere")
+    @javax.jdo.annotations.Column(allowsNull="true")
+    @PropertyLayout(hidden=Where.ALL_TABLES)
+    @ActionLayout(hidden=Where.ALL_TABLES)
+    @MemberOrder(name="Regulation Tags", sequence="60")
+    public boolean getFinalized() {
+        return finalized;
+    }
+    public void setFinalized(final boolean finalized) {
+        this.finalized = finalized;
+    }
+    // public boolean isFinalized() {
+    //   return finalized;
+    //}
+    //endregion
 
 
     //region > lifecycle callbacks

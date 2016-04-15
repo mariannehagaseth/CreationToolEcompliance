@@ -1,11 +1,14 @@
 package org.isisaddons.wicket.summernote.fixture.dom.regulation;
 
 import org.apache.isis.applib.AbstractService;
+import org.apache.isis.applib.DomainObjectContainer;
 import org.apache.isis.applib.annotation.DomainService;
 import org.apache.isis.applib.annotation.DomainServiceLayout;
+import org.apache.isis.applib.annotation.Programmatic;
 import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.FragmentSKOSConceptOccurrences;
 import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.SKOSConceptOccurrence;
 import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.ShipClass;
+//import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,9 +17,67 @@ import java.util.List;
 @DomainServiceLayout(menuBar= DomainServiceLayout.MenuBar.TERTIARY)
 public class CreationController extends AbstractService   {
 
+	//region > applicableInType (property)
+	public static enum ApplicableInType {
+		EU,
+		Denmark,
+		Sweden,
+		Cyprus,
+		Finland,
+		Belgium,
+		Italy,
+		France,
+		Latvia,
+		UnitedKingdom,
+		Lithuania,
+		Bulgaria,
+		Netherlands,
+		Malta,
+		Poland,
+		Hungary,
+		CzechRepublic,
+		Germany,
+		Estonia,
+		Portugal,
+		Spain,
+		Greece
+	}
 
-	public List<String> CheckTerms(final String plainRegulationText, final FragmentSKOSConceptOccurrences fragment) {
+	//region > regulationType (property)
+	public static enum RegulationType {
+		Certificate,
+		Procedure,
+		Checklist,
+		Technical_Specification,
+		Operational_Specification,
+		Functional_Requirement,
+		Goal_Based_Regulation,
+		Guideline,
+		Report_Specification,
+		Template,
+		Other;
+	}
 
+	//region > kpi (property)
+	public static enum KPI {
+		Management_Leadership_And_Accountability,
+		Recruitment_And_Management_Of_Shore_Based_Personnel,
+		Recruitment_And_Management_Of_ShipPersonnel,
+		Reliability_And_MaintenanceStandards,
+		Navigational_Safety,
+		Cargo_And_Ballast_Operations,
+		Management_Of_Change,
+		Incident_Investigation_And_Analysis,
+		Safety_Management_Shore_Based_Monitoring,
+		Environmental_Management,
+		Emergency_Preparedness_And_Contingency_Planning,
+		Measurement_Analysis_And_Improvement;
+	}
+
+
+public List<String> ShowTerms(final String plainRegulationText, final FragmentSKOSConceptOccurrences fragment) {
+	//Parsing the fragment containing SKOS-terms and show the result with colors in a Summernote editor.
+		// Also: Lists the values of the SKOS terms.
 		// Call API to fetch SKOS terms
 		String fragmentUri = "";
 		List<SKOSConceptOccurrence> skosList = null;
@@ -169,7 +230,8 @@ public class CreationController extends AbstractService   {
 		return annotation;
 	}
 
-	public String ShowRule(final String plainRegulationText, final ShipClass shipClassFound) {
+	//ShowRule
+	public String ShowShipClass(final String plainRegulationText, final ShipClass shipClassFound) {
 		// Call API to fetch Target, that is the Rule.
 
 		String ruleFound = "";
@@ -266,9 +328,57 @@ public class CreationController extends AbstractService   {
 		System.out.println("shipType="+shipType+".");
 		System.out.println("shipType-length="+shipType.length()+".");
 
-		if (shipType.length() == 0){ruleFound="Could not find a rule target from this sentence.";}
+		if (shipType.length() == 0){ruleFound="Could not find a ship class in this sentence.";}
  		System.out.println("Fetched Rule in getRule!!="+ruleFound);
 		return ruleFound;
 	}
+
+
+	//ShowRule
+	@Programmatic
+	public ShipClassType ShowFoundShipClass(final String plainRegulationText, final ShipClassType shipClassFound) {
+		// Call API to fetch Target, that is the Rule.
+
+		return shipClassTypes.newShipClassType(
+ 				shipClassFound.getType(),
+				shipClassFound.getMinTonnageEx(),
+				shipClassFound.getMaxTonnageEx(),
+				shipClassFound.getMinTonnageIn(),
+				shipClassFound.getMaxTonnageIn(),
+				shipClassFound.getMinLengthEx(),
+				shipClassFound.getMaxLengthEx(),
+				shipClassFound.getMinLengthIn(),
+				shipClassFound.getMaxLengthIn(),
+				shipClassFound.getMinDraughtEx(),
+				shipClassFound.getMaxDraughtEx(),
+				shipClassFound.getMinDraughtIn(),
+				shipClassFound.getMaxDraughtIn(),
+				shipClassFound.getMinPassengersEx(),
+				shipClassFound.getMaxPassengersEx(),
+				shipClassFound.getMinPassengersIn(),
+				shipClassFound.getMaxPassengerIn(),
+				shipClassFound.getMinKeelLaidEx(),
+				shipClassFound.getMaxKeelLaidEx(),
+				shipClassFound.getMinKeelLaidIn(),
+				shipClassFound.getMaxKeelLaidIn(),
+				shipClassFound.getLengthUnit(),
+				shipClassFound.getTonnageUnit(),
+				shipClassFound.getDraughtUnit(),
+		currentUserName()
+		);
+ 	}
+
+	private String currentUserName() {
+		return container.getUser().getName();
+	}
+
+	//region > injected services
+	@javax.inject.Inject
+	private DomainObjectContainer container;
+
+
+	@javax.inject.Inject
+	private ShipClassTypes shipClassTypes;
+
 
 }

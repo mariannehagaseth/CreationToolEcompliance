@@ -28,46 +28,71 @@ import org.isisaddons.wicket.summernote.fixture.dom.regulation.Chapter.ChapterAn
 //import java.math.BigDecimal;
 
 //@DomainServiceLayout(named="Regulation Hierarchy",menuOrder="10")
-@DomainService(repositoryFor = Regulation.class)
+@DomainService(repositoryFor = Part.class)
 @DomainServiceLayout(named="SOLAS Chapter",menuOrder="50")
-public class Regulations {
+public class RootNodes {
 
+    /*
+       //region > newPart (action)
+    @MemberOrder( sequence = "10")
+    @ActionLayout(named="NEW Part")
+    public Part newPart(
+          final @Parameter(optionality=Optionality.MANDATORY) @ParameterLayout(typicalLength=100, named="Part No") String partNumber,
+          final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=50, named="Part Title") String partTitle
+    )
+    {
+        return newPart(
+                ChapterAnnex.CHAPTER,
+                partNumber,
+                partTitle,
+                currentUserName()
+        );
+    }
+*/
+/*
+    //region > allRegulationTexts (action)
+    @Action(semantics=SemanticsOf.SAFE,restrictTo=RestrictTo.PROTOTYPING)
+    @MemberOrder(sequence = "30")
+    @PropertyLayout(named="List Parts")
+    public  List<Part> allParts() {
+        final  List<Part> items = container.allMatches(
+                new QueryDefault<Part>(Part.class,
+                        "findParts",
+                        "chapterAnnexArticle", ChapterAnnex.CHAPTER));
+        if(items.isEmpty()) {
+            container.warnUser("No Solas Chapters found.");
+        }
+        return items;
+    }
+    //endregion
+*/
 
     //region > helpers
     @Programmatic
     /*The @Programmatic annotation can be used to cause Apache Isis to complete ignore a class member. 
      * This means it won't appear in any viewer, its value will not be persisted, 
      * and it won't appear in any XML snapshots .*/
-    public Regulation newRegulation(
+    public Part newPart(
             final ChapterAnnex chapterAnnexArticle,
             final String chapterNumber,
             final String partNumber,
             final String partTitle,
-            final String regulationNumber,
-            final String regulationTitle,
             final String userName
             )
     {
-        final Regulation regulation = container.newTransientInstance(Regulation.class);
-        regulation.setChapterAnnexArticle(chapterAnnexArticle);
+        final Part part = container.newTransientInstance(Part.class);
+        part.setChapterAnnexArticle(chapterAnnexArticle);
         // start with manually add the solas chapter number:
-        regulation.setChapterNumber(chapterNumber);
-        regulation.setPartNumber(partNumber);
-        regulation.setPartTitle(partTitle);
-        regulation.setAmendmentDate(clockService.now());
-        regulation.setFinalized(false);
-        if (chapterAnnexArticle == ChapterAnnex.CHAPTER) {regulation.setRegulationLabel("REGULATION"); };
-        if (chapterAnnexArticle == ChapterAnnex.ANNEX) {regulation.setRegulationLabel("CHAPTER"); };
-        if (chapterAnnexArticle == ChapterAnnex.DIRECTIVE) {regulation.setRegulationLabel("ARTICLE") ;};
-        regulation.setRegulationNumber(regulationNumber);
-        regulation.setRegulationTitle(regulationTitle);
-        regulation.setInvalidated(false);
-        regulation.setFinalized(false);
-        regulation.setOwnedBy(userName);
-        container.persist(regulation);
+        part.setChapterNumber(chapterNumber);
+        part.setPartNumber(partNumber);
+        part.setPartTitle(partTitle);
+        part.setAmendmentDate(clockService.now());
+        part.setFinalized(false);
+        part.setOwnedBy(userName);
+        container.persist(part);
         container.flush();
        // Generate id: solasChapter.setSolasChapterNumber(solasChapter.getIdString());
-        return regulation;
+        return part;
     }
     private String currentUserName() {
         return container.getUser().getName();
@@ -81,6 +106,9 @@ public class Regulations {
 
     @javax.inject.Inject
     private ClockService clockService;
+
+    //@javax.inject.Inject
+    //private SolasCode solasCode;
 
 
     //endregion

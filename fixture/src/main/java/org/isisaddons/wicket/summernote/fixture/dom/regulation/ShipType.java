@@ -18,6 +18,8 @@
  */
 package org.isisaddons.wicket.summernote.fixture.dom.regulation;
 
+// NOT IN USE ANY MORE....
+
 //import java.math.BigDecimal;
 
 import java.util.SortedSet;
@@ -328,8 +330,7 @@ public class ShipType implements Categorized, Comparable<ShipType> {
     //region > toString, compareTo
     @Override
     public String toString() {
-//        return ObjectContracts.toString(this, "description,complete,dueBy,ownedBy");
-        return ObjectContracts.toString(this, "shipTypeName, ownedBy");
+         return ObjectContracts.toString(this, "shipTypeName, ownedBy");
     }
 
     /**
@@ -346,8 +347,6 @@ public class ShipType implements Categorized, Comparable<ShipType> {
     private DomainObjectContainer container;
 
 
-    @javax.inject.Inject
-    private RESTclientTest restClientTest;
 
     @SuppressWarnings("deprecation")
 	Bulk.InteractionContext bulkInteractionContext;

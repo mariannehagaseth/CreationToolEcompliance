@@ -24,22 +24,19 @@ import com.google.common.collect.Ordering;
 import org.apache.isis.applib.DomainObjectContainer;
 import org.apache.isis.applib.Identifier;
 import org.apache.isis.applib.annotation.*;
-import org.apache.isis.applib.query.QueryDefault;
-import org.apache.isis.applib.services.actinvoc.ActionInvocationContext;
 import org.apache.isis.applib.services.eventbus.ActionInteractionEvent;
 import org.apache.isis.applib.services.eventbus.EventBusService;
 import org.apache.isis.applib.services.wrapper.WrapperFactory;
 import org.apache.isis.applib.util.ObjectContracts;
 import org.apache.isis.applib.util.TitleBuffer;
-import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.DocumentRoot;
 import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.FragmentSKOSConceptOccurrences;
 import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.ShipClass;
+import org.isisaddons.wicket.summernote.fixture.dom.regulation.Chapter.ChapterAnnex;
 import org.joda.time.LocalDate;
 
 import javax.jdo.JDOHelper;
 import javax.jdo.annotations.IdentityType;
 import javax.jdo.annotations.VersionStrategy;
-import java.math.BigInteger;
 import java.util.*;
 
 
@@ -52,52 +49,43 @@ import java.util.*;
         column="version")
 @javax.jdo.annotations.Uniques({
     @javax.jdo.annotations.Unique(
-            name="Chapter_must_be_unique",
-            members={"chapterLabel","chapterNumber"})
+            name="Part_must_be_unique",
+            members={"chapterLabel","chapterNumber","partNumber"})
 })
 @javax.jdo.annotations.Queries( {
 
         @javax.jdo.annotations.Query(
-                name = "findChaptersAnnexes", language = "JDOQL",
+                name = "findPartsByChapter", language = "JDOQL",
                 value = "SELECT "
-                        + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.Chapter "
-                        + "WHERE chapterAnnexArticle == :chapterAnnexArticle")
-,
-        @javax.jdo.annotations.Query(
-                name = "findChapterNumber", language = "JDOQL",
-                value = "SELECT chapterNumber "
-                        + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.Chapter "
-                        + "WHERE chapterAnnexArticle == :chapterAnnexArticle")
-,
-        @javax.jdo.annotations.Query(
-                name = "findChapterTitle", language = "JDOQL",
-                value = "SELECT chapterTitle "
-                        + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.Chapter "
-                        + "WHERE chapterAnnexArticle == :chapterAnnexArticle"
+                        + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.Part "
+                        + "WHERE ownedBy == :ownedBy "
+                        + "&& chapterAnnexArticle == :chapterAnnexArticle "
                         + "&& chapterNumber == :chapterNumber")
 ,
         @javax.jdo.annotations.Query(
-                name = "findRootURI", language = "JDOQL",
-                value = "SELECT rootRdfNode "
-                        + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.Chapter "
-                        + "WHERE chapterAnnexArticle == :chapterAnnexArticle")
+                name = "findParts", language = "JDOQL",
+                value = "SELECT "
+                        + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.Part "
+                        + "WHERE chapterAnnexArticle == :chapterAnnexArticle "
+                        )
+
 })
-@DomainObject(objectType="CHAPTER",autoCompleteRepository=Chapters.class, autoCompleteAction="autoComplete", bounded = true)
+@DomainObject(objectType="PART",autoCompleteRepository=Parts.class, autoCompleteAction="autoComplete", bounded = true)
  // default unless overridden by autoCompleteNXxx() method
 @DomainObjectLayout(bookmarking= BookmarkPolicy.AS_ROOT)
 @MemberGroupLayout (
 		columnSpans={6,0,0,6},
-		left={"Chapter","Annotation","RDF"},
+		left={"Part", "Annotation"},
 		middle={},
         right={})
-public class Chapter implements Categorized, Comparable<Chapter> {
+public class RootNode implements Categorized, Comparable<RootNode> {
 
     //region > LOG
     /**
      * It isn't common for entities to log, but they can if required.  
      * Isis uses slf4j API internally (with log4j as implementation), and is the recommended API to use.
      */
-    private final static org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(Chapter.class);
+    private final static org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(RootNode.class);
       //endregion
 
     // region > title, icon
@@ -107,81 +95,62 @@ public class Chapter implements Categorized, Comparable<Chapter> {
         if (getChapterAnnexArticle().equals(ChapterAnnex.ANNEX))  {buf.append("SOLAS ANNEX ");}
         if (getChapterAnnexArticle().equals(ChapterAnnex.DIRECTIVE))  {buf.append("EU DIRECTIVE ");}
         buf.append(getChapterNumber());
+
+        if (!getPartNumber().equalsIgnoreCase("-")) {
+            if ((getChapterAnnexArticle().equals(ChapterAnnex.CHAPTER)) || (getChapterAnnexArticle().equals(ChapterAnnex.ANNEX))) {
+                buf.append(" PART ");
+            }
+            if ((getChapterAnnexArticle().equals(ChapterAnnex.DIRECTIVE))) {
+                buf.append(" TITLE ");
+            }
+        }
+        buf.append(getPartNumber());
         return buf.toString();
     }
     //endregion
 
-    public static enum ChapterAnnex {
-        CHAPTER,
-        ANNEX,
-        DIRECTIVE;
-          }
+
 
     private ChapterAnnex chapterAnnexArticle;
     @javax.jdo.annotations.Column(allowsNull="false")
-    @MemberOrder(name="Chapter", sequence="29")
-    @Property(editing = Editing.DISABLED)
-    @PropertyLayout(named = " ")
+    @MemberOrder(name="Part", sequence="29")
+    @PropertyLayout(hidden=Where.EVERYWHERE)
+    @ActionLayout(hidden=Where.EVERYWHERE)
     public ChapterAnnex getChapterAnnexArticle() {
         return chapterAnnexArticle;
     }
-
     public void setChapterAnnexArticle(final ChapterAnnex chapterAnnexArticle) {
         this.chapterAnnexArticle = chapterAnnexArticle;
-        // SOLAS CHAPTER:
         if (chapterAnnexArticle == ChapterAnnex.CHAPTER) {
             chapterLabel = "CHAPTER";
-            this.partLabel = "PART";
-            this.label3 = "REGULATION";
+            partLabel = "PART";
+            label3 = "REGULATION";
             };
-        // SOLAS ANNEX:
         if (chapterAnnexArticle == ChapterAnnex.ANNEX) {
             chapterLabel= "ANNEX";
-            this.partLabel = "PART";
-            this.label3 = "CHAPTER";
-            };
-        // EU DIRECTIVE:
+            partLabel = "PART";
+            label3 = "CHAPTER";};
         if (chapterAnnexArticle == ChapterAnnex.DIRECTIVE) {
             chapterLabel= "DIRECTIVE";
             this.partLabel = "TITLE";
-            this.label3 = "ARTICLE";
-        };
+            this.label3 = "ARTICLE";};
     }
 
     // This is the label of the chapter level: CHAPTER or ANNEX or DIRECTIVE.
     private String chapterLabel;
     @javax.jdo.annotations.Column(allowsNull="false")
-    @MemberOrder(name="Chapter", sequence="69")
+    @MemberOrder(name="Part", sequence="10")
+    @PropertyLayout(hidden=Where.EVERYWHERE)
+    @ActionLayout(hidden=Where.EVERYWHERE)
     @Property(editing = Editing.DISABLED, hidden = Where.EVERYWHERE)
-    @PropertyLayout(named = " ")
     public String getChapterLabel() {
         return chapterLabel;
     }
     public void setChapterLabel(final String chapterLabel) {
-        if (chapterAnnexArticle == ChapterAnnex.CHAPTER) {this.chapterLabel = "CHAPTER";};
-        if (chapterAnnexArticle == ChapterAnnex.ANNEX) {this.chapterLabel = "ANNEX";};
-        if (chapterAnnexArticle == ChapterAnnex.DIRECTIVE) {this.chapterLabel = "DIRECTIVE";};
+        if (chapterAnnexArticle == ChapterAnnex.CHAPTER) {this.chapterLabel = "REGULATION";};
+        if (chapterAnnexArticle == ChapterAnnex.ANNEX) {this.chapterLabel = "CHAPTER";};
+        if (chapterAnnexArticle == ChapterAnnex.DIRECTIVE) {this.chapterLabel = "ARTICLE";};
     }
-
-    // Start region partLabel: THIS is the label for the PART level: PART or PART or TITLE
-    @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
-    private String partLabel;
-    @Property(editing= Editing.DISABLED,editingDisabledReason="Set elsewhere")
-    @PropertyLayout(hidden=Where.EVERYWHERE)
-    @ActionLayout(hidden=Where.EVERYWHERE)
-    @javax.jdo.annotations.Column(allowsNull="true")
-    public String getPartLabel() {
-        return partLabel;
-    }
-    public void setPartLabel(final String partLabel) {
-        if (chapterAnnexArticle == ChapterAnnex.CHAPTER) {this.partLabel = "PART";};
-        if (chapterAnnexArticle == ChapterAnnex.ANNEX) {this.partLabel = "PART";};
-        if (chapterAnnexArticle == ChapterAnnex.DIRECTIVE) {this.partLabel = "TITLE";};
-    }
-    public void clearPartLabel() {
-        setPartLabel(null);
-    }
-    //endregion
 
     // Start region Label3 => This is the label of level 3: REGULATION, CHAPTER or ARTICLE.
     @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
@@ -207,10 +176,10 @@ public class Chapter implements Categorized, Comparable<Chapter> {
     private String chapterNumber;
     @javax.jdo.annotations.Column(allowsNull="false", length=10)
     // @Property(regexPattern="\\w[@&:\\-\\,\\.\\+ \\w]*")
-    @MemberOrder(name="Chapter", sequence="30")
-    @PropertyLayout(named = "Number",typicalLength=5)
+    @PropertyLayout(hidden=Where.EVERYWHERE)
+    @ActionLayout(hidden=Where.EVERYWHERE)
     public String getChapterNumber() {
-         return chapterNumber;
+        return chapterNumber;
     }
     public void setChapterNumber(final String chapterNumber) {
         this.chapterNumber = chapterNumber;
@@ -225,31 +194,73 @@ public class Chapter implements Categorized, Comparable<Chapter> {
     //endregion
 
 
-    // Region ChapterTitle
-    private String chapterTitle;
-    @javax.jdo.annotations.Column(allowsNull="true", length=100)
-    // @Property(regexPattern="\\w[@&:\\-\\,\\.\\+ \\w]*")
-    @MemberOrder(name="Chapter", sequence="40")
-    @PropertyLayout(named = "Title",typicalLength=100)
-    public String getChapterTitle() {
-        return chapterTitle;
+
+    // Start region partLabel: THIS is the label for the PART level: PART or PART or TITLE
+    @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
+    private String partLabel;
+    @Property(editing= Editing.DISABLED,editingDisabledReason="Set elsewhere")
+    @PropertyLayout(named = " ")
+    @MemberOrder(name="Part", sequence="10")
+    @javax.jdo.annotations.Column(allowsNull="true")
+    public String getPartLabel() {
+        return partLabel;
     }
-    public void setChapterTitle(final String chapterTitle) {
-        this.chapterTitle = chapterTitle;
+    public void setPartLabel(final String partLabel) {
+        this.partLabel =partLabel;
+        if (chapterAnnexArticle == ChapterAnnex.CHAPTER) {this.partLabel = "PART";};
+        if (chapterAnnexArticle == ChapterAnnex.ANNEX) {this.partLabel = "PART";};
+        if (chapterAnnexArticle == ChapterAnnex.DIRECTIVE) {this.partLabel = "TITLE";};
     }
-    public void modifyChapterTitle(final String chapterTitle) {
-        setChapterTitle(chapterTitle);
-    }
-    public void clearChapterTitle() {
-        setChapterTitle(null);
+    public void clearPartLabel() {
+        setPartLabel(null);
     }
     //endregion
+
+    // Region partNumber
+    private String partNumber;
+    @javax.jdo.annotations.Column(allowsNull="false", length=10)
+    // @Property(regexPattern="\\w[@&:\\-\\,\\.\\+ \\w]*")
+    @MemberOrder(name="Part", sequence="20")
+    @PropertyLayout(named = "Number",typicalLength=5)
+    public String getPartNumber() {
+        return partNumber;
+    }
+    public void setPartNumber(final String partNumber) {
+        this.partNumber = partNumber;
+    }
+    public void modifyPartNumber(final String partNumber) {
+        setPartNumber(partNumber);
+    }
+    public void clearPartNumber() {
+        setPartNumber(null);
+    }
+    //endregion
+
+     // Region partTitle
+    private String partTitle;
+    @javax.jdo.annotations.Column(allowsNull="true", length=100)
+    @MemberOrder(name="Part", sequence="30")
+    @PropertyLayout(named = "Title",typicalLength=100)
+    public String getPartTitle() {
+        return partTitle;
+    }
+    public void setPartTitle(final String partTitle) {
+        this.partTitle = partTitle;
+    }
+    public void modifyPartTitle(final String partTitle) {
+        setPartTitle(partTitle);
+    }
+    public void clearPartTitle() {
+        setPartTitle(null);
+    }
+    //endregion
+
 
     // Region plainRegulationText
     private String plainRegulationText;
     @javax.jdo.annotations.Column(allowsNull="true", length=10000)
     // @Property(regexPattern="\\w[@&:\\-\\,\\.\\+ \\w]*")
-    @MemberOrder(name="Chapter", sequence="50")
+    @MemberOrder(name="Part", sequence="40")
     @PropertyLayout(typicalLength=10000, multiLine=4, named = "Text")
     public String getPlainRegulationText() {
         return plainRegulationText;
@@ -271,7 +282,7 @@ public class Chapter implements Categorized, Comparable<Chapter> {
     @MemberOrder(name="Annotation", sequence="10")
     @PropertyLayout(typicalLength=10000, multiLine=3, hidden=Where.ALL_TABLES)
     @Property(editing = Editing.DISABLED,editingDisabledReason = "Update using action that calls an API from the consolidation services")
-   // @SummernoteEditor(height = 100, maxHeight = 300)
+    //@SummernoteEditor(height = 100, maxHeight = 300)
     public String getAnnotatedText() {
         return annotatedText;
     }
@@ -308,12 +319,12 @@ public class Chapter implements Categorized, Comparable<Chapter> {
     @Action()
     @ActionLayout(position = ActionLayout.Position.PANEL)
     @MemberOrder(name="Terms", sequence="20")
-    public Chapter CheckTerms() {
+    public RootNode CheckTerms() {
         FragmentSKOSConceptOccurrences fragment = restClient.GetSkos(plainRegulationText);
         System.out.println("  fragment OK");
         List<String> annotation = new ArrayList<String>();
         setSkosTerms(creationController.ShowTerms(plainRegulationText, fragment).get(0));
-     //summernoteeditor   setAnnotatedText(creationController.ShowTerms(plainRegulationText, fragment).get(1));
+        // summernoteeditor setAnnotatedText(creationController.ShowTerms(plainRegulationText, fragment).get(1));
         setAnnotatedText(plainRegulationText);
         System.out.println("  skosTerms="+skosTerms);
         System.out.println(" annotatedText="+annotatedText);
@@ -347,7 +358,7 @@ public class Chapter implements Categorized, Comparable<Chapter> {
     //  @ActionLayout(named = "Check Terms", position = ActionLayout.Position.PANEL)
     @ActionLayout(position = ActionLayout.Position.PANEL)
     @MemberOrder(name="Terms", sequence="20")
-    public Chapter ShowTarget() {
+    public RootNode ShowTarget() {
         ShipClass shipClassFound = null;
         // CALLS THE TARGET API
         shipClassFound = restClient.GetTarget(plainRegulationText);
@@ -387,7 +398,7 @@ public class Chapter implements Categorized, Comparable<Chapter> {
     //  @ActionLayout(named = "Check Terms", position = ActionLayout.Position.PANEL)
     @ActionLayout(position = ActionLayout.Position.PANEL)
     @MemberOrder(name="Terms", sequence="30")
-    public Chapter ShowApplicability() {
+    public RootNode ShowApplicability() {
         ShipClass shipClassFound = null;
         // CALLS THE APPLICABILITY API
         //    shipClassFound = restClient.GetRule(plainRegulationText);
@@ -402,6 +413,23 @@ public class Chapter implements Categorized, Comparable<Chapter> {
 // END SHOW applicability
 
 
+    // region Invalidated (property)
+    private boolean invalidated;
+    @javax.jdo.annotations.Column(allowsNull="true")
+    @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
+    @PropertyLayout(hidden=Where.EVERYWHERE)
+    @ActionLayout(hidden=Where.EVERYWHERE)
+    @MemberOrder(name="Part", sequence="50")
+    public boolean getInvalidated() {
+        return invalidated;
+    }
+    public void setInvalidated(final boolean invalidated) {
+        this.invalidated = invalidated;
+    }
+    // end region
+  
+
+    
     //region > ownedBy (property)
     @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
     private String ownedBy;
@@ -417,6 +445,23 @@ public class Chapter implements Categorized, Comparable<Chapter> {
         this.ownedBy = ownedBy;
     }
     //endregion
+
+
+
+    // Add Part to Chapter
+
+    // mapping is done to this property:
+    @javax.jdo.annotations.Column(allowsNull="true")
+    @Property(editing= Editing.DISABLED,editingDisabledReason="Chapter cannot be updated from here")
+    @PropertyLayout(hidden=Where.REFERENCES_PARENT, named = "Parent Link")
+    @MemberOrder(name="Part", sequence="90")
+    private Chapter chapterLink;
+    @javax.jdo.annotations.Column(allowsNull="true")
+    public Chapter getChapterLink() { return chapterLink; }
+    @javax.jdo.annotations.Column(allowsNull="true")
+    public void setChapterLink(Chapter chapterLink) { this.chapterLink = chapterLink; }
+    // End   Regulation to RegulationRule
+
 
 
     // Start region amendmentDate
@@ -443,7 +488,25 @@ public class Chapter implements Categorized, Comparable<Chapter> {
     //endregion
 
 
-
+	 //region > finalized (property)
+	   @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
+    private boolean finalized;
+   // @Property(editing= Editing.DISABLED,editingDisabledReason="Finalized is changed elsewhere")
+       @javax.jdo.annotations.Column(allowsNull="true")
+       @PropertyLayout(hidden=Where.EVERYWHERE)
+       @ActionLayout(hidden=Where.EVERYWHERE)
+       @MemberOrder(name="Part", sequence="60")
+       public boolean getFinalized() {
+	    	        return finalized;
+	    }
+	    public void setFinalized(final boolean finalized) {
+	        this.finalized = finalized;
+	    }
+	   // public boolean isFinalized() {
+	     //   return finalized;
+	    //}
+	    //endregion
+	   
 
 
     //region > version (derived property)
@@ -493,182 +556,86 @@ public class Chapter implements Categorized, Comparable<Chapter> {
         return id.substring(0,indexEnd);
     }
 
-// START REGION Chapter=> Part Link
-    @javax.jdo.annotations.Persistent(mappedBy="chapterLink")
+
+
+    // START REGION  Part Link => Regulation.
+    @javax.jdo.annotations.Persistent(mappedBy="partLink")
     @javax.jdo.annotations.Join // Make a separate join table.
-    private SortedSet<Part> parts = new TreeSet<Part>();
-     @SuppressWarnings("deprecation")
-     @CollectionLayout(named = "Parts" , sortedBy=PartsComparator.class,render=RenderType.EAGERLY)
-    public SortedSet<Part> getParts() {
-        return parts;
+    private SortedSet<Regulation> regulations = new TreeSet<Regulation>();
+    @SuppressWarnings("deprecation")
+    @CollectionLayout(named = "Regulations" , sortedBy=RegulationsComparator.class,render=RenderType.EAGERLY)
+    public SortedSet<Regulation> getRegulations() {
+        return regulations;
     }
-    public void setParts(SortedSet<Part> part) {
-        this.parts = part;
+    public void setRegulations(SortedSet<Regulation> regulation) {
+        this.regulations=regulation;
     }
-    public void removeFromParts(final Part part) {
-        if(part == null || !getParts().contains(part)) return;
-        getParts().remove(part);
+    public void removeFromRegulations(final Regulation regulation) {
+        if(regulation == null || !getRegulations().contains(regulation)) return;
+        getRegulations().remove(regulation);
     }
 
 
     // / overrides the natural ordering
-    public static class PartsComparator implements Comparator<Part> {
+    public static class RegulationsComparator implements Comparator<Regulation> {
         @Override
-        public int compare(Part p, Part q) {
-            Ordering<Part> byPartNumber = new Ordering<Part>() {
-                public int compare(final Part p, final Part q) {
-                    return Ordering.natural().nullsFirst().compare(p.getPartNumber(),q.getPartNumber());
+        public int compare(Regulation p, Regulation q) {
+            Ordering<Regulation> byRegulationNumber = new Ordering<Regulation>() {
+                public int compare(final Regulation p, final Regulation q) {
+                    return Ordering.natural().nullsFirst().compare(p.getRegulationNumber(),q.getRegulationNumber());
                 }
             };
-            return byPartNumber
-                    .compound(Ordering.<Part>natural())
+            return byRegulationNumber
+                    .compound(Ordering.<Regulation>natural())
                     .compare(p, q);
         }
     }
 
     //This is the add-Button!!!
     @Action()
-    @ActionLayout(named = "Add New Part")
-    @MemberOrder(name = "parts", sequence = "15")
-    public Chapter addNewPart(final @ParameterLayout(typicalLength=10,named = "Number") String partNumber,
-                              final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=200,named = "Title") String partTitle
-
+    @ActionLayout(named = "Add New Regulation")
+    @MemberOrder(name = "Regulations", sequence = "15")
+    public RootNode addNewRegulation(final @ParameterLayout(typicalLength=10,named = "Number") String regulationNumber,
+                              final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=200,named = "Title") String regulationTitle
     )
     {
         // chapterLabel is the saying whether this part belongs to a SOLAS chapter, a SOLAS annex or a EU directive.
-        getParts().add(newPartCall.newPart( getChapterAnnexArticle(),getChapterNumber(), partNumber, partTitle, getOwnedBy()));
+        getRegulations().add(newRegulationCall.newRegulation(getChapterAnnexArticle(), getChapterNumber(), partNumber, partTitle, regulationNumber, regulationTitle, getOwnedBy()));
         return this;
     }
 
 
     //This is the Remove-Button!!
-    @MemberOrder(name="parts", sequence = "20")
-    @ActionLayout(named = "Delete Part")
-    public Chapter removePart(final @ParameterLayout(typicalLength=30) Part part) {
+    @MemberOrder(name="Regulations", sequence = "20")
+    @ActionLayout(named = "Delete Regulation")
+    public RootNode removeRegulation(final @ParameterLayout(typicalLength=30) Regulation regulation) {
         // By wrapping the call, Isis will detect that the collection is modified
         // and it will automatically send a CollectionInteractionEvent to the Event Bus.
         // ToDoItemSubscriptions is a demo subscriber to this event
-        if (part.getRegulations().size() == 0){
-            System.out.println("Part is REMOVED OK!");
-            container.informUser("DELETION completed for " + container.titleOf(this));
-            wrapperFactory.wrapSkipRules(this).removeFromParts(part);
-            container.removeIfNotAlready(part);
-        }
-        else {
-            System.out.println("Part cannot be removed!");
-            container.warnUser("CANNOT DELETE due to existing regulations for " + container.titleOf(this));
-        }
+        wrapperFactory.wrapSkipRules(this).removeFromRegulations(regulation);
+        container.removeIfNotAlready(regulation);
         return this;
     }
 
 
     // disable action dependent on state of object
-    public String disableRemovePart(final Part part) {
-        return getParts().isEmpty()? "No Parts to remove": null;
+    public String disableRemoveRegulation(final Regulation regulation) {
+        return getRegulations().isEmpty()? "No Regulations to remove": null;
     }
     // validate the provided argument prior to invoking action
-    public String validateRemovePart(final Part part) {
-        if(!getParts().contains(part)) {
-            return "Not a Part";
+    public String validateRemoveRegulation(final Regulation regulation) {
+        if(!getRegulations().contains(regulation)) {
+            return "Not a Regulation";
         }
         return null;
     }
 
     // provide a drop-down
-    public java.util.Collection<Part> choices0RemovePart() {
-        return getParts();
+    public java.util.Collection<Regulation> choices0RemoveRegulation() {
+        return getRegulations();
     }
-//endregion region Link Chapter -> Part
+//endregion region Link Part => Regulation link
 
-
-    //region > delete Chapter (action)
-     @Action(
-            domainEvent = DeletedEvent.class,
-            invokeOn = InvokeOn.OBJECT_AND_COLLECTION
-    )
-     @ActionLayout(position = ActionLayout.Position.PANEL)
-     @MemberOrder(name="Title", sequence="10")
-    public List<Chapter> delete() {
-
-        // obtain title first, because cannot reference object after deleted
-        final String title = container.titleOf(this);
-
-        final List<Chapter> returnList = null;
-
-        if (getParts().size()== 0) {
-            System.out.println("Can safely delete");
-            container.informUser("DELETION completed for " + container.titleOf(this));
-            container.removeIfNotAlready(this);
-        }
-        else {
-            container.warnUser("COULD NOT DELETE beacuse of EXISTING REGULATIONS " + container.titleOf(this));
-        }
-
-        return returnList;
-    }
-    //endregion Chapter => Part link
-
-
-    //region > rootRdfNode (property)
-    //rooteRdfNode contains the URI of the SOLAS version, the ANNEX version or the DIRECTIVE version. This the the root node of all chapters for each of this.
-    @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
-    private String rootRdfNode;
-    @PropertyLayout(hidden=Where.ALL_TABLES)
-    @MemberOrder(name = "RDF", sequence = "15")
-    @javax.jdo.annotations.Column(allowsNull="true")
-    @Property(editing= Editing.DISABLED,editingDisabledReason="Programmatically updated")
-    public String getRootRdfNode() {
-        return rootRdfNode;
-    }
-    @ActionLayout(hidden=Where.EVERYWHERE)
-    public void setRootRdfNode(final String rootRdfNode) {
-        this.rootRdfNode = rootRdfNode;
-    }
-    //endregion
-
-    //region > CREATE RDF node for the chapter: (action)
-    @Action()
-    @ActionLayout(named = "Make Persistent")
-    public Chapter storeChapterForReasonning() {
-
-        // if URI for SOLAS Chapter is null, then have to fetch the URI using 192.168.33.10:9000/api/rdf/document/root
-
-        // Must check if a RootURI has already been stored:
-        //region > allRegulationSearchs (action)
-        public RootNode findRoot() {
-            final RootNode roteNode= container.firstMatch(
-                    new QueryDefault (RootNode.class,
-                            "findRoot",
-                            "nodeLabel", getChapterLabel()));
-            return roteNode;
-        }
-
-
-
-
-        if (rootRdfNode.length()== 0)
-        {
-            System.out.println("rootRdfNode not stored for this chapter");
-            // Must fetch a URI for the SOLAS-chapters node./SOLAS annexes root node, /EU directive root nodes
-            DocumentRoot chapterRoot = new DocumentRoot();
-            chapterRoot.setTitle(getChapterLabel()); // SOLAS or ANNEX or DIRECTIVE
-            chapterRoot.setShortTitle(getChapterLabel()); // SOLAS or ANNEX or DIRECTIVE
-            chapterRoot.setAddConcept(true);
-            chapterRoot.setVersion(BigInteger.valueOf(getVersionSequence()));
-            chapterRoot.setRealises("http://e-compliance-project.eu/riga-test/OWLNamedIndividual_c53f118e_35fb_4fcf_8b52_4512a4e0db361");
-            chapterRoot.setText(getPlainRegulationText());
-
-            setRootRdfNode(restClient.CreateRdfRootNode(chapterRoot));
-            System.out.println("rootRdfNode= "+rootRdfNode+".");
-        }
-        else
-        {
-            System.out.println("rootRdfNode is already set and is = "+rootRdfNode+".");
-            // Must call 192.168.33.10:9000/api/rdf/document/component for this chapter to create a
-        }
-        return this;
-    }
-    //endregion
 
     //region > lifecycle callbacks
 
@@ -698,23 +665,15 @@ public class Chapter implements Categorized, Comparable<Chapter> {
     }
     //endregion
 
-    //region > object-level validation
-
-    /**
-     * In a real app, if this were actually a rule, then we'd expect that
-     * invoking the {@link #completed() done} action would clear the {@link #getDueBy() dueBy}
-     * property (rather than require the user to have to clear manually).
-     */
-    //endregion
 
 
     //region > events
-    public static abstract class AbstractActionInteractionEvent extends ActionInteractionEvent<Chapter> {
+    public static abstract class AbstractActionInteractionEvent extends ActionInteractionEvent<RootNode> {
         private static final long serialVersionUID = 1L;
         private final String description;
         public AbstractActionInteractionEvent(
                 final String description,
-                final Chapter source,
+                final RootNode source,
                 final Identifier identifier,
                 final Object... arguments) {
             super(source, identifier, arguments);
@@ -728,7 +687,7 @@ public class Chapter implements Categorized, Comparable<Chapter> {
     public static class DeletedEvent extends AbstractActionInteractionEvent {
         private static final long serialVersionUID = 1L;
         public DeletedEvent(
-                final Chapter source,
+                final RootNode source,
                 final Identifier identifier,
                 final Object... arguments) {
             super("deleted", source, identifier, arguments);
@@ -742,34 +701,30 @@ public class Chapter implements Categorized, Comparable<Chapter> {
     @Override
     public String toString() {
 //        return ObjectContracts.toString(this, "description,complete,dueBy,ownedBy");
-        return ObjectContracts.toString(this, "chapterLabel,chapterNumber, ownedBy");
+        return ObjectContracts.toString(this, "chapterLabel, chapterNumber, partNumber,ownedBy");
     }
 
     /**
      * Required so can store in {@link SortedSet sorted set}s (eg {@link #getDependencies()}). 
      */
     @Override
-    public int compareTo(final Chapter other) {
-        return ObjectContracts.compare(this, other, "chapterLabel,chapterNumber, ownedBy");
+    public int compareTo(final RootNode other) {
+        return ObjectContracts.compare(this, other, "chapterLabel, chapterNumber,partNumber, ownedBy");
     }
     //endregion
 
     //region > injected services
 
-    @javax.inject.Inject
-    private Parts newPartCall;
-
-    @javax.inject.Inject
-    private Chapters chapters;
-
-    /**
-     * public only so can be injected from integ tests
-     */
-    @javax.inject.Inject
-    public ActionInvocationContext actionInvocationContext;
 
     @javax.inject.Inject
     private DomainObjectContainer container;
+
+
+    @javax.inject.Inject
+    private Regulations newRegulationCall;
+
+    @javax.inject.Inject
+    private Parts parts;
 
 
     @SuppressWarnings("deprecation")
@@ -781,16 +736,13 @@ public class Chapter implements Categorized, Comparable<Chapter> {
     @javax.inject.Inject
     private RESTclient restClient;
 
-
     @javax.inject.Inject
     private CreationController creationController;
 
     @javax.inject.Inject
-    private RootNode rootNode;
-
-
-    @javax.inject.Inject
 //    private Scratchpad scratchpad;
+
+
 
     EventBusService eventBusService;
     public void injectEventBusService(EventBusService eventBusService) {

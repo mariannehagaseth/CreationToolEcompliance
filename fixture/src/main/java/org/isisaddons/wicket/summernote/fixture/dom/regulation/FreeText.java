@@ -68,25 +68,31 @@ import java.util.*;
 @DomainObjectLayout(bookmarking= BookmarkPolicy.AS_ROOT)
 @MemberGroupLayout (
 		columnSpans={6,0,0,6},
-		left={"Section", "Annotation","List"},
+		left={"Section", "Annotation","List","List of Items","SubSections","Ship Classes (Applicability)"},
 		middle={},
         right={})
 public class FreeText implements Categorized, Comparable<FreeText> {
 
     //region > LOG
     /**
-     * It isn't common for entities to log, but they can if required.  
+     * It isn't common for entities to log, but they can if required.
      * Isis uses slf4j API internally (with log4j as implementation), and is the recommended API to use.
      */
     private final static org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(FreeText.class);
-      //endregion
+    //endregion
 
     // region > title, icon
     public String title() {
         final TitleBuffer buf = new TitleBuffer();
-        if (getRegulationLink().getChapterAnnexArticle().equals(ChapterAnnex.CHAPTER)) {buf.append("SOLAS CHAPTER ");}
-        if (getRegulationLink().getChapterAnnexArticle().equals(ChapterAnnex.ANNEX)) {buf.append("SOLAS ANNEX ");}
-        if (getRegulationLink().getChapterAnnexArticle().equals(ChapterAnnex.DIRECTIVE))  {buf.append("EU DIRECTIVE ");}
+        if (getRegulationLink().getChapterAnnexArticle().equals(ChapterAnnex.CHAPTER)) {
+            buf.append("SOLAS CHAPTER ");
+        }
+        if (getRegulationLink().getChapterAnnexArticle().equals(ChapterAnnex.ANNEX)) {
+            buf.append("SOLAS ANNEX ");
+        }
+        if (getRegulationLink().getChapterAnnexArticle().equals(ChapterAnnex.DIRECTIVE)) {
+            buf.append("EU DIRECTIVE ");
+        }
         buf.append(getRegulationLink().getChapterNumber());
         if (!getRegulationLink().getPartNumber().equalsIgnoreCase("-")) {
             if ((getRegulationLink().getChapterAnnexArticle().equals(ChapterAnnex.CHAPTER)) || (getRegulationLink().getChapterAnnexArticle().equals(ChapterAnnex.ANNEX))) {
@@ -97,9 +103,15 @@ public class FreeText implements Categorized, Comparable<FreeText> {
             }
         }
         buf.append(getRegulationLink().getPartNumber());
-        if (getRegulationLink().getChapterAnnexArticle().equals(ChapterAnnex.CHAPTER)) {buf.append(" REGULATION "); }
-        if (getRegulationLink().getChapterAnnexArticle().equals(ChapterAnnex.ANNEX)) {buf.append(" CHAPTER ");}
-        if (getRegulationLink().getChapterAnnexArticle().equals(ChapterAnnex.DIRECTIVE)) {buf.append(" ARTICLE ");}
+        if (getRegulationLink().getChapterAnnexArticle().equals(ChapterAnnex.CHAPTER)) {
+            buf.append(" REGULATION ");
+        }
+        if (getRegulationLink().getChapterAnnexArticle().equals(ChapterAnnex.ANNEX)) {
+            buf.append(" CHAPTER ");
+        }
+        if (getRegulationLink().getChapterAnnexArticle().equals(ChapterAnnex.DIRECTIVE)) {
+            buf.append(" ARTICLE ");
+        }
         buf.append(getRegulationLink().getRegulationNumber());
         buf.append("SECTION ");
         buf.append(getSectionNo());
@@ -110,17 +122,23 @@ public class FreeText implements Categorized, Comparable<FreeText> {
 
     // Region sectionNo
     private String sectionNo;
-    @javax.jdo.annotations.Column(allowsNull="false", length=10)
+
+    @javax.jdo.annotations.Column(allowsNull = "false", length = 10)
     // @Property(regexPattern="\\w[@&:\\-\\,\\.\\+ \\w]*")
-    @MemberOrder(name="Section", sequence="10")
-    @PropertyLayout(typicalLength=10)
+    @MemberOrder(name = "Section", sequence = "10")
+    @PropertyLayout(typicalLength = 10)
     public String getSectionNo() {
         return sectionNo;
     }
+
     public void setSectionNo(final String sectionNo) {
         this.sectionNo = sectionNo;
     }
-    public void modifySectionNo(final String sectionNo) { this.sectionNo = sectionNo;}
+
+    public void modifySectionNo(final String sectionNo) {
+        this.sectionNo = sectionNo;
+    }
+
     public void clearSectionNo() {
         setSectionNo(null);
     }
@@ -129,56 +147,67 @@ public class FreeText implements Categorized, Comparable<FreeText> {
 
     // Region plainRegulationText
     private String plainRegulationText;
-    @javax.jdo.annotations.Column(allowsNull="true", length=10000)
-   // @Property(regexPattern="\\w[@&:\\-\\,\\.\\+ \\w]*")
-    @MemberOrder(name="Section", sequence="15")
-    @PropertyLayout(typicalLength=10000, multiLine=4, named = "Text")
+
+    @javax.jdo.annotations.Column(allowsNull = "true", length = 10000)
+    // @Property(regexPattern="\\w[@&:\\-\\,\\.\\+ \\w]*")
+    @MemberOrder(name = "Section", sequence = "15")
+    @PropertyLayout(typicalLength = 10000, multiLine = 4, named = "Text")
     public String getPlainRegulationText() {
-      return plainRegulationText;
+        return plainRegulationText;
     }
+
     public void setPlainRegulationText(final String plainRegulationText) {
-     this.plainRegulationText = plainRegulationText;
+        this.plainRegulationText = plainRegulationText;
     }
+
     public void modifyPlainRegulationText(final String plainRegulationText) {
         setPlainRegulationText(plainRegulationText);
     }
+
     public void clearPlainRegulationText() {
         setPlainRegulationText(null);
     }
     //endregion
 
     // BEGIN REGION ANNOTATED TEXT
-     private String annotatedText;
-    @javax.jdo.annotations.Column(allowsNull="true", length=10000)
-    @MemberOrder(name="Annotation", sequence="10")
-     @PropertyLayout(typicalLength=10000, multiLine=3, hidden=Where.ALL_TABLES)
-    @Property(editing = Editing.DISABLED,editingDisabledReason = "Update using action that calls an API from the consolidation services")
+    private String annotatedText;
+
+    @javax.jdo.annotations.Column(allowsNull = "true", length = 10000)
+    @MemberOrder(name = "Annotation", sequence = "10")
+    @PropertyLayout(typicalLength = 10000, multiLine = 3, hidden = Where.ALL_TABLES)
+    @Property(editing = Editing.DISABLED, editingDisabledReason = "Update using action that calls an API from the consolidation services")
 //   @SummernoteEditor(height = 100, maxHeight = 300)
-     public String getAnnotatedText() {
+    public String getAnnotatedText() {
         return annotatedText;
     }
+
     public void setAnnotatedText(final String annotatedText) {
-     this.annotatedText = annotatedText;
+        this.annotatedText = annotatedText;
     }
+
     public void modifyAnnotatedText(final String annotatedText) {
-       setAnnotatedText(annotatedText);
+        setAnnotatedText(annotatedText);
     }
+
     public void clearAnnotatedText() {
         setAnnotatedText(null);
     }
 // END REGION ANNOTATED TEXT
 
     private String skosTerms;
-    @javax.jdo.annotations.Column(allowsNull="true", length=10000)
-    @MemberOrder(name="Annotation", sequence="20")
-    @PropertyLayout(typicalLength=10000, multiLine=3, named = "Terms", hidden=Where.ALL_TABLES)
+
+    @javax.jdo.annotations.Column(allowsNull = "true", length = 10000)
+    @MemberOrder(name = "Annotation", sequence = "20")
+    @PropertyLayout(typicalLength = 10000, multiLine = 3, named = "Terms", hidden = Where.ALL_TABLES)
     //@Property(editing = Editing.DISABLED,editingDisabledReason = "Update using action that calls an API from the consolidation services")
     public String getSkosTerms() {
         return skosTerms;
     }
+
     public void setSkosTerms(final String skosTerms) {
         this.skosTerms = skosTerms;
     }
+
     public void modifySkosTerms(final String skosTerms) {
         setSkosTerms(skosTerms);
     }
@@ -189,7 +218,7 @@ public class FreeText implements Categorized, Comparable<FreeText> {
 
     @Action()
     @ActionLayout(position = ActionLayout.Position.PANEL)
-    @MemberOrder(name="Terms", sequence="20")
+    @MemberOrder(name = "Terms", sequence = "20")
     public FreeText CheckTerms() {
         FragmentSKOSConceptOccurrences fragment = restClient.GetSkos(plainRegulationText);
         System.out.println("FREETEXT: fragment OK");
@@ -197,33 +226,38 @@ public class FreeText implements Categorized, Comparable<FreeText> {
         setSkosTerms(creationController.ShowTerms(plainRegulationText, fragment).get(0));
 //  SummernoteEditor:  setAnnotatedText(creationController.ShowTerms(plainRegulationText, fragment).get(1));
         setAnnotatedText(plainRegulationText);
-        System.out.println("FREETEXT: skosTerms="+skosTerms);
-        System.out.println("FREETEXT: annotatedText="+annotatedText);
+        System.out.println("FREETEXT: skosTerms=" + skosTerms);
+        System.out.println("FREETEXT: annotatedText=" + annotatedText);
         container.flush();
         container.informUser("Fetched SKOS terms completed for " + container.titleOf(this));
         return this;
     }
-        //@Action(semantics = SemanticsOf.IDEMPOTENT)
+    //@Action(semantics = SemanticsOf.IDEMPOTENT)
     //@Action()
-     //@ActionLayout(position = ActionLayout.Position.PANEL)
+    //@ActionLayout(position = ActionLayout.Position.PANEL)
     //@MemberOrder(name="Terms", sequence="20")
 
     //endregion
 
 
-//BEGIN show  Region target
+    //BEGIN show  Region target
     private String target;
-    @javax.jdo.annotations.Column(allowsNull="true", length=10000)
-    @MemberOrder(name="Annotation", sequence="30")
-    @PropertyLayout(typicalLength=10000, multiLine=3, named = "Target", hidden=Where.ALL_TABLES)
+
+    @javax.jdo.annotations.Column(allowsNull = "true", length = 10000)
+    @MemberOrder(name = "Annotation", sequence = "30")
+    @PropertyLayout(typicalLength = 10000, multiLine = 3, named = "Target", hidden = Where.ALL_TABLES)
     //@Property(editing = Editing.DISABLED,editingDisabledReason = "Update using action that calls an API from the consolidation services")
     public String getTarget() {
         return target;
     }
+
     public void setTarget(final String target) {
-        this.target= target;
+        this.target = target;
     }
-    public void modifyTarget(final String target) {setTarget(target);}
+
+    public void modifyTarget(final String target) {
+        setTarget(target);
+    }
 
     public void clearTarget() {
         setTarget(null);
@@ -233,15 +267,15 @@ public class FreeText implements Categorized, Comparable<FreeText> {
     @Action()
     //  @ActionLayout(named = "Check Terms", position = ActionLayout.Position.PANEL)
     @ActionLayout(position = ActionLayout.Position.PANEL)
-    @MemberOrder(name="Terms", sequence="20")
+    @MemberOrder(name = "Terms", sequence = "20")
     public FreeText ShowTarget() {
         ShipClass shipClassFound = null;
         // CALLS THE TARGET API
-       shipClassFound = restClient.GetTarget(plainRegulationText);
-       // shipClassFound = restClient.GetApplicability(plainRegulationText);
+        shipClassFound = restClient.GetTarget(plainRegulationText);
+        // shipClassFound = restClient.GetApplicability(plainRegulationText);
         System.out.println("FREETEXT:shipclassfound OK");
-        setTarget(creationController.ShowShipClass(plainRegulationText,shipClassFound));
-        System.out.println("FREETEXT: target="+target);
+        setTarget(creationController.ShowShipClass(plainRegulationText, shipClassFound));
+        System.out.println("FREETEXT: target=" + target);
         container.flush();
         container.informUser("Fetched Target completed for " + container.titleOf(this));
         return this;
@@ -252,18 +286,22 @@ public class FreeText implements Categorized, Comparable<FreeText> {
 
     //BEGIN show applicability
     private String applicability;
-    @javax.jdo.annotations.Column(allowsNull="true", length=10000)
-    @MemberOrder(name="Annotation", sequence="35")
-    @PropertyLayout(typicalLength=10000, multiLine=3, named = "Applicability", hidden=Where.ALL_TABLES)
+
+    @javax.jdo.annotations.Column(allowsNull = "true", length = 10000)
+    @MemberOrder(name = "Annotation", sequence = "35")
+    @PropertyLayout(typicalLength = 10000, multiLine = 3, named = "Applicability", hidden = Where.ALL_TABLES)
     //@Property(editing = Editing.DISABLED,editingDisabledReason = "Update using action that calls an API from the consolidation services")
     public String getApplicability() {
         return applicability;
     }
+
     public void setApplicability(final String applicability) {
-        this.applicability= applicability;
+        this.applicability = applicability;
     }
+
     public void modifyApplicability(final String applicability) {
-        setApplicability(applicability);}
+        setApplicability(applicability);
+    }
 
     public void clearApplicability() {
         setApplicability(null);
@@ -273,35 +311,56 @@ public class FreeText implements Categorized, Comparable<FreeText> {
     @Action()
     //  @ActionLayout(named = "Check Terms", position = ActionLayout.Position.PANEL)
     @ActionLayout(position = ActionLayout.Position.PANEL)
-    @MemberOrder(name="Terms", sequence="30")
+    @MemberOrder(name = "Terms", sequence = "30")
     public FreeText ShowApplicability() {
         ShipClass shipClassFound = null;
         // CALLS THE APPLICABILITY API
-    //    shipClassFound = restClient.GetRule(plainRegulationText);
+        //    shipClassFound = restClient.GetRule(plainRegulationText);
         shipClassFound = restClient.GetApplicability(plainRegulationText);
         System.out.println("FREETEXT:applicability shipclassfound OK");
-        setApplicability(creationController.ShowShipClass(plainRegulationText,shipClassFound));
-        System.out.println("FREETEXT: applicability="+applicability);
+        setApplicability(creationController.ShowShipClass(plainRegulationText, shipClassFound));
+        System.out.println("FREETEXT: applicability=" + applicability);
+
+        // SHOW the ship class in the collection:
+        // CALLS THE TARGET API
+        ShipClassType shipClassFoundList = null;
+        // THIS CAN BE CHANGED FROM APPLICABILITY TO TARGET, IF NEEDED!!::
+        shipClassFoundList = restClient.GetShipClass(plainRegulationText);
+        // shipClassFound = restClient.GetApplicability(plainRegulationText);
+        System.out.println("checkshipclass:applicability shipclassfoundList OK");
+        ShipClassType newShipClass = creationController.ShowFoundShipClass(plainRegulationText, shipClassFoundList);
+        System.out.println("checkshipclass: applicability=" + applicability);
+        // setShipClasses(null); // Fetch the ship classes each time, so set to null in between/first.
+
         container.flush();
-        container.informUser("Fetched Applicability completed for " + container.titleOf(this));
+
+        if (newShipClass.getType().length() == 0) {
+            container.warnUser("NO  TARGET SHIP CLASS FOUND for " + container.titleOf(this));
+
+        } else {
+            getShipClasses().add(newShipClass);
+
+            container.informUser("Fetched Target Ship Class completed for " + container.titleOf(this));
+        }
         return this;
+
     }
 // END SHOW applicability
 
 
-
-
     //region > ownedBy (property)
-    @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
+    @javax.jdo.annotations.Persistent(defaultFetchGroup = "true")
     private String ownedBy;
-    @PropertyLayout(hidden=Where.EVERYWHERE)
-	@ActionLayout(hidden=Where.EVERYWHERE)
-    @javax.jdo.annotations.Column(allowsNull="false")
-    @Property(editing= Editing.DISABLED,editingDisabledReason="OwnedBy is static")
+
+    @PropertyLayout(hidden = Where.EVERYWHERE)
+    @ActionLayout(hidden = Where.EVERYWHERE)
+    @javax.jdo.annotations.Column(allowsNull = "false")
+    @Property(editing = Editing.DISABLED, editingDisabledReason = "OwnedBy is static")
     public String getOwnedBy() {
         return ownedBy;
     }
-	@ActionLayout(hidden=Where.EVERYWHERE)
+
+    @ActionLayout(hidden = Where.EVERYWHERE)
     public void setOwnedBy(final String ownedBy) {
         this.ownedBy = ownedBy;
     }
@@ -329,52 +388,62 @@ public class FreeText implements Categorized, Comparable<FreeText> {
 */
 
 
-
     // Add FreeText to REGULATION
     // mapping is done to this property:
-    @javax.jdo.annotations.Column(allowsNull="true")
-    @Property(editing= Editing.DISABLED,editingDisabledReason="REGULATION cannot be updated from here")
-    @PropertyLayout(hidden=Where.REFERENCES_PARENT, named = "Parent Link")
-    @MemberOrder(name="Section", sequence="50")
+    @javax.jdo.annotations.Column(allowsNull = "true")
+    @Property(editing = Editing.DISABLED, editingDisabledReason = "REGULATION cannot be updated from here")
+    @PropertyLayout(hidden = Where.REFERENCES_PARENT, named = "Parent Link")
+    @MemberOrder(name = "Section", sequence = "50")
     private Regulation regulationLink;
-    @javax.jdo.annotations.Column(allowsNull="true")
-    public Regulation getRegulationLink() { return regulationLink; }
-    @javax.jdo.annotations.Column(allowsNull="true")
-    public void setRegulationLink(Regulation regulationLink) { this.regulationLink = regulationLink; }
+
+    @javax.jdo.annotations.Column(allowsNull = "true")
+    public Regulation getRegulationLink() {
+        return regulationLink;
+    }
+
+    @javax.jdo.annotations.Column(allowsNull = "true")
+    public void setRegulationLink(Regulation regulationLink) {
+        this.regulationLink = regulationLink;
+    }
     // End   Regulation to RegulationRule
 
 
     // Region regulationAND
     private boolean regulationAND;
-    @javax.jdo.annotations.Column(allowsNull="true")
-    @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
-    @PropertyLayout(hidden=Where.ALL_TABLES)
-    @MemberOrder(name="List", sequence="40")
+
+    @javax.jdo.annotations.Column(allowsNull = "true")
+    @javax.jdo.annotations.Persistent(defaultFetchGroup = "true")
+    @PropertyLayout(hidden = Where.ALL_TABLES)
+    @MemberOrder(name = "List", sequence = "40")
     public boolean getRegulationAND() {
         return regulationAND;
     }
+
     public void setRegulationAND(final boolean regulationAND) {
         this.regulationAND = regulationAND;
     }
     //end region
 
 
-
     // BEGIN REGION Link to TextItems, a list of text items.
-    @javax.jdo.annotations.Persistent(mappedBy="freeText")
+    @javax.jdo.annotations.Persistent(mappedBy = "freeText")
     @javax.jdo.annotations.Join // Make a separate join table.
-    private SortedSet<TextItem> textItems= new TreeSet<TextItem>();
+    private SortedSet<TextItem> textItems = new TreeSet<TextItem>();
+
     @SuppressWarnings("deprecation")
-    @CollectionLayout(named = "List of Items" , sortedBy=TextItemComparator.class,render=RenderType.EAGERLY)
-    @MemberOrder(name="List of Items",sequence = "10")
+    @CollectionLayout(named = "List of Items", sortedBy = TextItemComparator.class, render = RenderType.EAGERLY)
+   @MemberOrder(name = "List of Items", sequence = "10")
+   // @MemberOrder( sequence = "10")
     public SortedSet<TextItem> getTextItems() {
         return textItems;
     }
+
     public void setTextItems(SortedSet<TextItem> textItem) {
         this.textItems = textItem;
     }
+
     public void removeFromTextItems(final TextItem item) {
-        if(item == null || !getTextItems().contains(item)) return;
+        if (item == null || !getTextItems().contains(item)) return;
         getTextItems().remove(item);
     }
 
@@ -382,9 +451,9 @@ public class FreeText implements Categorized, Comparable<FreeText> {
     public static class TextItemComparator implements Comparator<TextItem> {
         @Override
         public int compare(TextItem p, TextItem q) {
-            Ordering<TextItem> byItemNo= new Ordering<TextItem>() {
+            Ordering<TextItem> byItemNo = new Ordering<TextItem>() {
                 public int compare(final TextItem p, final TextItem q) {
-                    return Ordering.natural().nullsFirst().compare(p.getItemNo(),q.getItemNo());
+                    return Ordering.natural().nullsFirst().compare(p.getItemNo(), q.getItemNo());
                 }
             };
             return byItemNo
@@ -397,19 +466,18 @@ public class FreeText implements Categorized, Comparable<FreeText> {
 
     @Action()
     @ActionLayout(named = "Add New Item")
-    @MemberOrder(name = "List of Items", sequence = "70")
-    public FreeText addNewTextItem(final @ParameterLayout(typicalLength=10,named = "Item No") String itemNo,
-                                   final  @ParameterLayout(typicalLength=1000, multiLine=8,named = "Text") String plainRegulationText
-    )
-    {
+    @MemberOrder(name = "List of Items", sequence = "10")
+    public FreeText addNewTextItem(final @ParameterLayout(typicalLength = 10, named = "Item No") String itemNo,
+                                   final @ParameterLayout(typicalLength = 1000, multiLine = 8, named = "Text") String plainRegulationText
+    ) {
         getTextItems().add(newTextItemCall.newTextItem(itemNo, plainRegulationText));
         return this;
     }
 
     //This is the Remove-Button!!
-    @MemberOrder(name="List of Items", sequence = "80")
+    @MemberOrder(name = "List of Items", sequence = "20")
     @ActionLayout(named = "Delete Item")
-    public FreeText removeTextItem(final @ParameterLayout(typicalLength=30) TextItem item) {
+    public FreeText removeTextItem(final @ParameterLayout(typicalLength = 30) TextItem item) {
         // By wrapping the call, Isis will detect that the collection is modified
         // and it will automatically send a CollectionInteractionEvent to the Event Bus.
         // ToDoItemSubscriptions is a demo subscriber to this event
@@ -420,11 +488,12 @@ public class FreeText implements Categorized, Comparable<FreeText> {
 
     // disable action dependent on state of object
     public String disableRemoveTextItem(final TextItem item) {
-        return getTextItems().isEmpty()? "No Item to remove": null;
+        return getTextItems().isEmpty() ? "No Item to remove" : null;
     }
+
     // validate the provided argument prior to invoking action
     public String validateRemoveTextItem(final TextItem item) {
-        if(!getTextItems().contains(item)) {
+        if (!getTextItems().contains(item)) {
             return "Not an Item";
         }
         return null;
@@ -437,95 +506,106 @@ public class FreeText implements Categorized, Comparable<FreeText> {
     //END REGION Link FreeText (Section) --> to (several) TextItems
 
 
-        // BEGIN REGION Link to SubSections
-         @javax.jdo.annotations.Persistent(mappedBy="freeTextSection")
-        @javax.jdo.annotations.Join // Make a separate join table.
-        private SortedSet<SubSection> subSections= new TreeSet<SubSection>();
-         @SuppressWarnings("deprecation")
-         @CollectionLayout(named = "SubSections" , sortedBy=SubSectionsComparator.class,render=RenderType.EAGERLY)
-         @MemberOrder(name="SubSections",sequence = "20")
-         public SortedSet<SubSection> getSubSections() {
-            return subSections;
-        }
-        public void setSubSections(SortedSet<SubSection> subSection) {
-            this.subSections = subSection;
-        }
-        public void removeFromSubSections(final SubSection subSection) {
-            if(subSection == null || !getSubSections().contains(subSection)) return;
-            getSubSections().remove(subSection);
-        }
-        // / overrides the natural ordering
-        public static class SubSectionsComparator implements Comparator<SubSection> {
-            @Override
-            public int compare(SubSection p, SubSection q) {
-                Ordering<SubSection> bySubSectionNo = new Ordering<SubSection>() {
-                    public int compare(final SubSection p, final SubSection q) {
-                        return Ordering.natural().nullsFirst().compare(p.getSubSectionNo(),q.getSubSectionNo());
-                    }
-                };
-                return bySubSectionNo
-                        .compound(Ordering.<SubSection>natural())
-                        .compare(p, q);
-            }
-        }
-        //This is the add-Button!!!
-        @Action()
-        @ActionLayout(named = "Add New SubSection")
-        @MemberOrder(name = "subSections", sequence = "15")
-        public FreeText addNewSubSection(final @ParameterLayout(typicalLength=10,named = "Sub Section No") String subSectionNo,
-                                           final  @ParameterLayout(typicalLength=1000, multiLine=8,named = "Regulation Text") String plainRegulationText
-        )
-        {
-             getSubSections().add(newSubSectionCall.newSubSection(subSectionNo, plainRegulationText));
-             return this;
-        }
+    // BEGIN REGION Link to SubSections
+    @javax.jdo.annotations.Persistent(mappedBy = "freeTextSection")
+    @javax.jdo.annotations.Join // Make a separate join table.
+    @MemberOrder(name = "SubSections", sequence = "20")
+    private SortedSet<SubSection> subSections = new TreeSet<SubSection>();
 
-        //This is the Remove-Button!!
-        @MemberOrder(name="subSections", sequence = "20")
-        @ActionLayout(named = "Delete SubSection")
-        public FreeText removeSubSection(final @ParameterLayout(typicalLength=30) SubSection subSection) {
-            // By wrapping the call, Isis will detect that the collection is modified
-            // and it will automatically send a CollectionInteractionEvent to the Event Bus.
-            // ToDoItemSubscriptions is a demo subscriber to this event
-            wrapperFactory.wrapSkipRules(this).removeFromSubSections(subSection);
-            container.removeIfNotAlready(subSection);
-            return this;
-        }
+    @SuppressWarnings("deprecation")
+    @CollectionLayout(named = "Sub Sections", sortedBy = SubSectionsComparator.class, render = RenderType.EAGERLY)
+ @MemberOrder(name = "SubSections", sequence = "20")
+   // @MemberOrder(sequence = "20")
+    public SortedSet<SubSection> getSubSections() {
+        return subSections;
+    }
 
-        // disable action dependent on state of object
-        public String disableRemoveSubSection(final SubSection subSection) {
-            return getSubSections().isEmpty()? "No Text to remove": null;
-        }
-        // validate the provided argument prior to invoking action
-        public String validateRemoveSubSection(final SubSection subSection) {
-            if(!getSubSections().contains(subSection)) {
-                return "Not a SubSection";
-            }
-            return null;
-        }
-        // provide a drop-down
-        public java.util.Collection<SubSection> choices0RemoveSubSection() {
-            return getSubSections();
-        }
-        //ENDREGION Link FreeText (Section) --> to (several) SubSections
+    public void setSubSections(SortedSet<SubSection> subSection) {
+        this.subSections = subSection;
+    }
 
+    public void removeFromSubSections(final SubSection subSection) {
+        if (subSection == null || !getSubSections().contains(subSection)) return;
+        getSubSections().remove(subSection);
+    }
+
+    // / overrides the natural ordering
+    public static class SubSectionsComparator implements Comparator<SubSection> {
+        @Override
+        public int compare(SubSection p, SubSection q) {
+            Ordering<SubSection> bySubSectionNo = new Ordering<SubSection>() {
+                public int compare(final SubSection p, final SubSection q) {
+                    return Ordering.natural().nullsFirst().compare(p.getSubSectionNo(), q.getSubSectionNo());
+                }
+            };
+            return bySubSectionNo
+                    .compound(Ordering.<SubSection>natural())
+                    .compare(p, q);
+        }
+    }
+
+    //This is the add-Button!!!
+    @Action()
+    @ActionLayout(named = "Add New SubSection")
+    @MemberOrder(name = "subSections", sequence = "15")
+    public FreeText addNewSubSection(final @ParameterLayout(typicalLength = 10, named = "Sub Section No") String subSectionNo,
+                                     final @ParameterLayout(typicalLength = 1000, multiLine = 8, named = "Regulation Text") String plainRegulationText
+    ) {
+        getSubSections().add(newSubSectionCall.newSubSection(subSectionNo, plainRegulationText));
+        return this;
+    }
+
+    //This is the Remove-Button!!
+    @MemberOrder(name = "subSections", sequence = "20")
+    @ActionLayout(named = "Delete SubSection")
+    public FreeText removeSubSection(final @ParameterLayout(typicalLength = 30) SubSection subSection) {
+        // By wrapping the call, Isis will detect that the collection is modified
+        // and it will automatically send a CollectionInteractionEvent to the Event Bus.
+        // ToDoItemSubscriptions is a demo subscriber to this event
+        wrapperFactory.wrapSkipRules(this).removeFromSubSections(subSection);
+        container.removeIfNotAlready(subSection);
+        return this;
+    }
+
+    // disable action dependent on state of object
+    public String disableRemoveSubSection(final SubSection subSection) {
+        return getSubSections().isEmpty() ? "No Text to remove" : null;
+    }
+
+    // validate the provided argument prior to invoking action
+    public String validateRemoveSubSection(final SubSection subSection) {
+        if (!getSubSections().contains(subSection)) {
+            return "Not a SubSection";
+        }
+        return null;
+    }
+
+    // provide a drop-down
+    public java.util.Collection<SubSection> choices0RemoveSubSection() {
+        return getSubSections();
+    }
+    //ENDREGION Link FreeText (Section) --> to (several) SubSections
 
 
     // BEGIN REGION Link to ShipClassType, a list of ship classes that this text is applicable to.
-    @javax.jdo.annotations.Persistent(mappedBy="applicableLink")
+    @javax.jdo.annotations.Persistent(mappedBy = "applicableLink")
     @javax.jdo.annotations.Join // Make a separate join table.
-    private SortedSet<ShipClassType> shipClasses= new TreeSet<ShipClassType>();
+    private SortedSet<ShipClassType> shipClasses = new TreeSet<ShipClassType>();
+
     @SuppressWarnings("deprecation")
-    @CollectionLayout(named = "Types: Ship Classes (Applicability)" , sortedBy=ShipClassTypeComparator.class,render=RenderType.EAGERLY)
-    @MemberOrder(name="Ship Classes (Applicability)",sequence = "90")
+  @MemberOrder(name = "Ship Classes (Applicability)", sequence = "90")
+   // @MemberOrder(sequence = "90")
+    @CollectionLayout(named = "Ship Classes (Applicability)", sortedBy = ShipClassTypeComparator.class, render = RenderType.EAGERLY)
     public SortedSet<ShipClassType> getShipClasses() {
         return shipClasses;
     }
+
     public void setShipClasses(SortedSet<ShipClassType> shipClass) {
-        this.shipClasses= shipClass;
+        this.shipClasses = shipClass;
     }
+
     public void removeFromShipClasses(final ShipClassType shipClass) {
-        if(shipClass == null || !getShipClasses().contains(shipClass)) return;
+        if (shipClass == null || !getShipClasses().contains(shipClass)) return;
         getShipClasses().remove(shipClass);
     }
 
@@ -533,9 +613,9 @@ public class FreeText implements Categorized, Comparable<FreeText> {
     public static class ShipClassTypeComparator implements Comparator<ShipClassType> {
         @Override
         public int compare(ShipClassType p, ShipClassType q) {
-            Ordering<ShipClassType> byShiptype= new Ordering<ShipClassType>() {
+            Ordering<ShipClassType> byShiptype = new Ordering<ShipClassType>() {
                 public int compare(final ShipClassType p, final ShipClassType q) {
-                    return Ordering.natural().nullsFirst().compare(p.getType(),q.getType());
+                    return Ordering.natural().nullsFirst().compare(p.getType(), q.getType());
                 }
             };
             return byShiptype
@@ -544,95 +624,196 @@ public class FreeText implements Categorized, Comparable<FreeText> {
         }
     }
 
+    // BEGIN fetch Applicability classes.
+    @Action()
+    @MemberOrder(name = "Ship Classes (Applicability)", sequence = "60")
+    @ActionLayout(named = "Fetch")
+    public FreeText FetchApplicability() {
+          // SHOW the ship class in the collection:
+        // CALLS THE TARGET API
+        ShipClassType shipClassFoundList = null;
+        // THIS CAN BE CHANGED TO APPLICABILITY, IF NEEDED!!::
+        shipClassFoundList = restClient.GetShipClass(plainRegulationText);
+        // shipClassFound = restClient.GetApplicability(plainRegulationText);
+        System.out.println("FetchApplicability:applicability shipclassfoundList OK");
+        ShipClassType newShipClass = creationController.ShowFoundShipClass(plainRegulationText, shipClassFoundList);
+        System.out.println("FetchApplicability: applicability=" + applicability);
+        // setShipClasses(null); // Fetch the ship classes each time, so set to null in between/first.
+
+        container.flush();
+
+        if (newShipClass.getType().length() == 0) {
+            container.warnUser("NO  TARGET SHIP CLASS FOUND for " + container.titleOf(this));
+
+        } else {
+            getShipClasses().add(newShipClass);
+
+            container.informUser("Fetched Target Ship Class completed for " + container.titleOf(this));
+        }
+        return this;
+
+    }
+// END FETCH applicability
+
+
     //This is the add-Button!!!
     @Action()
-    @MemberOrder(name = "Types: Ship Classes (Applicability)", sequence = "95")
-    @ActionLayout(named = "Add Ship Class (Applicability)")
+    @MemberOrder(name = "Ship Classes (Applicability)", sequence = "70")
+    @ActionLayout(named = "Add")
     public FreeText addNewShipClassType(
-            final @Parameter(optionality=Optionality.MANDATORY) @ParameterLayout(typicalLength=100, named="Name") String type,
-            final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=100, named="Tonnage >=") double minTonnageIn,
-            final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=100, named="Tonnage >") double minTonnageEx,
-            final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=100, named="Tonnage <=") double maxTonnageIn,
-            final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=100, named="Tonnage < ") double maxTonnageEx,
-            final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=100, named="Length >=") double minLengthIn,
-            final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=100, named="Length >") double minLengthEx,
-            final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=100, named="Length <=") double maxLengthIn,
-            final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=100, named="Length <") double maxLengthEx,
-            final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=100, named="Draught >=") double minDraughtIn,
-            final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=100, named="Draught >") double minDraughtEx,
-            final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=100, named="Draught <=") double maxDraughtIn,
-            final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=100, named="Draught <") double maxDraughtEx,
-            final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=100, named="No of Passengers >=") int minPassengersIn,
-            final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=100, named="No of Passengers >") int minPassengersEx,
-            final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=100, named="No of Passengers <=") int maxPassengerIn,
-            final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=100, named="No of Passengers <") int maxPassengersEx,
-            final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=100, named="Keel Laid Date >=") int minKeelLaidIn,
-            final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=100, named="Keel Laid Date >") int minKeelLaidEx,
-            final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=100, named="Keel Laid Date <=") int maxKeelLaidIn,
-            final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=100, named="Keel Laid Date <") int maxKeelLaidEx,
-            final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=100, named="Length Unit") String lengthUnit,
-            final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=100, named="Tonnage Unit") String tonnageUnit,
-            final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=100, named="Draught Unit") String draughtUnit
-    )
-    {
-         getShipClasses().add(newShipClassTypeCall.newShipClassType(
-         type,
-         minTonnageIn,
-         minTonnageEx,
-         maxTonnageIn,
-         maxTonnageEx,
-         minLengthIn,
-         minLengthEx,
-         maxLengthIn,
-         maxLengthEx,
-         minDraughtIn,
-         minDraughtEx,
-         maxDraughtIn,
-         maxDraughtEx,
-         minPassengersIn,
-         minPassengersEx,
-         maxPassengerIn,
-         maxPassengersEx,
-         minKeelLaidIn,
-         minKeelLaidEx,
-         maxKeelLaidIn,
-         maxKeelLaidEx,
-         lengthUnit,
-         tonnageUnit,
-         draughtUnit
-                 )
-         );
+            final @Parameter(optionality = Optionality.MANDATORY) @ParameterLayout(typicalLength = 100, named = "Name") String type,
+            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Tonnage >=") double minTonnageIn,
+            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Tonnage >") double minTonnageEx,
+            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Tonnage <=") double maxTonnageIn,
+            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Tonnage < ") double maxTonnageEx,
+            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Length >=") double minLengthIn,
+            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Length >") double minLengthEx,
+            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Length <=") double maxLengthIn,
+            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Length <") double maxLengthEx,
+            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Draught >=") double minDraughtIn,
+            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Draught >") double minDraughtEx,
+            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Draught <=") double maxDraughtIn,
+            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Draught <") double maxDraughtEx,
+            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "No of Passengers >=") int minPassengersIn,
+            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "No of Passengers >") int minPassengersEx,
+            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "No of Passengers <=") int maxPassengerIn,
+            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "No of Passengers <") int maxPassengersEx,
+            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Keel Laid Date >=") int minKeelLaidIn,
+            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Keel Laid Date >") int minKeelLaidEx,
+            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Keel Laid Date <=") int maxKeelLaidIn,
+            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Keel Laid Date <") int maxKeelLaidEx,
+            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Length Unit") String lengthUnit,
+            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Tonnage Unit") String tonnageUnit,
+            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Draught Unit") String draughtUnit
+    ) {
+        getShipClasses().add(newShipClassTypeCall.newShipClassType(
+                        type,
+                        minTonnageIn,
+                        minTonnageEx,
+                        maxTonnageIn,
+                        maxTonnageEx,
+                        minLengthIn,
+                        minLengthEx,
+                        maxLengthIn,
+                        maxLengthEx,
+                        minDraughtIn,
+                        minDraughtEx,
+                        maxDraughtIn,
+                        maxDraughtEx,
+                        minPassengersIn,
+                        minPassengersEx,
+                        maxPassengerIn,
+                        maxPassengersEx,
+                        minKeelLaidIn,
+                        minKeelLaidEx,
+                        maxKeelLaidIn,
+                        maxKeelLaidEx,
+                        lengthUnit,
+                        tonnageUnit,
+                        draughtUnit
+                )
+        );
         return this;
     }
-    public double default1AddNewShipClassType() {return 0;}
-    public double default2AddNewShipClassType() {return 0;}
-    public double default3AddNewShipClassType() {return 0;}
-    public double default4AddNewShipClassType() {return 0;}
-    public double default5AddNewShipClassType() {return 0;}
-    public double default6AddNewShipClassType() {return 0;}
-    public double default7AddNewShipClassType() {return 0;}
-    public double default8AddNewShipClassType() {return 0;}
-    public double default9AddNewShipClassType() {return 0;}
-    public double default10AddNewShipClassType() {return 0;}
-    public double default11AddNewShipClassType() {return 0;}
-    public double default12AddNewShipClassType() {return 0;}
-    public int default13AddNewShipClassType() {return 0;}
-    public int default14AddNewShipClassType() {return 0;}
-    public int default15AddNewShipClassType() {return 0;}
-    public int default16AddNewShipClassType() {return 0;}
-    public int default17AddNewShipClassType() {return 0;}
-    public int default18AddNewShipClassType() {return 0;}
-    public int default19AddNewShipClassType() {return 0;}
-    public int default20AddNewShipClassType() {return 0;}
-    public String default21AddNewShipClassType() {return "M";}
-    public String default22AddNewShipClassType() {return "GT";}
-    public String default23AddNewShipClassType() {return "M";}
+
+    public double default1AddNewShipClassType() {
+        return 0;
+    }
+
+    public double default2AddNewShipClassType() {
+        return 0;
+    }
+
+    public double default3AddNewShipClassType() {
+        return 0;
+    }
+
+    public double default4AddNewShipClassType() {
+        return 0;
+    }
+
+    public double default5AddNewShipClassType() {
+        return 0;
+    }
+
+    public double default6AddNewShipClassType() {
+        return 0;
+    }
+
+    public double default7AddNewShipClassType() {
+        return 0;
+    }
+
+    public double default8AddNewShipClassType() {
+        return 0;
+    }
+
+    public double default9AddNewShipClassType() {
+        return 0;
+    }
+
+    public double default10AddNewShipClassType() {
+        return 0;
+    }
+
+    public double default11AddNewShipClassType() {
+        return 0;
+    }
+
+    public double default12AddNewShipClassType() {
+        return 0;
+    }
+
+    public int default13AddNewShipClassType() {
+        return 0;
+    }
+
+    public int default14AddNewShipClassType() {
+        return 0;
+    }
+
+    public int default15AddNewShipClassType() {
+        return 0;
+    }
+
+    public int default16AddNewShipClassType() {
+        return 0;
+    }
+
+    public int default17AddNewShipClassType() {
+        return 0;
+    }
+
+    public int default18AddNewShipClassType() {
+        return 0;
+    }
+
+    public int default19AddNewShipClassType() {
+        return 0;
+    }
+
+    public int default20AddNewShipClassType() {
+        return 0;
+    }
+
+    public String default21AddNewShipClassType() {
+        return "M";
+    }
+
+    public String default22AddNewShipClassType() {
+        return "GT";
+    }
+
+    public String default23AddNewShipClassType() {
+        return "M";
+    }
 
 
+    /*
     //BEGIN checkShipClass
     @Action()
-    @MemberOrder(name="Types: Ship Classes (Applicability)", sequence="10")
-    @ActionLayout(named = "Fetch Ship Classes (Applicability)", position = ActionLayout.Position.PANEL)
+    @MemberOrder(name="Ship Classes (Applicability)", sequence="80")
+    @ActionLayout(named = "Fetch", position = ActionLayout.Position.PANEL)
     public FreeText CheckShipClass() {
 
         ShipClassType shipClassFound = null;
@@ -646,13 +827,126 @@ public class FreeText implements Categorized, Comparable<FreeText> {
 
         System.out.println("checkshipclass: applicability="+applicability);
        // setShipClasses(null); // Fetch the ship classes each time, so set to null in between/first.
-        getShipClasses().add(newShipClass);
 
-        container.flush();
-        container.informUser("Fetched Target Ship Class completed for " + container.titleOf(this));
-        return this;
+       if (newShipClass.getType().length()==0)
+       {
+           container.warnUser("NO  TARGET SHIP CLASS FOUND for " + container.titleOf(this));
+
+       }
+        else {
+           getShipClasses().add(newShipClass);
+
+           container.flush();
+           container.informUser("Fetched Target Ship Class completed for " + container.titleOf(this));
+       }
+           return this;
      }
 // END checkShipClass
+*/
+
+    @MemberOrder(name = "Ship Classes (Applicability)", sequence = "90")
+    @ActionLayout(named = "Remove")
+    public FreeText removeShipClass(final @ParameterLayout(typicalLength = 30) ShipClassType shipClassType) {
+        wrapperFactory.wrapSkipRules(this).removeFromShipClasses(shipClassType);
+        container.removeIfNotAlready(shipClassType);
+        return this;
+    }
+
+    // disable action dependent on state of object
+    public String disableRemoveShipClass(final ShipClassType shipClassType) {
+        return getShipClasses().isEmpty() ? "No Ship Classes to remove" : null;
+    }
+
+    // validate the provided argument prior to invoking action
+    public String validateRemoveShipClass(final ShipClassType shipClassType) {
+        if (!getShipClasses().contains(shipClassType)) {
+            return "Not a Ship Class";
+        }
+        return null;
+    }
+
+    // provide a drop-down
+    public java.util.Collection<ShipClassType> choices0RemoveShipClass() {
+        return getShipClasses();
+    }
+
+
+    @MemberOrder(name = "Ship Classes (Applicability)", sequence = "80")
+    @ActionLayout(named = "Update")
+    public FreeText applicableShipClass() {
+        // By wrapping the call, Isis will detect that the collection is modified
+        // and it will automatically send a CollectionInteractionEvent to the Event Bus.
+        // ToDoItemSubscriptions is a demo subscriber to this event
+        // Call REST API:
+
+        //Create an instance of the interface class
+  //      OntologyInterface oi = new OntologyInterface();
+
+        //The create function takes lists of ships as input - in this case, there is only one ship
+        Set<ShipClass> shipset = new HashSet<ShipClass>();
+        ShipClass oneShipClass = new ShipClass();
+        if (getShipClasses().size() == 0) {
+            // No applicability on this text exists!!
+            container.warnUser("No target ship class exists for  " + container.titleOf(this) + ". You must ADD a ship class before updating the APPLICABILITY of the text.");
+        }
+        else
+        {
+            Iterator it =getShipClasses().iterator();
+            while (it.hasNext()) {
+                ShipClassType thisShipClassType = (ShipClassType) it.next();
+                // Only handles the first ship type on the list!!
+                oneShipClass.setType(thisShipClassType.getType());
+                oneShipClass.setMinTonnageEx(thisShipClassType.getMinTonnageEx());
+                oneShipClass.setMaxTonnageEx(thisShipClassType.getMaxTonnageEx());
+                oneShipClass.setMinTonnageIn(thisShipClassType.getMinTonnageIn());
+                oneShipClass.setMaxTonnageIn(thisShipClassType.getMaxTonnageIn());
+                oneShipClass.setMinLengthEx(thisShipClassType.getMinLengthEx());
+                oneShipClass.setMaxLengthEx(thisShipClassType.getMaxLengthEx());
+                oneShipClass.setMinLengthIn(thisShipClassType.getMinLengthIn());
+                oneShipClass.setMaxLengthIn(thisShipClassType.getMaxLengthIn());
+                oneShipClass.setMinDraughtEx(thisShipClassType.getMinDraughtEx());
+                oneShipClass.setMaxDraughtEx(thisShipClassType.getMaxDraughtEx());
+                oneShipClass.setMinDraughtIn(thisShipClassType.getMinDraughtIn());
+                oneShipClass.setMaxDraughtIn(thisShipClassType.getMaxDraughtIn());
+                oneShipClass.setMinPassengersEx(thisShipClassType.getMinPassengersEx());
+                oneShipClass.setMaxPassengersEx(thisShipClassType.getMaxPassengersEx());
+                oneShipClass.setMinPassengersIn(thisShipClassType.getMinPassengersIn());
+                oneShipClass.setMaxPassengerIn(thisShipClassType.getMaxPassengerIn());
+                oneShipClass.setMinKeelLaidEx(thisShipClassType.getMinKeelLaidEx());
+                oneShipClass.setMaxKeelLaidEx(thisShipClassType.getMaxKeelLaidEx());
+                oneShipClass.setMinKeelLaidIn(thisShipClassType.getMinKeelLaidIn());
+                oneShipClass.setMaxKeelLaidIn(thisShipClassType.getMaxPassengerIn());
+                oneShipClass.setLengthUnit(thisShipClassType.getLengthUnit());
+                oneShipClass.setTonnageUnit(thisShipClassType.getTonnageUnit());
+                oneShipClass.setDraughtUnit(thisShipClassType.getDraughtUnit());
+                shipset.add(oneShipClass);
+            }
+            container.informUser("APPLICABILITY is updated for regulation " + container.titleOf(this));
+        }
+
+/*
+        try {
+//            oi.createTargetShipClassIntersection("MyNewShipClass", shipset, null, false);
+
+ // PLUS: NEED TO LINK TO THE REGULATION TEXT ITSELF!!
+
+            //The ships in the second set (here set to null) are complemented. I.e. when you pass in the two sets (A, B) and (C, D), the resulting target ship class will be (A INTERSECTION B INTERSECTION NOT C INTERSECTION NOT D).
+            //The second set is meant for exceptions (e.g. "... this does not apply to oil tankers bigger than 500 tons").
+            //The boolean includeSeeds (last input variable, here set to false) determines whether 'seed' classes (restrictions coming from headlines, scope chapters etc.) are included.
+        } catch (OWLOntologyCreationException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+*/
+        return this;
+}
+    // disable action dependent on state of object
+    public String disableApplicableShipClass() {
+        return getShipClasses().isEmpty()? "No Ship Classes to Update": null;
+    }
+
+
+
 
     //END REGION Link FreeText (Section) --> to (several) ShipClassTypes (APPLICABILITY)
 
@@ -703,6 +997,13 @@ public class FreeText implements Categorized, Comparable<FreeText> {
             return id.substring(0,indexEnd);
         }
 
+// BEGIN REGION SAVE TEXT IN THE RDF GRAPH
+    @Action
+    // IF SOLAS => CALL ROOT-API TO CREATE ROOT NODE FOR SOLAS
+    // IF ANNEX => CALL ROOT-API TO CREATE ROOT NODE FOR ANNEX
+    // IF EU DIR => CALL ROOT-APT TO CREATE ROOT NODE FOR EU DIRECTIVE
+
+// END REGION SAVE TEXT IN THE RDF GRAPH
 
         //region > lifecycle callbacks
 

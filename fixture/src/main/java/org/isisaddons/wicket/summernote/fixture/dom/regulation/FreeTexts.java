@@ -83,9 +83,9 @@ public class FreeTexts {
     // MHAGA... OK???
     //region > autoComplete (programmatic)
      @Programmatic // not part of metamodel
-    public List<SolasChapter> autoComplete(final String solasChapter) {
+    public List<Chapter> autoComplete(final String chapter) {
         return container.allMatches(
-                new QueryDefault<SolasChapter>(SolasChapter.class,
+                new QueryDefault<Chapter>(Chapter.class,
                         "findByOwnedBy",
                         "ownedBy", currentUserName()));
     }
