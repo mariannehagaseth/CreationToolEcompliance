@@ -32,6 +32,7 @@ import org.apache.isis.applib.util.TitleBuffer;
 import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.FragmentSKOSConceptOccurrences;
 import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.ShipClass;
 import org.isisaddons.wicket.summernote.fixture.dom.regulation.Chapter.ChapterAnnex;
+import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 
 import javax.jdo.JDOHelper;
 import javax.jdo.annotations.IdentityType;
@@ -68,7 +69,7 @@ import java.util.*;
 @DomainObjectLayout(bookmarking= BookmarkPolicy.AS_ROOT)
 @MemberGroupLayout (
 		columnSpans={6,0,0,6},
-		left={"Section", "Annotation","List","List of Items","SubSections","Ship Classes (Applicability)"},
+		left={"Section", "Annotation","List","List of Items","SubSections","Ship Classes (Applicability)","SKOS Terms (Select)", "RDF"},
 		middle={},
         right={})
 public class FreeText implements Categorized, Comparable<FreeText> {
@@ -232,10 +233,6 @@ public class FreeText implements Categorized, Comparable<FreeText> {
         container.informUser("Fetched SKOS terms completed for " + container.titleOf(this));
         return this;
     }
-    //@Action(semantics = SemanticsOf.IDEMPOTENT)
-    //@Action()
-    //@ActionLayout(position = ActionLayout.Position.PANEL)
-    //@MemberOrder(name="Terms", sequence="20")
 
     //endregion
 
@@ -315,34 +312,15 @@ public class FreeText implements Categorized, Comparable<FreeText> {
     public FreeText ShowApplicability() {
         ShipClass shipClassFound = null;
         // CALLS THE APPLICABILITY API
-        //    shipClassFound = restClient.GetRule(plainRegulationText);
         shipClassFound = restClient.GetApplicability(plainRegulationText);
         System.out.println("FREETEXT:applicability shipclassfound OK");
         setApplicability(creationController.ShowShipClass(plainRegulationText, shipClassFound));
         System.out.println("FREETEXT: applicability=" + applicability);
 
-        // SHOW the ship class in the collection:
-        // CALLS THE TARGET API
-        ShipClassType shipClassFoundList = null;
-        // THIS CAN BE CHANGED FROM APPLICABILITY TO TARGET, IF NEEDED!!::
-        shipClassFoundList = restClient.GetShipClass(plainRegulationText);
-        // shipClassFound = restClient.GetApplicability(plainRegulationText);
-        System.out.println("checkshipclass:applicability shipclassfoundList OK");
-        ShipClassType newShipClass = creationController.ShowFoundShipClass(plainRegulationText, shipClassFoundList);
-        System.out.println("checkshipclass: applicability=" + applicability);
-        // setShipClasses(null); // Fetch the ship classes each time, so set to null in between/first.
 
         container.flush();
-
-        if (newShipClass.getType().length() == 0) {
-            container.warnUser("NO  TARGET SHIP CLASS FOUND for " + container.titleOf(this));
-
-        } else {
-            getShipClasses().add(newShipClass);
-
-            container.informUser("Fetched Target Ship Class completed for " + container.titleOf(this));
-        }
-        return this;
+          container.informUser("Fetched Target Ship Class completed for " + container.titleOf(this));
+         return this;
 
     }
 // END SHOW applicability
@@ -634,7 +612,6 @@ public class FreeText implements Categorized, Comparable<FreeText> {
         ShipClassType shipClassFoundList = null;
         // THIS CAN BE CHANGED TO APPLICABILITY, IF NEEDED!!::
         shipClassFoundList = restClient.GetShipClass(plainRegulationText);
-        // shipClassFound = restClient.GetApplicability(plainRegulationText);
         System.out.println("FetchApplicability:applicability shipclassfoundList OK");
         ShipClassType newShipClass = creationController.ShowFoundShipClass(plainRegulationText, shipClassFoundList);
         System.out.println("FetchApplicability: applicability=" + applicability);
@@ -924,31 +901,108 @@ public class FreeText implements Categorized, Comparable<FreeText> {
             container.informUser("APPLICABILITY is updated for regulation " + container.titleOf(this));
         }
 
-/*
-        try {
-//            oi.createTargetShipClassIntersection("MyNewShipClass", shipset, null, false);
+            // CREATE TARGETSHIPCLASS
 
  // PLUS: NEED TO LINK TO THE REGULATION TEXT ITSELF!!
 
-            //The ships in the second set (here set to null) are complemented. I.e. when you pass in the two sets (A, B) and (C, D), the resulting target ship class will be (A INTERSECTION B INTERSECTION NOT C INTERSECTION NOT D).
-            //The second set is meant for exceptions (e.g. "... this does not apply to oil tankers bigger than 500 tons").
-            //The boolean includeSeeds (last input variable, here set to false) determines whether 'seed' classes (restrictions coming from headlines, scope chapters etc.) are included.
-        } catch (OWLOntologyCreationException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-*/
+        String targetShipClassURI = restClient.CreateTargetShipClass(oneShipClass);
+        setTargetShipClassURI(targetShipClassURI);
+        System.out.println("targetShipClassURI has been found!=" + targetShipClassURI);
+
         return this;
 }
     // disable action dependent on state of object
     public String disableApplicableShipClass() {
         return getShipClasses().isEmpty()? "No Ship Classes to Update": null;
     }
+     //END REGION Link FreeText (Section) --> to (several) ShipClassTypes (APPLICABILITY)
 
 
 
+     // BEGIN REGION Link to ShipClassType, a list of ship classes that this text is applicable to.
+    @javax.jdo.annotations.Persistent(mappedBy = "skosLink")
+    @javax.jdo.annotations.Join // Make a separate join table.
+    private SortedSet<SKOS> skoses = new TreeSet<SKOS>();
+    @SuppressWarnings("deprecation")
+    @MemberOrder(name = "SKOS Terms (Select)", sequence = "90")
+    // @MemberOrder(sequence = "90")
+    @CollectionLayout(named = "SKOS Terms (Select)", sortedBy = SKOSComparator.class, render = RenderType.EAGERLY)
+    public SortedSet<SKOS> getSkoses() {
+        return skoses;
+    }
+    public void setSkoses(SortedSet<SKOS> skoses) {
+        this.skoses = skoses;
+    }
 
-    //END REGION Link FreeText (Section) --> to (several) ShipClassTypes (APPLICABILITY)
+    public void removeFromSkoses(final SKOS skos) {
+        if (skos == null || !getSkoses().contains(skos)) return;
+        getSkoses().remove(skos);
+    }
+
+    // / overrides the natural ordering
+    public static class SKOSComparator implements Comparator<SKOS> {
+        @Override
+        public int compare(SKOS p, SKOS q) {
+            Ordering<SKOS> bySkos= new Ordering<SKOS>() {
+                public int compare(final SKOS p, final SKOS q) {
+                    return Ordering.natural().nullsFirst().compare(p.getUri(), q.getUri());
+                }
+            };
+            return bySkos
+                    .compound(Ordering.<SKOS>natural())
+                    .compare(p, q);
+        }
+    }
+
+    // BEGIN fetch SKOSs
+    @Action()
+    @MemberOrder(name = "SKOS Terms (Select)", sequence = "60")
+    @ActionLayout(named = "Fetch")
+    public FreeText FetchSkosShow() {
+
+        FragmentSKOSConceptOccurrences fragment = restClient.GetSkos(plainRegulationText);
+        System.out.println("FREETEXT: fragment OK");
+        List<SKOS>  skosTermList = creationController.ShowSKOSlist(plainRegulationText,fragment);
+
+        Iterator it = skosTermList.iterator();
+        while (it.hasNext()) {
+            SKOS thisSkos = (SKOS) it.next();
+            getSkoses().add(thisSkos);
+        }
+        container.flush();
+        container.informUser("SKOS LIST fetched for" + container.titleOf(this));
+        return this;
+    }
+// END FETCH applicability
+
+
+    @MemberOrder(name = "SKOS Terms (Select)", sequence = "90")
+    @ActionLayout(named = "Remove")
+    public FreeText removeSkos(final @ParameterLayout(typicalLength = 30) SKOS skos) {
+        wrapperFactory.wrapSkipRules(this).removeFromSkoses(skos);
+        container.removeIfNotAlready(skos);
+        return this;
+    }
+
+    // disable action dependent on state of object
+    public String disableRemoveSkos(final SKOS skos) {
+        return getSkoses().isEmpty() ? "No SKOSs to remove" : null;
+    }
+
+    // validate the provided argument prior to invoking action
+    public String validateRemoveSkos(final SKOS skos) {
+        if (!getSkoses().contains(skos)) {
+            return "Not a SKOS";
+        }
+        return null;
+    }
+
+    // provide a drop-down
+    public java.util.Collection<SKOS> choices0RemoveSkos() {
+        return getSkoses();
+    }
+
+    //END REGION Link Freetext to SKOS list
 
 
     //region > version (derived property)
@@ -998,14 +1052,69 @@ public class FreeText implements Categorized, Comparable<FreeText> {
         }
 
 // BEGIN REGION SAVE TEXT IN THE RDF GRAPH
-    @Action
+
     // IF SOLAS => CALL ROOT-API TO CREATE ROOT NODE FOR SOLAS
     // IF ANNEX => CALL ROOT-API TO CREATE ROOT NODE FOR ANNEX
     // IF EU DIR => CALL ROOT-APT TO CREATE ROOT NODE FOR EU DIRECTIVE
 
 // END REGION SAVE TEXT IN THE RDF GRAPH
 
-        //region > lifecycle callbacks
+
+    //region > rootURI (property)
+    //rootURI contains the URI of the SOLAS version, the ANNEX version or the DIRECTIVE version. This the the root node of all chapters for each of this.
+    @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
+    private String rootURI;
+    @PropertyLayout(hidden=Where.ALL_TABLES)
+    @MemberOrder(name = "RDF", sequence = "10")
+    @javax.jdo.annotations.Column(allowsNull="true")
+    @Property(editing= Editing.DISABLED,editingDisabledReason="Programmatically updated")
+    public String getRootURI() {
+        return rootURI;
+    }
+    @ActionLayout(hidden=Where.EVERYWHERE)
+    public void setRootURI(final String rootURI) {
+        this.rootURI = rootURI;
+    }
+    //endregion
+
+
+    //region > documentURI (property)
+    // documentURI contains the URI of the RDF-node storing the text for this chapter-node.
+    @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
+    private String documentURI;
+    @PropertyLayout(hidden=Where.ALL_TABLES)
+    @MemberOrder(name = "RDF", sequence = "20")
+    @javax.jdo.annotations.Column(allowsNull="true")
+    @Property(editing= Editing.DISABLED,editingDisabledReason="Programmatically updated")
+    public String getDocumentURI() {
+        return documentURI;
+    }
+    @ActionLayout(hidden=Where.EVERYWHERE)
+    public void setDocumentURI(final String documentURI) {
+        this.documentURI = documentURI;
+    }
+    //endregion
+
+    //region > targetShipClassURI (property)
+    // targetShipClassURI contains the URI of the target ship class for this text in this RDF-node.
+    @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
+    private String targetShipClassURI;
+    @PropertyLayout(hidden=Where.ALL_TABLES)
+    @MemberOrder(name = "RDF", sequence = "30")
+    @javax.jdo.annotations.Column(allowsNull="true")
+    @Property(editing= Editing.DISABLED,editingDisabledReason="Programmatically updated")
+    public String getTargetShipClassURI() {
+        return targetShipClassURI;
+    }
+    @ActionLayout(hidden=Where.EVERYWHERE)
+    public void setTargetShipClassURI(final String targetShipClassURI) {
+        this.targetShipClassURI = targetShipClassURI;
+    }
+    //endregion
+
+
+
+    //region > lifecycle callbacks
 
         public void created() {
             LOG.debug("lifecycle callback: created: " + this.toString());
@@ -1101,10 +1210,6 @@ public class FreeText implements Categorized, Comparable<FreeText> {
 
     @javax.inject.Inject
     private CreationController creationController;
-
-//    @javax.inject.Inject
-//    private Annotations newAnnotation;
-
 
     @javax.inject.Inject
     private RESTclient restClient;

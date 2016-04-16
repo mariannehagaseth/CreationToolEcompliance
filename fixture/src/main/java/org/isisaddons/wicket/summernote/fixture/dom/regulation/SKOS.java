@@ -20,7 +20,6 @@ package org.isisaddons.wicket.summernote.fixture.dom.regulation;
 
 //import java.math.BigDecimal;
 
-import com.google.common.collect.Ordering;
 import org.apache.isis.applib.DomainObjectContainer;
 import org.apache.isis.applib.Identifier;
 import org.apache.isis.applib.annotation.*;
@@ -29,15 +28,10 @@ import org.apache.isis.applib.services.eventbus.EventBusService;
 import org.apache.isis.applib.services.wrapper.WrapperFactory;
 import org.apache.isis.applib.util.ObjectContracts;
 import org.apache.isis.applib.util.TitleBuffer;
-import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.FragmentSKOSConceptOccurrences;
-import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.ShipClass;
-import org.isisaddons.wicket.summernote.fixture.dom.regulation.Chapter.ChapterAnnex;
-import org.joda.time.LocalDate;
 
-import javax.jdo.JDOHelper;
 import javax.jdo.annotations.IdentityType;
 import javax.jdo.annotations.VersionStrategy;
-import java.util.*;
+import java.util.SortedSet;
 
 
 @javax.jdo.annotations.PersistenceCapable(identityType=IdentityType.DATASTORE)
@@ -54,63 +48,95 @@ import java.util.*;
 //})
 @javax.jdo.annotations.Queries( {
         @javax.jdo.annotations.Query(
-                name = "findRoot", language = "JDOQL",
+                name = "findSKOS", language = "JDOQL",
                 value = "SELECT "
-                        + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.RootNode "
-                        + "WHERE nodeLabel == :nodeLabel")
+                        + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.SKOS " )
 })
-@DomainObject(objectType="ROOTNODE",autoCompleteRepository=RootNodes.class, autoCompleteAction="autoComplete", bounded = true)
+@DomainObject(objectType="SKOS",autoCompleteRepository=SKOSs.class, autoCompleteAction="autoComplete", bounded = true)
  // default unless overridden by autoCompleteNXxx() method
 @DomainObjectLayout(bookmarking= BookmarkPolicy.AS_ROOT)
 @MemberGroupLayout (
         columnSpans={4,4,4,12},
-        left={"RootNode"},
+        left={"SKOS"},
         middle={},
         right={} )
-public class RootNode implements Categorized, Comparable<RootNode> {
+public class SKOS implements Categorized, Comparable<SKOS> {
 
     //region > LOG
     /**
      * It isn't common for entities to log, but they can if required.  
      * Isis uses slf4j API internally (with log4j as implementation), and is the recommended API to use.
      */
-    private final static org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(RootNode.class);
+    private final static org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(SKOS.class);
       //endregion
 
     // region > title, icon
     public String title() {
         final TitleBuffer buf = new TitleBuffer();
-        buf.append("ROOT NODE");
+        buf.append(getUri());
          return buf.toString();
     }
     //endregion
 
 
 
-    private String nodeLabel;
+    private String uri;
     @javax.jdo.annotations.Column(allowsNull="false")
-    @PropertyLayout(hidden=Where.EVERYWHERE)
-    @ActionLayout(hidden=Where.EVERYWHERE)
-    public String getNodeLabel() {
-        return nodeLabel;
+    @Property(editing = Editing.DISABLED)
+     public String getUri() {
+        return uri;
     }
-    public void setNodeLabel(final String nodeLabel) {
-        this.nodeLabel= nodeLabel;
+    public void setUri(final String uri) {
+        this.uri= uri;
        }
 
     // This is the label of the chapter level: CHAPTER or ANNEX or DIRECTIVE.
-    private String rootURI;
+    private String prefTerm;
     @javax.jdo.annotations.Column(allowsNull="false")
-    @PropertyLayout(hidden=Where.EVERYWHERE)
-    @ActionLayout(hidden=Where.EVERYWHERE)
-    @Property(editing = Editing.DISABLED, hidden = Where.EVERYWHERE)
-    public String getRootURI() {
-        return rootURI;
+     @Property(editing = Editing.DISABLED)
+    public String getPrefTerm() {
+        return prefTerm;
     }
-    public void setRootURI(final String rootURI) {
-        this.rootURI =rootURI;
+    public void setPrefTerm(final String prefTerm) {
+        this.prefTerm =prefTerm;
      }
 
+    // This is the label of the chapter level: CHAPTER or ANNEX or DIRECTIVE.
+    private String usedTerm;
+    @javax.jdo.annotations.Column(allowsNull="false")
+     @Property(editing = Editing.DISABLED)
+    public String getUsedTerm() {
+        return usedTerm;
+    }
+    public void setUsedTerm(final String usedTerm) {
+        this.usedTerm =usedTerm;
+    }
+
+
+    // This is the label of the chapter level: CHAPTER or ANNEX or DIRECTIVE.
+    private String skosConceptProperty;
+    @javax.jdo.annotations.Column(allowsNull="false")
+     @Property(editing = Editing.DISABLED)
+    public String getSkosConceptProperty() {
+        return skosConceptProperty;
+    }
+    public void setSkosConceptProperty(final String skosConceptProperty) {
+        this.skosConceptProperty =skosConceptProperty;
+    }
+
+    // BEGIN LINK FROM SKOS TO FREETEXT
+    // mapping is done to this property:
+    // Mapping back from SKOS to FreeText
+    //Link to Section
+    @javax.jdo.annotations.Column(allowsNull="true")
+    @Property(editing= Editing.DISABLED,editingDisabledReason="Cannot be updated from here")
+    @PropertyLayout(hidden=Where.REFERENCES_PARENT, named = "Link")
+    private FreeText skosLink;
+    @javax.jdo.annotations.Column(allowsNull="true")
+    public FreeText  getSkosLink() { return skosLink; }
+    @javax.jdo.annotations.Column(allowsNull="true")
+    public void setSkosLink(FreeText skosLink) { this.skosLink= skosLink; }
+    // END LINK FROM SKOS TO FREETEXT
 
     //region > lifecycle callbacks
 
@@ -143,12 +169,12 @@ public class RootNode implements Categorized, Comparable<RootNode> {
 
 
     //region > events
-    public static abstract class AbstractActionInteractionEvent extends ActionInteractionEvent<RootNode> {
+    public static abstract class AbstractActionInteractionEvent extends ActionInteractionEvent<SKOS> {
         private static final long serialVersionUID = 1L;
         private final String description;
         public AbstractActionInteractionEvent(
                 final String description,
-                final RootNode source,
+                final SKOS source,
                 final Identifier identifier,
                 final Object... arguments) {
             super(source, identifier, arguments);
@@ -162,7 +188,7 @@ public class RootNode implements Categorized, Comparable<RootNode> {
     public static class DeletedEvent extends AbstractActionInteractionEvent {
         private static final long serialVersionUID = 1L;
         public DeletedEvent(
-                final RootNode source,
+                final SKOS source,
                 final Identifier identifier,
                 final Object... arguments) {
             super("deleted", source, identifier, arguments);
@@ -176,15 +202,15 @@ public class RootNode implements Categorized, Comparable<RootNode> {
     @Override
     public String toString() {
 //        return ObjectContracts.toString(this, "description,complete,dueBy,ownedBy");
-        return ObjectContracts.toString(this, "nodeLabel");
+        return ObjectContracts.toString(this, "uri");
     }
 
     /**
      * Required so can store in {@link SortedSet sorted set}s (eg {@link #getDependencies()}). 
      */
     @Override
-    public int compareTo(final RootNode other) {
-        return ObjectContracts.compare(this, other, "nodeLabel");
+    public int compareTo(final SKOS other) {
+        return ObjectContracts.compare(this, other, "uri");
     }
     //endregion
 

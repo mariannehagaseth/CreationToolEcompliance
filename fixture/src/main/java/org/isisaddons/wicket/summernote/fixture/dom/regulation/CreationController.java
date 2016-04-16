@@ -10,8 +10,7 @@ import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.SKOSConce
 import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.ShipClass;
 //import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @DomainService
 @DomainServiceLayout(menuBar= DomainServiceLayout.MenuBar.TERTIARY)
@@ -93,7 +92,6 @@ public List<String> ShowTerms(final String plainRegulationText, final FragmentSK
 		String colourText = "";
 		System.out.println("plainRegulationText = " + plainRegulationText);
 		//FragmentSKOSConceptOccurrences fragment = restClient.GetSkos(plainRegulationText);
-
 		if (fragment == null){
 			System.out.println("fragment is null");
 		}
@@ -230,6 +228,137 @@ public List<String> ShowTerms(final String plainRegulationText, final FragmentSK
 		return annotation;
 	}
 
+
+public List<SKOS> ShowSKOSlist(final String plainRegulationText, final FragmentSKOSConceptOccurrences fragment) {
+ 		List<SKOS> skosListShow = new ArrayList<>();
+
+		String fragmentUri = "";
+		List<SKOSConceptOccurrence> skosList = null;
+		List <String> skosListRead =null;
+		// VAriable used to build the SKOS term list to show to the user.
+		String builtSkosTerms = "";
+ 	 	System.out.println("plainRegulationText = " + plainRegulationText);
+		//FragmentSKOSConceptOccurrences fragment = restClient.GetSkos(plainRegulationText);
+		if (fragment == null){
+			System.out.println("fragment is null");
+		}
+		else
+		{
+			fragmentUri=fragment.getFragmentUri();
+			System.out.println("FragmentUri = "+fragmentUri);
+
+			int nextChar = 0;
+			int skosBegin = 0;
+			int skosEnd = 0;
+			int skosBeginPrevious = -1;
+			int skosEndPrevious = -1;
+
+			skosList = fragment.getSkosConceptOccurrence();
+
+			int lastSkosConcept = fragment.getSkosConceptOccurrence().size();
+			if (lastSkosConcept >0) {
+				for (int i = 0; i < lastSkosConcept; i++) {
+					skosBegin = skosList.get(i).getBegin();
+					System.out.println("skosBegin = " + "i=" + i + " " + skosBegin);
+
+					skosEnd = skosList.get(i).getEnd();
+					System.out.println("skosEnd = " + "i=" + i + " " + skosEnd);
+
+					String skosConceptPropertyLabel = skosList.get(i).getSkosConceptProperty().value();
+					System.out.println("skosConceptPropertyLabel = " + "i=" + i + " " + skosConceptPropertyLabel);
+
+					String skosConceptUri = skosList.get(i).getUri();
+					String skosConceptProperyValue = skosConceptUri.substring(skosConceptUri.indexOf("#") + 1);
+					skosConceptProperyValue = skosConceptProperyValue.replace("_"," ");
+					System.out.println("skosConceptProperyValue = " + "i=" + i + " " + skosConceptProperyValue);
+
+					String usedTerm = plainRegulationText.substring(skosBegin, skosEnd);
+					System.out.println("usedTerm = " + "i=" + i + " " + usedTerm);
+					System.out.println("nextChar=" + nextChar + " skosBegin="+skosBegin+" skosEnd="+skosEnd);
+					if ((skosBegin != skosBeginPrevious)&& (skosEnd != skosEndPrevious)) {
+						// only copy the term to the Text once.
+		 			}
+					if (skosConceptPropertyLabel.equals("altLabel")) {
+						System.out.println("usedTerm.substring(usedTerm.length()).toUpperCase()="+usedTerm.substring(usedTerm.length()-1).toUpperCase());
+						System.out.println("(skosConceptProperyValue.toUpperCase().....= "+ skosConceptProperyValue.toUpperCase());
+						System.out.println("(usedTerm.toUpperCase().....= "+ usedTerm.substring(0,usedTerm.length()-1).toUpperCase());
+
+						if (((skosConceptProperyValue.toUpperCase().equals(usedTerm.substring(0,usedTerm.length()-1).toUpperCase())) && (usedTerm.substring(usedTerm.length()-1).toUpperCase()).equals("S"))) {
+							// The alternative label is used. however, it is just pluralis of an existing term:
+							// Set gr-een colour of the term.
+		 					System.out.println("altLabel with plural S");
+							builtSkosTerms = builtSkosTerms+"This term is OK: \""+ usedTerm+"\"\n";
+							System.out.println("builtSkosTerms="+ builtSkosTerms);
+							System.out.println("skosConceptProperyValue-4="+skosConceptProperyValue);
+							System.out.println("usedTerm-4="+usedTerm);
+
+						}
+						else {
+							// The alternative label is used. Show the preferred label.
+							if (((skosConceptProperyValue.toUpperCase().replace(" ","").equals(usedTerm.substring(0,usedTerm.length()-2).replace(" ","").toUpperCase())) && (usedTerm.substring(usedTerm.length()-1).toUpperCase()).equals("S"))) {
+								System.out.println("skosConceptProperyValue-2="+skosConceptProperyValue);
+								System.out.println("usedTerm-2="+usedTerm);
+								builtSkosTerms = builtSkosTerms + "\"" + skosConceptProperyValue+"s" + "\"" + " should be used instead of " + "\"" + usedTerm + "\"." + "\n";
+								System.out.println("extra s added");
+							}
+							else {
+								System.out.println("skosConceptProperyValue.toUpperCase().replace()ELSE="+skosConceptProperyValue.toUpperCase().replace("",""));
+								System.out.println("usedTerm.substring(0, usedTerm.length() - 1).replace().toUpperCase())ELSE=" + usedTerm.substring(0, usedTerm.length() - 1).replace(" ", "").toUpperCase());
+								System.out.println("usedTerm.substring(usedTerm.length()-1).toUpperCase()ELSE="+usedTerm.substring(usedTerm.length()-1).toUpperCase());
+								if (((skosConceptProperyValue.toUpperCase().replace(" ","").equals(usedTerm.substring(0,usedTerm.length()-1).replace(" ","").toUpperCase())) && (usedTerm.substring(usedTerm.length()-1).toUpperCase()).equals("S"))) {
+									System.out.println("skosConceptProperyValue-7=" + skosConceptProperyValue);
+									System.out.println("usedTerm-7=" + usedTerm);
+
+									builtSkosTerms = builtSkosTerms + "\"" + skosConceptProperyValue+"s" + "\"" + " should be used instead of " + "\"" + usedTerm + "\"." + "\n";
+								}
+								else{
+									System.out.println("skosConceptProperyValue-3=" + skosConceptProperyValue);
+									System.out.println("usedTerm-3=" + usedTerm);
+
+									builtSkosTerms = builtSkosTerms + "\"" + skosConceptProperyValue + "\"" + " should be used instead of " + "\"" + usedTerm + "\"." + "\n";
+								}
+							}
+							// set yellow colour of the term
+		 					System.out.println("altLabel");
+							System.out.println("builtSkosTerms="+ builtSkosTerms);
+						}
+					}
+					if (skosConceptPropertyLabel.equals("prefLabel")) {
+						// Set gr-een colour of the term.
+		 				System.out.println("skosConceptProperyValue-6="+skosConceptProperyValue);
+						System.out.println("usedTerm-6="+usedTerm);
+						System.out.println("This term is OK: "+ usedTerm);
+						builtSkosTerms = builtSkosTerms+"This term is OK: \""+ usedTerm+"\"\n";
+					}
+		 			nextChar = skosEnd;
+
+					// needed to avoid repeating the output-text if two preflabels in different concept schemas are found.
+					skosBeginPrevious = skosBegin;
+					skosEndPrevious = skosEnd;
+
+					System.out.println("newSKOS:");
+					System.out.println("skosConceptUri="+skosConceptUri);
+					System.out.println("skosConceptProperyValue="+skosConceptProperyValue);
+					System.out.println("usedTerm="+usedTerm);
+					System.out.println("skosConceptPropertyLabel="+skosConceptPropertyLabel);
+					SKOS thisskos =skoss.newSKOS(
+							skosConceptUri,
+							skosConceptProperyValue,
+							usedTerm,
+							skosConceptPropertyLabel);
+					skosListShow.add(i, thisskos);
+				}//for
+				// Copy the rest of the text, after the last SKOS term is found:
+				System.out.println("nextChar when the last SKOS term is found="+ nextChar);
+				System.out.println("plainRegulationText.length()-1 ="+ String.valueOf(plainRegulationText.length()-1));
+		 	}//if
+		}//else
+		//setSkosTerms(builtSkosTerms);
+
+   		return skosListShow;
+	}
+
+
 	//ShowRule
 	public String ShowShipClass(final String plainRegulationText, final ShipClass shipClassFound) {
 		// Call API to fetch Target, that is the Rule.
@@ -324,11 +453,12 @@ public List<String> ShowTerms(final String plainRegulationText, final FragmentSK
 			if (!maxDraughtIn.equals("0.0")) {ruleFound = ruleFound+"DRAUGHT =< "+maxDraughtIn+" "+draughtUnit+"\n";}
 			if (!maxDraughtEx.equals("0.0")) {ruleFound = ruleFound+"DRAUGHT < "+maxDraughtEx+" "+draughtUnit+"\n";}
 		}//ShipType is found
-		System.out.println("ruleFound="+ruleFound+".");
-		System.out.println("shipType="+shipType+".");
-		System.out.println("shipType-length="+shipType.length()+".");
-
-		if (shipType.length() == 0){ruleFound="Could not find a ship class in this sentence.";}
+		if ((ruleFound != "")) {
+			System.out.println("ruleFound=" + ruleFound + ".");
+			System.out.println("shipType=" + shipType + ".");
+			System.out.println("shipType-length=" + shipType.length() + ".");
+		}
+		if (ruleFound == ""){ruleFound="Could not find a ship class in this sentence.";}
  		System.out.println("Fetched Rule in getRule!!="+ruleFound);
 		return ruleFound;
 	}
@@ -380,5 +510,6 @@ public List<String> ShowTerms(final String plainRegulationText, final FragmentSK
 	@javax.inject.Inject
 	private ShipClassTypes shipClassTypes;
 
-
+	@javax.inject.Inject
+	private SKOSs skoss;
 }

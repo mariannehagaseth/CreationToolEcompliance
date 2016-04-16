@@ -31,9 +31,7 @@ import org.apache.isis.applib.services.eventbus.EventBusService;
 import org.apache.isis.applib.services.wrapper.WrapperFactory;
 import org.apache.isis.applib.util.ObjectContracts;
 import org.apache.isis.applib.util.TitleBuffer;
-import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.DocumentRoot;
-import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.FragmentSKOSConceptOccurrences;
-import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.ShipClass;
+import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.*;
 import org.joda.time.LocalDate;
 
 import javax.jdo.JDOHelper;
@@ -344,17 +342,23 @@ public class Chapter implements Categorized, Comparable<Chapter> {
 
     //@Action(semantics = SemanticsOf.IDEMPOTENT)
     @Action()
-    //  @ActionLayout(named = "Check Terms", position = ActionLayout.Position.PANEL)
-    @ActionLayout(position = ActionLayout.Position.PANEL)
+     @ActionLayout(position = ActionLayout.Position.PANEL)
     @MemberOrder(name="Terms", sequence="20")
     public Chapter ShowTarget() {
         ShipClass shipClassFound = null;
         // CALLS THE TARGET API
         shipClassFound = restClient.GetTarget(plainRegulationText);
-        // shipClassFound = restClient.GetApplicability(plainRegulationText);
-        System.out.println(" :shipclassfound OK");
-        setTarget(creationController.ShowShipClass(plainRegulationText,shipClassFound));
-        System.out.println(" : target="+target);
+        if (shipClassFound != null) {
+            System.out.println(" :shipclassfound OK");
+            setTarget(creationController.ShowShipClass(plainRegulationText,shipClassFound));
+            System.out.println(" : target="+target);}
+            else
+        {
+            // no ship class found
+            System.out.println(" :shipclass NOT FOUND");
+            setTarget("Target not found!");
+
+        }
         container.flush();
         container.informUser("Fetched Target completed for " + container.titleOf(this));
         return this;
@@ -441,9 +445,6 @@ public class Chapter implements Categorized, Comparable<Chapter> {
         return null; // do not want to test
     }
     //endregion
-
-
-
 
 
     //region > version (derived property)
@@ -609,62 +610,128 @@ public class Chapter implements Categorized, Comparable<Chapter> {
     //endregion Chapter => Part link
 
 
-    //region > rootRdfNode (property)
-    //rooteRdfNode contains the URI of the SOLAS version, the ANNEX version or the DIRECTIVE version. This the the root node of all chapters for each of this.
+    //region > rootURI (property)
+    //rootURI contains the URI of the SOLAS version, the ANNEX version or the DIRECTIVE version. This the the root node of all chapters for each of this.
     @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
-    private String rootRdfNode;
+    private String rootURI;
     @PropertyLayout(hidden=Where.ALL_TABLES)
-    @MemberOrder(name = "RDF", sequence = "15")
+    @MemberOrder(name = "RDF", sequence = "10")
     @javax.jdo.annotations.Column(allowsNull="true")
     @Property(editing= Editing.DISABLED,editingDisabledReason="Programmatically updated")
-    public String getRootRdfNode() {
-        return rootRdfNode;
+    public String getRootURI() {
+        return rootURI;
     }
     @ActionLayout(hidden=Where.EVERYWHERE)
-    public void setRootRdfNode(final String rootRdfNode) {
-        this.rootRdfNode = rootRdfNode;
+    public void setRootURI(final String rootURI) {
+        this.rootURI = rootURI;
     }
     //endregion
 
+
+    //region > documentURI (property)
+    // documentURI contains the URI of the RDF-node storing the text for this chapter-node.
+    @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
+    private String documentURI;
+    @PropertyLayout(hidden=Where.ALL_TABLES)
+    @MemberOrder(name = "RDF", sequence = "20")
+    @javax.jdo.annotations.Column(allowsNull="true")
+    @Property(editing= Editing.DISABLED,editingDisabledReason="Programmatically updated")
+    public String getDocumentURI() {
+        return documentURI;
+    }
+    @ActionLayout(hidden=Where.EVERYWHERE)
+    public void setDocumentURI(final String documentURI) {
+        this.documentURI = documentURI;
+    }
+    //endregion
+
+
     //region > CREATE RDF node for the chapter: (action)
     @Action()
-    @ActionLayout(named = "Make Persistent")
-    public Chapter storeChapterForReasonning() {
+    @ActionLayout(named = "Make Persistent",position = ActionLayout.Position.PANEL)
+    @MemberOrder(name="Title", sequence="5")
+    public Chapter storeChapter() {
+
+        RootNode rootNode;
+        rootNode = null;
 
         // if URI for SOLAS Chapter is null, then have to fetch the URI using 192.168.33.10:9000/api/rdf/document/root
+        System.out.println("Make Persistent_1");
 
-        // Must check if a RootURI has already been stored:
-        //region > allRegulationSearchs (action)
-        public RootNode findRoot() {
-            final RootNode roteNode= container.firstMatch(
-                    new QueryDefault (RootNode.class,
-                            "findRoot",
-                            "nodeLabel", getChapterLabel()));
-            return roteNode;
+        DocumentRoot chapterRoot = null;
+        RootNode rootRDF = null;
+        System.out.println("Make Persistent_2");
+
+         // Must check if a RootURI has already been stored:
+        if (getChapterAnnexArticle().equals(ChapterAnnex.CHAPTER)) {
+            System.out.println("Call root =rootNodes.findChapterURI();");
+            rootNode =rootNodes.findChapterURI();
+        }
+        if (getChapterAnnexArticle().equals(ChapterAnnex.ANNEX)) {
+            rootNode =rootNodes.findAnnexURI();
+        }
+        if (getChapterAnnexArticle().equals(ChapterAnnex.DIRECTIVE)) {
+            rootNode =rootNodes.findDirectiveURI();
         }
 
-
-
-
-        if (rootRdfNode.length()== 0)
-        {
-            System.out.println("rootRdfNode not stored for this chapter");
+        if (rootNode == null){
+            System.out.println("No root URI for "+getChapterLabel()+" is found");
+            System.out.println("rootURI not stored for this chapter");
             // Must fetch a URI for the SOLAS-chapters node./SOLAS annexes root node, /EU directive root nodes
-            DocumentRoot chapterRoot = new DocumentRoot();
-            chapterRoot.setTitle(getChapterLabel()); // SOLAS or ANNEX or DIRECTIVE
-            chapterRoot.setShortTitle(getChapterLabel()); // SOLAS or ANNEX or DIRECTIVE
+            chapterRoot = new DocumentRoot();
+            chapterRoot.setTitle(getChapterAnnexArticle().toString()); // SOLAS or ANNEX or DIRECTIVE
+            chapterRoot.setShortTitle(getChapterAnnexArticle().toString()); // SOLAS or ANNEX or DIRECTIVE
             chapterRoot.setAddConcept(true);
-            chapterRoot.setVersion(BigInteger.valueOf(getVersionSequence()));
+            if (getId() == null) {chapterRoot.setVersion(BigInteger.ZERO);}
+            else {
+                chapterRoot.setVersion(BigInteger.valueOf(getId()));
+            }
             chapterRoot.setRealises("http://e-compliance-project.eu/riga-test/OWLNamedIndividual_c53f118e_35fb_4fcf_8b52_4512a4e0db361");
             chapterRoot.setText(getPlainRegulationText());
 
-            setRootRdfNode(restClient.CreateRdfRootNode(chapterRoot));
-            System.out.println("rootRdfNode= "+rootRdfNode+".");
+            String rootURIfound = restClient.CreateRdfRootNode(chapterRoot);
+            setRootURI(rootURIfound);
+            System.out.println("rootRdfNode= "+getRootURI()+".");
+
+            if (getRootURI().length()>0) {
+                rootRDF = rootNodes.newRootNode(getChapterAnnexArticle().toString(), getRootURI()); // store the new URI for later use by other CHAPTERs.
+            }
         }
         else
         {
-            System.out.println("rootRdfNode is already set and is = "+rootRdfNode+".");
-            // Must call 192.168.33.10:9000/api/rdf/document/component for this chapter to create a
+            // rootNode is not null, that is, already found.
+            System.out.println("rootURI is already fetched by another Chapter and is = "+rootURI+".");
+            setRootURI(rootNode.getRootURI());
+        }
+
+        // Must call 192.168.33.10:9000/api/rdf/document/component for this chapter to create a RDF Document for this chapter
+        DocumentComponentList documentComponentList = new DocumentComponentList();
+
+        if (getId() == null) {documentComponentList.setVersion("0");}
+        else {
+            documentComponentList.setVersion(getId().toString());
+        }
+        documentComponentList.setParent(getRootURI());
+        documentComponentList.setComponentType(DocumentComponentType.DOCUMENT);
+
+        DocumentComponent documentComponent = new DocumentComponent();
+
+        documentComponent.setTitle(getChapterAnnexArticle()+" "+getChapterNumber()+" "+getChapterTitle());
+        documentComponent.setShortTitle(getChapterAnnexArticle()+"_"+getChapterLabel()+"_"+getChapterNumber());
+        documentComponent.setText(getPlainRegulationText());
+//      THIS METHOD is missing:
+ //       documentComponentList.setComponent(documentComponent);
+
+
+        // Need to call the Component API to create the RDF node for the chapter.
+        // Will store the value in the documentURI property
+        IRIList iriList =restClient.CreateDocumentComponentNode(documentComponentList);
+        // has created the RDF node for only one CHAPTER, that is, only one Node, that is, only one IRI-element:
+        if (iriList.getIris().size()>0) {
+            setDocumentURI(iriList.getIris().get(0));
+        }
+        else
+        {setDocumentURI("Could not find URI for RDF");
         }
         return this;
     }
@@ -785,9 +852,11 @@ public class Chapter implements Categorized, Comparable<Chapter> {
     @javax.inject.Inject
     private CreationController creationController;
 
-    @javax.inject.Inject
-    private RootNode rootNode;
+   // @javax.inject.Inject
+   // private RootNode rootNode;
 
+ @javax.inject.Inject
+ private RootNodes rootNodes;
 
     @javax.inject.Inject
 //    private Scratchpad scratchpad;

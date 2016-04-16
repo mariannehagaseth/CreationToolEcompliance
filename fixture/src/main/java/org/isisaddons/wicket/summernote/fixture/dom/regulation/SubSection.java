@@ -29,13 +29,13 @@ import org.apache.isis.applib.services.eventbus.EventBusService;
 import org.apache.isis.applib.services.wrapper.WrapperFactory;
 import org.apache.isis.applib.util.ObjectContracts;
 import org.apache.isis.applib.util.TitleBuffer;
+import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.FragmentSKOSConceptOccurrences;
+import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.ShipClass;
 
 import javax.jdo.JDOHelper;
 import javax.jdo.annotations.IdentityType;
 import javax.jdo.annotations.VersionStrategy;
-import java.util.Comparator;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 
 @javax.jdo.annotations.PersistenceCapable(identityType=IdentityType.DATASTORE)
 @javax.jdo.annotations.DatastoreIdentity(
@@ -73,7 +73,7 @@ import java.util.TreeSet;
 @DomainObjectLayout(bookmarking= BookmarkPolicy.AS_ROOT)
 @MemberGroupLayout (
 		columnSpans={6,0,0,6},
-		left={"SubSection"},
+		left={"SubSection","Annotation"},
 		middle={},
         right={})
 public class SubSection implements Categorized, Comparable<SubSection> {
@@ -320,6 +320,160 @@ public class SubSection implements Categorized, Comparable<SubSection> {
     }
 
 
+    // BEGIN REGION ANNOTATED TEXT
+    private String annotatedText;
+
+    @javax.jdo.annotations.Column(allowsNull = "true", length = 10000)
+    @MemberOrder(name = "Annotation", sequence = "10")
+    @PropertyLayout(typicalLength = 10000, multiLine = 3, hidden = Where.ALL_TABLES)
+    @Property(editing = Editing.DISABLED, editingDisabledReason = "Update using action that calls an API from the consolidation services")
+//   @SummernoteEditor(height = 100, maxHeight = 300)
+    public String getAnnotatedText() {
+        return annotatedText;
+    }
+
+    public void setAnnotatedText(final String annotatedText) {
+        this.annotatedText = annotatedText;
+    }
+
+    public void modifyAnnotatedText(final String annotatedText) {
+        setAnnotatedText(annotatedText);
+    }
+
+    public void clearAnnotatedText() {
+        setAnnotatedText(null);
+    }
+// END REGION ANNOTATED TEXT
+
+    private String skosTerms;
+
+    @javax.jdo.annotations.Column(allowsNull = "true", length = 10000)
+    @MemberOrder(name = "Annotation", sequence = "20")
+    @PropertyLayout(typicalLength = 10000, multiLine = 3, named = "Terms", hidden = Where.ALL_TABLES)
+    //@Property(editing = Editing.DISABLED,editingDisabledReason = "Update using action that calls an API from the consolidation services")
+    public String getSkosTerms() {
+        return skosTerms;
+    }
+
+    public void setSkosTerms(final String skosTerms) {
+        this.skosTerms = skosTerms;
+    }
+
+    public void modifySkosTerms(final String skosTerms) {
+        setSkosTerms(skosTerms);
+    }
+
+    public void clearSkosTerms() {
+        setSkosTerms(null);
+    }
+
+    @Action()
+    @ActionLayout(position = ActionLayout.Position.PANEL)
+    @MemberOrder(name = "Terms", sequence = "20")
+    public SubSection CheckTerms() {
+        FragmentSKOSConceptOccurrences fragment = restClient.GetSkos(plainRegulationText);
+        System.out.println("SUBSECTION: fragment OK");
+        List<String> annotation = new ArrayList<String>();
+        setSkosTerms(creationController.ShowTerms(plainRegulationText, fragment).get(0));
+//  SummernoteEditor:  setAnnotatedText(creationController.ShowTerms(plainRegulationText, fragment).get(1));
+        setAnnotatedText(plainRegulationText);
+        System.out.println("SUBSECTION: skosTerms=" + skosTerms);
+        System.out.println("SUBSECTION: annotatedText=" + annotatedText);
+        container.flush();
+        container.informUser("Fetched SKOS terms completed for " + container.titleOf(this));
+        return this;
+    }
+     //endregion
+
+
+    //BEGIN show  Region target
+    private String target;
+
+    @javax.jdo.annotations.Column(allowsNull = "true", length = 10000)
+    @MemberOrder(name = "Annotation", sequence = "30")
+    @PropertyLayout(typicalLength = 10000, multiLine = 3, named = "Target", hidden = Where.ALL_TABLES)
+    //@Property(editing = Editing.DISABLED,editingDisabledReason = "Update using action that calls an API from the consolidation services")
+    public String getTarget() {
+        return target;
+    }
+
+    public void setTarget(final String target) {
+        this.target = target;
+    }
+
+    public void modifyTarget(final String target) {
+        setTarget(target);
+    }
+
+    public void clearTarget() {
+        setTarget(null);
+    }
+
+    //@Action(semantics = SemanticsOf.IDEMPOTENT)
+    @Action()
+    //  @ActionLayout(named = "Check Terms", position = ActionLayout.Position.PANEL)
+    @ActionLayout(position = ActionLayout.Position.PANEL)
+    @MemberOrder(name = "Terms", sequence = "20")
+    public SubSection ShowTarget() {
+        ShipClass shipClassFound = null;
+        // CALLS THE TARGET API
+        shipClassFound = restClient.GetTarget(plainRegulationText);
+        // shipClassFound = restClient.GetApplicability(plainRegulationText);
+        System.out.println("SUBSECTION:shipclassfound OK");
+        setTarget(creationController.ShowShipClass(plainRegulationText, shipClassFound));
+        System.out.println("SUBSECTION: target=" + target);
+        container.flush();
+        container.informUser("Fetched Target completed for " + container.titleOf(this));
+        return this;
+    }
+
+// END SHOW target
+
+
+    //BEGIN show applicability
+    private String applicability;
+
+    @javax.jdo.annotations.Column(allowsNull = "true", length = 10000)
+    @MemberOrder(name = "Annotation", sequence = "35")
+    @PropertyLayout(typicalLength = 10000, multiLine = 3, named = "Applicability", hidden = Where.ALL_TABLES)
+    //@Property(editing = Editing.DISABLED,editingDisabledReason = "Update using action that calls an API from the consolidation services")
+    public String getApplicability() {
+        return applicability;
+    }
+
+    public void setApplicability(final String applicability) {
+        this.applicability = applicability;
+    }
+
+    public void modifyApplicability(final String applicability) {
+        setApplicability(applicability);
+    }
+
+    public void clearApplicability() {
+        setApplicability(null);
+    }
+
+    //@Action(semantics = SemanticsOf.IDEMPOTENT)
+    @Action()
+    //  @ActionLayout(named = "Check Terms", position = ActionLayout.Position.PANEL)
+    @ActionLayout(position = ActionLayout.Position.PANEL)
+    @MemberOrder(name = "Terms", sequence = "30")
+    public SubSection ShowApplicability() {
+        ShipClass shipClassFound = null;
+        // CALLS THE APPLICABILITY API
+        shipClassFound = restClient.GetApplicability(plainRegulationText);
+        System.out.println("SUBSECTION:applicability shipclassfound OK");
+        setApplicability(creationController.ShowShipClass(plainRegulationText, shipClassFound));
+        System.out.println("SUBSECTION: applicability=" + applicability);
+
+        container.flush();
+        container.informUser("Fetched Target Ship Class completed for " + container.titleOf(this));
+        return this;
+
+    }
+// END SHOW applicability
+
+
     //region > lifecycle callbacks
 
     public void created() {
@@ -414,6 +568,12 @@ public class SubSection implements Categorized, Comparable<SubSection> {
     public void injectBulkInteractionContext(@SuppressWarnings("deprecation") Bulk.InteractionContext bulkInteractionContext) {
         this.bulkInteractionContext = bulkInteractionContext;
     }
+
+    @javax.inject.Inject
+    private CreationController creationController;
+
+    @javax.inject.Inject
+    private RESTclient restClient;
 
     @javax.inject.Inject
 //    private Scratchpad scratchpad;
