@@ -20,10 +20,7 @@ package org.isisaddons.wicket.summernote.fixture.dom.regulation;
 
 import org.apache.isis.applib.DomainObjectContainer;
 import org.apache.isis.applib.annotation.*;
-import org.apache.isis.applib.query.QueryDefault;
 import org.apache.isis.applib.services.clock.ClockService;
-
-import java.util.List;
 
 //import java.math.BigDecimal;
 
@@ -34,39 +31,34 @@ public class ShipSearchs {
 
 
     //region > newRegulationSearch (action)
-    @MemberOrder(sequence = "10")
-    @ActionLayout(named="Start New Search")
-    public RegulationSearch newRegulationSearch(
-            final @Parameter(optionality=Optionality.MANDATORY) @ParameterLayout(typicalLength=100, named="Search Name") String searchName
-//           ,final @Parameter(optionality=Optionality.MANDATORY) @ParameterLayout(typicalLength=100, named="Tonnage") double tonnage
-//            ,final @Parameter(optionality=Optionality.MANDATORY) @ParameterLayout(typicalLength=100, named="Length") double length
-//            ,final @Parameter(optionality=Optionality.MANDATORY) @ParameterLayout(typicalLength=100, named="Passenger Number") int passengerNumber
-//            ,final @Parameter(optionality=Optionality.MANDATORY) @ParameterLayout(typicalLength=100, named="Draft") double draft
-  //         , final @Parameter(optionality=Optionality.MANDATORY) @ParameterLayout(typicalLength=100, named="Keel Laid Date") int keelLaidDate
+    @MemberOrder(sequence = "5")
+    @ActionLayout(named="Search Regulations for Ship")
+    public ShipSearch newShipSearch(
+            final @Parameter(optionality=Optionality.MANDATORY) @ParameterLayout(typicalLength=100, named="Ship Type") String type
+           ,final @Parameter(optionality=Optionality.MANDATORY) @ParameterLayout(typicalLength=100, named="Tonnage") double tonnage
+            ,final @Parameter(optionality=Optionality.MANDATORY) @ParameterLayout(typicalLength=100, named="Length") double length
+            ,final @Parameter(optionality=Optionality.MANDATORY) @ParameterLayout(typicalLength=100, named="Passenger Number") int passengerNumber
+            ,final @Parameter(optionality=Optionality.MANDATORY) @ParameterLayout(typicalLength=100, named="Draft") double draft
+         , final @Parameter(optionality=Optionality.MANDATORY) @ParameterLayout(typicalLength=100, named="Keel Laid Date") int keelLaidDate
     )
     {
-        return newRegulationSearch(
-                searchName,
+        return newShipSearch(
+                type,
                 0,
                 0,
                 0,
                 0,
                 0,
-        currentUserName()
+                currentUserName()
         );
     }
-//      public double default1NewRegulationSearch() {return 0;}
-//    public double default2NewRegulationSearch() {return 0;}
-//    public int default3NewRegulationSearch() {return 0;}
-//    public double default4NewRegulationSearch() {return 0;}
-//    public int default5NewRegulationSearch() {return 0;}
 
     @Programmatic // for use by fixtures
     /*The @Programmatic annotation can be used to cause Apache Isis to complete ignore a class member.
      * This means it won't appear in any viewer, its value will not be persisted,
      * and it won't appear in any XML snapshots .*/
-    public RegulationSearch newRegulationSearch(
-            final String searchName,
+    public ShipSearch newShipSearch(
+            final String type,
             final double tonnage,
             final double length,
             final int passengerNumber,
@@ -75,40 +67,21 @@ public class ShipSearchs {
             final String userName
     )
     {
-        final RegulationSearch regulationSearch = container.newTransientInstance(RegulationSearch.class);
-        regulationSearch.setSearchName(searchName);
-        regulationSearch.setOwnedBy(userName);
-        regulationSearch.setAndOr(RegulationSearch.LogicType.AND);
-        regulationSearch.setTonnage(tonnage);
-        regulationSearch.setLength(length);
-        regulationSearch.setPassengerNumber(passengerNumber);
-        regulationSearch.setDraft(draft);
-        regulationSearch.setKeelLaidDate(keelLaidDate);
-        container.persist(regulationSearch);
+        final ShipSearch shipSearch = container.newTransientInstance(ShipSearch.class);
+        shipSearch.setType(type);
+        shipSearch.setOwnedBy(userName);
+        shipSearch.setTonnage(tonnage);
+        shipSearch.setLength(length);
+        shipSearch.setPassengerNumber(passengerNumber);
+        shipSearch.setDraft(draft);
+        shipSearch.setKeelLaidDate(keelLaidDate);
+        container.persist(shipSearch);
         container.flush();
-        return regulationSearch;
+        return shipSearch;
     }
 
-    //endregion newRegulationSearch
+    //endregion newShipSearch
 
-
-
-    //region > allRegulationSearchs (action)
-    @Action(semantics=SemanticsOf.SAFE,restrictTo=RestrictTo.PROTOTYPING)
-    @MemberOrder(sequence = "20")
-    // Add this: OK???
-    @PropertyLayout(named="Select Regulation Searches")
-    public List<RegulationSearch> allRegulationSearchs() {
-        final List<RegulationSearch> items = container.allMatches(
-                new QueryDefault<RegulationSearch>(RegulationSearch.class,
-                        "findAllSearches",
-                        "ownedBy", currentUserName()));
-        if(items.isEmpty()) {
-            container.warnUser("No Regulation Searches found.");
-        }
-        return items;
-    }
-    //endregion
     private String currentUserName() {
         return container.getUser().getName();
     }

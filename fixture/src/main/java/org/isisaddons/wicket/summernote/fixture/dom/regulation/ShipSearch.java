@@ -20,6 +20,7 @@ package org.isisaddons.wicket.summernote.fixture.dom.regulation;
 
 //import java.math.BigDecimal;
 
+import com.google.common.collect.Ordering;
 import org.apache.isis.applib.DomainObjectContainer;
 import org.apache.isis.applib.Identifier;
 import org.apache.isis.applib.annotation.*;
@@ -28,14 +29,14 @@ import org.apache.isis.applib.services.eventbus.EventBusService;
 import org.apache.isis.applib.services.wrapper.WrapperFactory;
 import org.apache.isis.applib.util.ObjectContracts;
 import org.apache.isis.applib.util.TitleBuffer;
+import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.FragmentSKOSConceptOccurrences;
 import org.joda.time.LocalDate;
 
 import javax.jdo.JDOHelper;
 import javax.jdo.annotations.IdentityType;
 import javax.jdo.annotations.NotPersistent;
 import javax.jdo.annotations.VersionStrategy;
-import java.util.List;
-import java.util.SortedSet;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @javax.jdo.annotations.PersistenceCapable(identityType=IdentityType.DATASTORE)
@@ -45,31 +46,14 @@ import java.util.stream.Collectors;
 @javax.jdo.annotations.Version(
         strategy=VersionStrategy.VERSION_NUMBER, 
         column="version")
-@javax.jdo.annotations.Uniques({
-    @javax.jdo.annotations.Unique(
-            name="Regulation_description_must_be_unique", 
-            members={"ownedBy","regulationTitle"})
-})
-@javax.jdo.annotations.Queries( {
-        @javax.jdo.annotations.Query(
-                name = "findByOwnedBy", language = "JDOQL",
-                value = "SELECT "
-                        + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.RegulationSearch "
-                        + "WHERE ownedBy == :ownedBy"),
-        @javax.jdo.annotations.Query(
-                name = "findAllSearches", language = "JDOQL",
-                value = "SELECT "
-                        + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.RegulationSearch "
-                        + "WHERE ownedBy == :ownedBy")
- })
-@DomainObject(objectType="REGULATIONSEARCH",autoCompleteRepository=RegulationSearchs.class, autoCompleteAction="autoComplete")
+ @DomainObject(objectType="SHIPSEARCH",autoCompleteRepository=ShipSearchs.class, autoCompleteAction="autoComplete")
  // default unless overridden by autoCompleteNXxx() method
 @DomainObjectLayout(named="Semantified Search",bookmarking= BookmarkPolicy.AS_ROOT)
 @MemberGroupLayout (
-		columnSpans={5,2,5,12},
+		columnSpans={6,0,0,12},
 		left={"Regulation Search based on Ship Particulars"},
-		middle={"AndOr"},
-        right={"Regulation Search"})
+		middle={},
+        right={})
 
 public class ShipSearch implements Categorized, Comparable<ShipSearch> {
 
@@ -84,24 +68,11 @@ public class ShipSearch implements Categorized, Comparable<ShipSearch> {
     // region > title, icon
     public String title() {
         final TitleBuffer buf = new TitleBuffer();
-         buf.append(getSearchName());
+         buf.append(getType());
         return buf.toString();
     }
     //endregion
 
-
-
-    // Region searchName
-    private String searchName;
-    @javax.jdo.annotations.Column(allowsNull="true", length=100)
-    @MemberOrder(name="Regulation Search based on Ship Particulars",  sequence="10")
-    @PropertyLayout(hidden = Where.ALL_EXCEPT_STANDALONE_TABLES , typicalLength=100)
-    public String getSearchName() {
-        return searchName;
-    }
-    public void setSearchName(final String searchName) {this.searchName = searchName;
-    }
-    //endregion
 
 
     // Region type
@@ -338,13 +309,90 @@ public class ShipSearch implements Categorized, Comparable<ShipSearch> {
 
 
 
-    // BEGIN REGION Link from RegulationSearch to SearchResult.
-    // Collection of SearchResults that is fetched from the oi.getRegulationsForShipInstance(myship);
-public List<Chapter> listChapter(){
-    return chapters.allChapters().stream()
-            //.filter()
-            .collect(Collectors.toList());
-}
+    // BEGIN REGION Link from ShipSearch to SearchResult.
+     @javax.jdo.annotations.Persistent(mappedBy = "regulationLink")
+    @javax.jdo.annotations.Join // Make a separate join table.
+    private SortedSet<IRI> iris = new TreeSet<IRI>();
+    @SuppressWarnings("deprecation")
+  //  @MemberOrder(name = "SKOS Terms (Select)", sequence = "90")
+    // @MemberOrder(sequence = "90")
+    @CollectionLayout(named = "Regulations Applicable for Ship", sortedBy = IRISComparator.class, render = RenderType.EAGERLY)
+    public SortedSet<IRI> getSkoses() {
+        return skoses;
+    }
+    public void setSkoses(SortedSet<SKOS> skoses) {
+        this.skoses = skoses;
+    }
+
+    public void removeFromSkoses(final SKOS skos) {
+        if (skos == null || !getSkoses().contains(skos)) return;
+        getSkoses().remove(skos);
+    }
+
+    // / overrides the natural ordering
+    public static class SKOSComparator implements Comparator<SKOS> {
+        @Override
+        public int compare(SKOS p, SKOS q) {
+            Ordering<SKOS> bySkos= new Ordering<SKOS>() {
+                public int compare(final SKOS p, final SKOS q) {
+                    return Ordering.natural().nullsFirst().compare(p.getUri(), q.getUri());
+                }
+            };
+            return bySkos
+                    .compound(Ordering.<SKOS>natural())
+                    .compare(p, q);
+        }
+    }
+
+    // BEGIN fetch SKOSs
+    @Action()
+    @MemberOrder(name = "SKOS Terms (Select)", sequence = "60")
+    @ActionLayout(named = "Fetch")
+    public FreeText FetchSkosShow() {
+
+        FragmentSKOSConceptOccurrences fragment = restClient.GetSkos(plainRegulationText);
+        System.out.println("FREETEXT: fragment OK");
+        List<SKOS>  skosTermList = creationController.ShowSKOSlist(plainRegulationText,fragment);
+
+        Iterator it = skosTermList.iterator();
+        while (it.hasNext()) {
+            SKOS thisSkos = (SKOS) it.next();
+            getSkoses().add(thisSkos);
+        }
+        container.flush();
+        container.informUser("SKOS LIST fetched for" + container.titleOf(this));
+        return this;
+    }
+// END FETCH applicability
+
+
+    @MemberOrder(name = "SKOS Terms (Select)", sequence = "90")
+    @ActionLayout(named = "Remove")
+    public FreeText removeSkos(final @ParameterLayout(typicalLength = 30) SKOS skos) {
+        wrapperFactory.wrapSkipRules(this).removeFromSkoses(skos);
+        container.removeIfNotAlready(skos);
+        return this;
+    }
+
+    // disable action dependent on state of object
+    public String disableRemoveSkos(final SKOS skos) {
+        return getSkoses().isEmpty() ? "No SKOSs to remove" : null;
+    }
+
+    // validate the provided argument prior to invoking action
+    public String validateRemoveSkos(final SKOS skos) {
+        if (!getSkoses().contains(skos)) {
+            return "Not a SKOS";
+        }
+        return null;
+    }
+
+    // provide a drop-down
+    public java.util.Collection<SKOS> choices0RemoveSkos() {
+        return getSkoses();
+    }
+
+    //END REGION Link Freetext to SKOS list
 
 
     //END
@@ -431,7 +479,7 @@ public List<Chapter> listChapter(){
     @Override
     public String toString() {
 //        return ObjectContracts.toString(this, "description,complete,dueBy,ownedBy");
-        return ObjectContracts.toString(this, "searchName, ownedBy");
+        return ObjectContracts.toString(this, "type");
     }
 
     /**
@@ -439,7 +487,7 @@ public List<Chapter> listChapter(){
      */
     @Override
     public int compareTo(final ShipSearch other) {
-        return ObjectContracts.compare(this, other, "searchName, ownedBy");
+        return ObjectContracts.compare(this, other, "type");
     }
     //endregion
 

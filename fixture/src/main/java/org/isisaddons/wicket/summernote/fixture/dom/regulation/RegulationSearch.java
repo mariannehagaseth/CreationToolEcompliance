@@ -356,6 +356,7 @@ public List<Chapter> listChapter(){
 
     // Derived collection to fetch FREETEXTS based on the Regulation Tags:
     @NotPersistent
+    @MemberOrder(name="Regulation Search",  sequence="10")
     public List <FreeText> searchResults () {
         return newFreeTextCall.allFreeTexts().stream()
                 //.filter(x -> x.isFlag())

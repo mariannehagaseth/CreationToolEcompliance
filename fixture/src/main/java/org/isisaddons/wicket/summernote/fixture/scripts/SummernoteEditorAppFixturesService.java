@@ -24,9 +24,9 @@ import org.apache.isis.applib.fixturescripts.SimpleFixtureScript;
 
 import java.util.List;
 
-/**
- * Enables fixtures to be installed from the application.
- */
+//
+ // Enables fixtures to be installed from the application.
+ //
 @DomainService()
 @DomainServiceLayout(
         named = "Prototyping",
@@ -45,10 +45,10 @@ public class SummernoteEditorAppFixturesService extends FixtureScripts {
         return findFixtureScriptFor(SimpleFixtureScript.class);
     }
 
-    /**
-     * Raising visibility to <tt>public</tt> so that choices are available for first param
-     * of {@link #runFixtureScript(FixtureScript, String)}.
-     */
+    //
+     //Raising visibility to <tt>public</tt> so that choices are available for first param
+     // of {@link #runFixtureScript(FixtureScript, String)}.
+     //
     @Override
     public List<FixtureScript> choices0RunFixtureScript() {
         return super.choices0RunFixtureScript();

@@ -41,97 +41,78 @@ import java.util.SortedSet;
 @javax.jdo.annotations.Version(
         strategy=VersionStrategy.VERSION_NUMBER, 
         column="version")
- @javax.jdo.annotations.Queries( {
-        @javax.jdo.annotations.Query(
-                name = "findSKOS", language = "JDOQL",
-                value = "SELECT "
-                        + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.SKOS " )
-})
-@DomainObject(objectType="SKOS",autoCompleteRepository=SKOSs.class, autoCompleteAction="autoComplete", bounded = true)
+@DomainObject(objectType="IRI",autoCompleteRepository=IRIS.class, autoCompleteAction="autoComplete", bounded = true)
  // default unless overridden by autoCompleteNXxx() method
 @DomainObjectLayout(bookmarking= BookmarkPolicy.AS_ROOT)
 @MemberGroupLayout (
         columnSpans={4,4,4,12},
-        left={"SKOS"},
+        left={"IRIS"},
         middle={},
         right={} )
-public class SKOS implements Categorized, Comparable<SKOS> {
+public class IRI implements Categorized, Comparable<IRI> {
 
     //region > LOG
     /**
      * It isn't common for entities to log, but they can if required.  
      * Isis uses slf4j API internally (with log4j as implementation), and is the recommended API to use.
      */
-    private final static org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(SKOS.class);
+    private final static org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(IRI.class);
       //endregion
 
     // region > title, icon
     public String title() {
         final TitleBuffer buf = new TitleBuffer();
-        buf.append(getUri());
+        buf.append(getIri());
          return buf.toString();
     }
     //endregion
 
 
 
-    private String uri;
+    private String iri;
     @javax.jdo.annotations.Column(allowsNull="false")
     @Property(editing = Editing.DISABLED)
-     public String getUri() {
-        return uri;
+     public String getIri() {
+        return iri;
     }
-    public void setUri(final String uri) {
-        this.uri= uri;
+    public void setIri(final String iri) {
+        this.iri= iri;
        }
 
-    // This is the label of the chapter level: CHAPTER or ANNEX or DIRECTIVE.
-    private String prefTerm;
+     private String plainRegulationText;
     @javax.jdo.annotations.Column(allowsNull="false")
      @Property(editing = Editing.DISABLED)
-    public String getPrefTerm() {
-        return prefTerm;
+    public String getPlainRegulationText() {
+        return plainRegulationText;
     }
-    public void setPrefTerm(final String prefTerm) {
-        this.prefTerm =prefTerm;
+    public void setPlainRegulationText(final String plainRegulationText) {
+        this.plainRegulationText =plainRegulationText;
      }
 
-    // This is the label of the chapter level: CHAPTER or ANNEX or DIRECTIVE.
-    private String usedTerm;
+    private Regulation regulationLink;
     @javax.jdo.annotations.Column(allowsNull="false")
-     @Property(editing = Editing.DISABLED)
-    public String getUsedTerm() {
-        return usedTerm;
+    @Property(editing = Editing.DISABLED)
+    public Regulation getRegulationLink() {
+        return regulationLink;
     }
-    public void setUsedTerm(final String usedTerm) {
-        this.usedTerm =usedTerm;
-    }
-
-
-    // This is the label of the chapter level: CHAPTER or ANNEX or DIRECTIVE.
-    private String skosConceptProperty;
-    @javax.jdo.annotations.Column(allowsNull="false")
-     @Property(editing = Editing.DISABLED)
-    public String getSkosConceptProperty() {
-        return skosConceptProperty;
-    }
-    public void setSkosConceptProperty(final String skosConceptProperty) {
-        this.skosConceptProperty =skosConceptProperty;
+    public void setRegulationLink(final Regulation regulationLink) {
+        this.regulationLink =regulationLink;
     }
 
-    // BEGIN LINK FROM SKOS TO FREETEXT
+
+    // BEGIN LINK FROM REGULATION FOUND TO SEARCH RESULT
     // mapping is done to this property:
-    // Mapping back from SKOS to FreeText
+    // Mapping back from IRI to ShipSearch
     //Link to Section
     @javax.jdo.annotations.Column(allowsNull="true")
     @Property(editing= Editing.DISABLED,editingDisabledReason="Cannot be updated from here")
     @PropertyLayout(hidden=Where.REFERENCES_PARENT, named = "Link")
-    private FreeText skosLink;
+    private ShipSearch searchLink;
     @javax.jdo.annotations.Column(allowsNull="true")
-    public FreeText  getSkosLink() { return skosLink; }
+    public ShipSearch  getSearchLink() { return searchLink; }
     @javax.jdo.annotations.Column(allowsNull="true")
-    public void setSkosLink(FreeText skosLink) { this.skosLink= skosLink; }
-    // END LINK FROM SKOS TO FREETEXT
+    public void setSearchLink(ShipSearch searchLink) { this.searchLink= searchLink; }
+    // END LINK FROM IRI to ShipSearch
 
     //region > lifecycle callbacks
 
@@ -164,12 +145,12 @@ public class SKOS implements Categorized, Comparable<SKOS> {
 
 
     //region > events
-    public static abstract class AbstractActionInteractionEvent extends ActionInteractionEvent<SKOS> {
+    public static abstract class AbstractActionInteractionEvent extends ActionInteractionEvent<IRI> {
         private static final long serialVersionUID = 1L;
         private final String description;
         public AbstractActionInteractionEvent(
                 final String description,
-                final SKOS source,
+                final IRI source,
                 final Identifier identifier,
                 final Object... arguments) {
             super(source, identifier, arguments);
@@ -183,7 +164,7 @@ public class SKOS implements Categorized, Comparable<SKOS> {
     public static class DeletedEvent extends AbstractActionInteractionEvent {
         private static final long serialVersionUID = 1L;
         public DeletedEvent(
-                final SKOS source,
+                final IRI source,
                 final Identifier identifier,
                 final Object... arguments) {
             super("deleted", source, identifier, arguments);
@@ -204,7 +185,7 @@ public class SKOS implements Categorized, Comparable<SKOS> {
      * Required so can store in {@link SortedSet sorted set}s (eg {@link #getDependencies()}). 
      */
     @Override
-    public int compareTo(final SKOS other) {
+    public int compareTo(final IRI other) {
         return ObjectContracts.compare(this, other, "uri");
     }
     //endregion

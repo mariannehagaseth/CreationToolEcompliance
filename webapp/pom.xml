@@ -261,6 +261,12 @@ language governing permissions and limitations under the License.
             <scope>provided</scope>
         </dependency>
 
+        <dependency>
+            <groupId>net.sourceforge.owlapi</groupId>
+            <artifactId>owlapi-api</artifactId>
+            <version>5.0.1</version>
+        </dependency>
+
     </dependencies>
 
     <profiles>
