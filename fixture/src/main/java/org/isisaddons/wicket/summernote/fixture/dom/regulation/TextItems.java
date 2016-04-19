@@ -103,6 +103,7 @@ public class TextItems {
         final TextItem textItem= container.newTransientInstance(TextItem.class);
         textItem.setItemNo(itemNo);
         textItem.setPlainRegulationText(plainRegulationText);
+        textItem.setDocumentURI(null);
         textItem.setOwnedBy(userName);
         container.persist(textItem);
         container.flush();

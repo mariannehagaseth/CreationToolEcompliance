@@ -6,15 +6,11 @@
 //
 
 
-package com.ecompliance.xml;
+package org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos;
 
+import javax.xml.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.List;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlSchemaType;
-import javax.xml.bind.annotation.XmlType;
 
 
 /**
@@ -48,7 +44,7 @@ public class FragmentSKOSConceptOccurrences {
     @XmlSchemaType(name = "anyURI")
     protected String fragmentUri;
     @XmlElement(name = "skos_concept_occurrence", required = true)
-    protected List<SKOSConceptOccurrence> skosConceptOccurrence;
+    protected List< SKOSConceptOccurrence> skosConceptOccurrence;
 
     /**
      * Gets the value of the fragmentUri property.
@@ -96,9 +92,9 @@ public class FragmentSKOSConceptOccurrences {
      * 
      * 
      */
-    public List<SKOSConceptOccurrence> getSkosConceptOccurrence() {
+    public List< SKOSConceptOccurrence> getSkosConceptOccurrence() {
         if (skosConceptOccurrence == null) {
-            skosConceptOccurrence = new ArrayList<SKOSConceptOccurrence>();
+            skosConceptOccurrence = new ArrayList< SKOSConceptOccurrence>();
         }
         return this.skosConceptOccurrence;
     }

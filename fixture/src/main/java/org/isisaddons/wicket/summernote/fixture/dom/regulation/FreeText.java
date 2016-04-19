@@ -29,10 +29,8 @@ import org.apache.isis.applib.services.eventbus.EventBusService;
 import org.apache.isis.applib.services.wrapper.WrapperFactory;
 import org.apache.isis.applib.util.ObjectContracts;
 import org.apache.isis.applib.util.TitleBuffer;
-import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.FragmentSKOSConceptOccurrences;
-import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.ShipClass;
+import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.*;
 import org.isisaddons.wicket.summernote.fixture.dom.regulation.Chapter.ChapterAnnex;
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 
 import javax.jdo.JDOHelper;
 import javax.jdo.annotations.IdentityType;
@@ -147,10 +145,22 @@ public class FreeText implements Categorized, Comparable<FreeText> {
 
 
     // Region plainRegulationText
-    private String plainRegulationText;
+    private String sectionTitle;
+    @javax.jdo.annotations.Column(allowsNull = "true", length = 100)
+    @MemberOrder(name = "Section", sequence = "14")
+    @PropertyLayout(typicalLength = 100, named = "Title")
+    public String getSectionTitle() {
+        return sectionTitle;
+    }
+    public void setSectionTitle(final String sectionTitle) {
+        this.sectionTitle = sectionTitle;
+    }
+    //endregion
 
+
+    // Region plainRegulationText
+    private String plainRegulationText;
     @javax.jdo.annotations.Column(allowsNull = "true", length = 10000)
-    // @Property(regexPattern="\\w[@&:\\-\\,\\.\\+ \\w]*")
     @MemberOrder(name = "Section", sequence = "15")
     @PropertyLayout(typicalLength = 10000, multiLine = 4, named = "Text")
     public String getPlainRegulationText() {
@@ -427,11 +437,21 @@ public class FreeText implements Categorized, Comparable<FreeText> {
 
     // / overrides the natural ordering
     public static class TextItemComparator implements Comparator<TextItem> {
+
+        int parseInt(String str) {
+            try{ return Integer.parseInt(str); } catch(Exception ex) { return -1; }
+        }
+
         @Override
         public int compare(TextItem p, TextItem q) {
             Ordering<TextItem> byItemNo = new Ordering<TextItem>() {
                 public int compare(final TextItem p, final TextItem q) {
-                    return Ordering.natural().nullsFirst().compare(p.getItemNo(), q.getItemNo());
+                    if ((parseInt(p.getItemNo()) == -1)||(parseInt(q.getItemNo()) == -1)) {
+
+                        return Ordering.natural().nullsFirst().compare(p.getItemNo(), q.getItemNo());
+                    }
+                    return Ordering.natural().nullsFirst().compare(parseInt(p.getItemNo()),parseInt(q.getItemNo()));
+
                 }
             };
             return byItemNo
@@ -441,7 +461,6 @@ public class FreeText implements Categorized, Comparable<FreeText> {
     }
 
     //This is the add-Button!!!
-
     @Action()
     @ActionLayout(named = "Add New Item")
     @MemberOrder(name = "List of Items", sequence = "10")
@@ -509,13 +528,22 @@ public class FreeText implements Categorized, Comparable<FreeText> {
 
     // / overrides the natural ordering
     public static class SubSectionsComparator implements Comparator<SubSection> {
+
+        int parseInt(String str) {
+            try{ return Integer.parseInt(str); } catch(Exception ex) { return -1; }
+        }
+
         @Override
         public int compare(SubSection p, SubSection q) {
             Ordering<SubSection> bySubSectionNo = new Ordering<SubSection>() {
                 public int compare(final SubSection p, final SubSection q) {
-                    return Ordering.natural().nullsFirst().compare(p.getSubSectionNo(), q.getSubSectionNo());
+                    if ((parseInt(p.getSubSectionNo()) == -1) || (parseInt(q.getSubSectionNo()) == -1)) {
+                        // This is not a number.
+                        return Ordering.natural().nullsFirst().compare(p.getSubSectionNo(), q.getSubSectionNo());
+                    }
+                    return Ordering.natural().nullsFirst().compare(parseInt(p.getSubSectionNo()), parseInt(q.getSubSectionNo()));
                 }
-            };
+                };
             return bySubSectionNo
                     .compound(Ordering.<SubSection>natural())
                     .compare(p, q);
@@ -609,23 +637,26 @@ public class FreeText implements Categorized, Comparable<FreeText> {
     public FreeText FetchApplicability() {
           // SHOW the ship class in the collection:
         // CALLS THE TARGET API
+        ShipClassType newShipClass = null;
         ShipClassType shipClassFoundList = null;
         // THIS CAN BE CHANGED TO APPLICABILITY, IF NEEDED!!::
         shipClassFoundList = restClient.GetShipClass(plainRegulationText);
         System.out.println("FetchApplicability:applicability shipclassfoundList OK");
-        ShipClassType newShipClass = creationController.ShowFoundShipClass(plainRegulationText, shipClassFoundList);
-        System.out.println("FetchApplicability: applicability=" + applicability);
+        if (!shipClassFoundList.equals(null)){
+            newShipClass = creationController.ShowFoundShipClass(plainRegulationText, shipClassFoundList);
+            System.out.println("FetchApplicability: applicability=" + applicability);}
         // setShipClasses(null); // Fetch the ship classes each time, so set to null in between/first.
 
         container.flush();
+        if (!newShipClass.equals(null)) {
+            if (newShipClass.getType().length() == 0) {
+                container.warnUser("NO  TARGET SHIP CLASS FOUND for " + container.titleOf(this));
 
-        if (newShipClass.getType().length() == 0) {
-            container.warnUser("NO  TARGET SHIP CLASS FOUND for " + container.titleOf(this));
+            } else {
+                getShipClasses().add(newShipClass);
 
-        } else {
-            getShipClasses().add(newShipClass);
-
-            container.informUser("Fetched Target Ship Class completed for " + container.titleOf(this));
+                container.informUser("Fetched Target Ship Class completed for " + container.titleOf(this));
+            }
         }
         return this;
 
@@ -786,40 +817,6 @@ public class FreeText implements Categorized, Comparable<FreeText> {
     }
 
 
-    /*
-    //BEGIN checkShipClass
-    @Action()
-    @MemberOrder(name="Ship Classes (Applicability)", sequence="80")
-    @ActionLayout(named = "Fetch", position = ActionLayout.Position.PANEL)
-    public FreeText CheckShipClass() {
-
-        ShipClassType shipClassFound = null;
-
-        // CALLS THE TARGET API
-        shipClassFound = restClient.GetShipClass(plainRegulationText);
-        // shipClassFound = restClient.GetApplicability(plainRegulationText);
-
-        System.out.println("checkshipclass:applicability shipclassfound OK");
-        ShipClassType newShipClass =creationController.ShowFoundShipClass(plainRegulationText,shipClassFound);
-
-        System.out.println("checkshipclass: applicability="+applicability);
-       // setShipClasses(null); // Fetch the ship classes each time, so set to null in between/first.
-
-       if (newShipClass.getType().length()==0)
-       {
-           container.warnUser("NO  TARGET SHIP CLASS FOUND for " + container.titleOf(this));
-
-       }
-        else {
-           getShipClasses().add(newShipClass);
-
-           container.flush();
-           container.informUser("Fetched Target Ship Class completed for " + container.titleOf(this));
-       }
-           return this;
-     }
-// END checkShipClass
-*/
 
     @MemberOrder(name = "Ship Classes (Applicability)", sequence = "90")
     @ActionLayout(named = "Remove")
@@ -885,9 +882,9 @@ public class FreeText implements Categorized, Comparable<FreeText> {
                 oneShipClass.setMaxDraughtEx(thisShipClassType.getMaxDraughtEx());
                 oneShipClass.setMinDraughtIn(thisShipClassType.getMinDraughtIn());
                 oneShipClass.setMaxDraughtIn(thisShipClassType.getMaxDraughtIn());
-                oneShipClass.setMinPassengersEx(thisShipClassType.getMinPassengersEx());
-                oneShipClass.setMaxPassengersEx(thisShipClassType.getMaxPassengersEx());
-                oneShipClass.setMinPassengersIn(thisShipClassType.getMinPassengersIn());
+                oneShipClass.setMinPassengerEx(thisShipClassType.getMinPassengersEx());
+                oneShipClass.setMaxPassengerEx(thisShipClassType.getMaxPassengersEx());
+                oneShipClass.setMinPassengerIn(thisShipClassType.getMinPassengersIn());
                 oneShipClass.setMaxPassengerIn(thisShipClassType.getMaxPassengerIn());
                 oneShipClass.setMinKeelLaidEx(thisShipClassType.getMinKeelLaidEx());
                 oneShipClass.setMaxKeelLaidEx(thisShipClassType.getMaxKeelLaidEx());
@@ -919,7 +916,7 @@ public class FreeText implements Categorized, Comparable<FreeText> {
 
 
 
-     // BEGIN REGION Link to ShipClassType, a list of ship classes that this text is applicable to.
+    // BEGIN REGION Link to ShipClassType, a list of ship classes that this text is applicable to.
     @javax.jdo.annotations.Persistent(mappedBy = "skosLink")
     @javax.jdo.annotations.Join // Make a separate join table.
     private SortedSet<SKOS> skoses = new TreeSet<SKOS>();
@@ -997,6 +994,23 @@ public class FreeText implements Categorized, Comparable<FreeText> {
         return null;
     }
 
+
+    // BEGIN  update SKOSs
+    @Action()
+    @MemberOrder(name = "SKOS Terms (Select)", sequence = "80")
+    @ActionLayout(named = "Update")
+    public FreeText updateSKOS() {
+
+        // CODE IS MISSING HERE to select the actual SKOS term for the text
+        return this;
+    }
+    // disable action dependent on state of object
+    public String disableUpdateSKOS() {
+        return getSkoses().isEmpty() ? "No SKOSs to update" : null;
+    }
+// END UPDATE skos
+
+
     // provide a drop-down
     public java.util.Collection<SKOS> choices0RemoveSkos() {
         return getSkoses();
@@ -1060,22 +1074,7 @@ public class FreeText implements Categorized, Comparable<FreeText> {
 // END REGION SAVE TEXT IN THE RDF GRAPH
 
 
-    //region > rootURI (property)
-    //rootURI contains the URI of the SOLAS version, the ANNEX version or the DIRECTIVE version. This the the root node of all chapters for each of this.
-    @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
-    private String rootURI;
-    @PropertyLayout(hidden=Where.ALL_TABLES)
-    @MemberOrder(name = "RDF", sequence = "10")
-    @javax.jdo.annotations.Column(allowsNull="true")
-    @Property(editing= Editing.DISABLED,editingDisabledReason="Programmatically updated")
-    public String getRootURI() {
-        return rootURI;
-    }
-    @ActionLayout(hidden=Where.EVERYWHERE)
-    public void setRootURI(final String rootURI) {
-        this.rootURI = rootURI;
-    }
-    //endregion
+
 
 
     //region > documentURI (property)
@@ -1109,6 +1108,59 @@ public class FreeText implements Categorized, Comparable<FreeText> {
     @ActionLayout(hidden=Where.EVERYWHERE)
     public void setTargetShipClassURI(final String targetShipClassURI) {
         this.targetShipClassURI = targetShipClassURI;
+    }
+    //endregion
+
+
+    //region > CREATE RDF node for the FreeTExtSection: (action)
+    @Action()
+    @ActionLayout(named = "Make Persistent",position = ActionLayout.Position.PANEL)
+    @MemberOrder(name="Text", sequence="5")
+    public FreeText storeFreeText() {
+
+        System.out.println("Make Persistent_1");
+        // Must check if the documentURI has already been stored:
+
+        if (getDocumentURI() == null){
+            System.out.println("DocumentURI not fetched for this Section");
+
+            // Must call 192.168.33.10:9000/api/rdf/document/component for this chapter to create a RDF Document for this chapter
+            DocumentComponentList documentComponentList = new DocumentComponentList();
+
+            if (getId() == null) {documentComponentList.setVersion("0");}
+            else {
+                documentComponentList.setVersion(getId().toString());
+            }
+            // Parent is documentURI of the Chapter:
+            documentComponentList.setParent(regulationLink.getDocumentURI());
+            documentComponentList.setComponentType(DocumentComponentType.DOCUMENT);
+
+            DocumentComponent documentComponent = new DocumentComponent();
+
+            documentComponent.setTitle("SECTION"+" "+getSectionNo());
+            documentComponent.setShortTitle("SECTION"+" "+getSectionNo());
+            documentComponent.setText(getPlainRegulationText());
+//      THIS METHOD is missing:
+            //       documentComponentList.setComponent(documentComponent);
+
+
+            // Need to call the Component API to create the RDF node for the part.
+            // Will store the value in the documentURI property
+            IRIList iriList =restClient.CreateDocumentComponentNode(documentComponentList);
+            // has created the RDF node for only one CHAPTER, that is, only one Node, that is, only one IRI-element:
+            if (iriList.getIris().size()>0) {
+                setDocumentURI(iriList.getIris().get(0));
+            }
+            else
+            {setDocumentURI("Could not find URI for RDF");
+            }
+        }
+        else
+        {
+            // rootNode is not null, that is, already found.
+            System.out.println("DocumentURI is already fetched for this  = "+getDocumentURI()+".");
+        }
+        return this;
     }
     //endregion
 

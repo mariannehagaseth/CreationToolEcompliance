@@ -103,6 +103,7 @@ public class SubSections {
         final SubSection subSection= container.newTransientInstance(SubSection.class);
         subSection.setSubSectionNo(subSectionNo);
         subSection.setPlainRegulationText(plainRegulationText);
+        subSection.setDocumentURI(null);
         subSection.setOwnedBy(userName);
         container.persist(subSection);
         container.flush();

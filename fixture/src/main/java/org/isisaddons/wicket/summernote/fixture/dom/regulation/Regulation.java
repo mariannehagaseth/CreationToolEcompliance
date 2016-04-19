@@ -25,20 +25,23 @@ import com.google.common.collect.Ordering;
 import org.apache.isis.applib.DomainObjectContainer;
 import org.apache.isis.applib.Identifier;
 import org.apache.isis.applib.annotation.*;
+import org.apache.isis.applib.annotation.Collection;
+import org.apache.isis.applib.query.QueryDefault;
 import org.apache.isis.applib.services.eventbus.ActionInteractionEvent;
 import org.apache.isis.applib.services.eventbus.EventBusService;
 import org.apache.isis.applib.services.wrapper.WrapperFactory;
 import org.apache.isis.applib.util.ObjectContracts;
 import org.apache.isis.applib.util.TitleBuffer;
-import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.FragmentSKOSConceptOccurrences;
-import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.ShipClass;
+import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.*;
 import org.isisaddons.wicket.summernote.fixture.dom.regulation.Chapter.ChapterAnnex;
 import org.joda.time.LocalDate;
+import org.jvnet.hk2.internal.Collector;
 
 import javax.jdo.JDOHelper;
 import javax.jdo.annotations.IdentityType;
 import javax.jdo.annotations.VersionStrategy;
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 @javax.jdo.annotations.PersistenceCapable(identityType=IdentityType.DATASTORE)
@@ -65,19 +68,66 @@ import java.util.*;
                         + "&& partNumber == :partNumber")
 ,
         @javax.jdo.annotations.Query(
+                name = "findSimilarReg", language = "JDOQL",
+                value = "SELECT "
+                        + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.Regulation "
+                        + "WHERE regulationType == :regulationType "
+                        + "&& kpi == :kpi"
+                        + "&& regulationType != null "
+                        + "&& kpi != null ")
+
+,        @javax.jdo.annotations.Query(
                 name = "findRegulations", language = "JDOQL",
                 value = "SELECT "
                         + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.Regulation "
                         + "WHERE chapterAnnexArticle == :chapterAnnexArticle "
                         )
-
+,        @javax.jdo.annotations.Query(
+        name = "findRegByRegTitle", language = "JDOQL",
+        value = "SELECT "
+                + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.Regulation "
+                + "WHERE regulationTitle == :regulationTitle")
+        ,        @javax.jdo.annotations.Query(
+        name = "findRegByRegulationType", language = "JDOQL",
+        value = "SELECT "
+                + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.Regulation "
+                + "WHERE regulationType == :regulationType"
+                + "&& regulationType != null ")
+        ,        @javax.jdo.annotations.Query(
+        name = "findRegByApplicabilityDate", language = "JDOQL",
+        value = "SELECT "
+                + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.Regulation "
+                + "WHERE applicabilityDate == :applicabilityDate"
+                + "&& applicabilityDate != null ")
+        ,        @javax.jdo.annotations.Query(
+        name = "findRegByApplicableIn", language = "JDOQL",
+        value = "SELECT "
+                + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.Regulation "
+                + "WHERE applicableIn == :applicableIn"
+                + "&& applicableIn != null ")
+        ,        @javax.jdo.annotations.Query(
+        name = "findRegByKpi", language = "JDOQL",
+        value = "SELECT "
+                + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.Regulation "
+                + "WHERE kpi == :kpi"
+                + "&& kpi != null ")
+        ,        @javax.jdo.annotations.Query(
+        name = "findRegulationByURI", language = "JDOQL",
+        value = "SELECT "
+                + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.Regulation "
+                + "WHERE documentURI == :documentURI"
+                + "&& documentURI != null ")
+        ,        @javax.jdo.annotations.Query(
+        name = "findAllReg", language = "JDOQL",
+        value = "SELECT "
+                + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.Regulation ")
 })
 @DomainObject(objectType="REGULATION",autoCompleteRepository=Regulations.class, autoCompleteAction="autoComplete", bounded = true)
  // default unless overridden by autoCompleteNXxx() method
 @DomainObjectLayout(bookmarking= BookmarkPolicy.AS_ROOT)
 @MemberGroupLayout (
 		columnSpans={6,0,0,6},
-		left={"Regulation","Annotation","Regulation Tags"},
+		left={"Regulation","Annotation","Regulation Tags","RDF","Referenced Regulations","Search Similar Regulations"},
 		middle={},
         right={})
 public class Regulation implements Categorized, Comparable<Regulation> {
@@ -379,7 +429,7 @@ public class Regulation implements Categorized, Comparable<Regulation> {
     private String plainRegulationText;
     @javax.jdo.annotations.Column(allowsNull="true", length=10000)
     @MemberOrder(name="Regulation", sequence="80")
-    @PropertyLayout(typicalLength=10000, multiLine=4, named = "Regulation Text (Applicability)",hidden=Where.ALL_TABLES)
+    @PropertyLayout(typicalLength=10000, multiLine=4, named = "Regulation Text")
     public String getPlainRegulationText() {
         return plainRegulationText;
     }
@@ -581,7 +631,7 @@ public class Regulation implements Categorized, Comparable<Regulation> {
     // mapping is done to this property:
     @javax.jdo.annotations.Column(allowsNull="true")
     @Property(editing= Editing.DISABLED,editingDisabledReason="Part cannot be updated from here")
-    @PropertyLayout(hidden=Where.REFERENCES_PARENT, named = "Parent Link")
+    @PropertyLayout(hidden=Where.PARENTED_TABLES, named = "Parent Link")
     @MemberOrder(name="Regulation", sequence="90")
     private Part partLink;
     @javax.jdo.annotations.Column(allowsNull="true")
@@ -611,11 +661,20 @@ public class Regulation implements Categorized, Comparable<Regulation> {
 
     // / overrides the natural ordering
     public static class FreeTextsComparator implements Comparator<FreeText> {
+
+        int parseInt(String str) {
+            try{ return Integer.parseInt(str); } catch(Exception ex) { return -1; }
+        }
+
         @Override
         public int compare(FreeText p, FreeText q) {
             Ordering<FreeText> bySectionNo = new Ordering<FreeText>() {
                 public int compare(final FreeText p, final FreeText q) {
-                    return Ordering.natural().nullsFirst().compare(p.getSectionNo(),q.getSectionNo());
+                    if ((parseInt(p.getSectionNo()) == -1)||(parseInt(q.getSectionNo()) == -1)) {
+
+                        return Ordering.natural().nullsFirst().compare(p.getSectionNo(), q.getSectionNo());
+                    }
+                    return Ordering.natural().nullsFirst().compare(parseInt(p.getSectionNo()),parseInt(q.getSectionNo()));
                 }
             };
             return bySectionNo
@@ -630,10 +689,11 @@ public class Regulation implements Categorized, Comparable<Regulation> {
     @ActionLayout(named = "Add New Section")
     @MemberOrder(name = "freeTexts", sequence = "15")
     public Regulation addNewFreeText(final @ParameterLayout(typicalLength=10,named = "Section No") String sectionNo,
+                                     final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=100,named = "Title") String sectionTitle,
                                        final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=1000, multiLine=8,named = "Regulation Text") String plainRegulationText
      )
     {
-         getFreeTexts().add(newFreeTextCall.newFreeText(sectionNo, plainRegulationText));
+         getFreeTexts().add(newFreeTextCall.newFreeText(sectionNo, sectionTitle, plainRegulationText));
         /* addParticipant(participantsRepo.newParticipant(firstname, surname, dob));*/
         return this;
     }
@@ -670,29 +730,16 @@ public class Regulation implements Categorized, Comparable<Regulation> {
     //endregion region Link Regulation --> to several Sections (Freetexts)
 
 
-    //region > regulationType (property)
-    public static enum RegulationType {
-        Certificate,
-        Procedure,
-        Checklist,
-        TechnicalSpecification,
-        OperationalSpecification,
-        FunctionalRequirement,
-        GoalBasedRegulation,
-        Guideline,
-        ReportSpecification,
-        Template,
-        Other;
-    }
+
     @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
-    private RegulationType regulationType;
+    private CreationController.RegulationType regulationType;
     @javax.jdo.annotations.Column(allowsNull="true")
     @MemberOrder(name="Regulation Tags", sequence="10")
     @PropertyLayout(hidden=Where.ALL_TABLES)
-    public RegulationType getRegulationType() {
+    public CreationController.RegulationType getRegulationType() {
         return regulationType;
     }
-    public void setRegulationType(final RegulationType regulationType) {
+    public void setRegulationType(final CreationController.RegulationType regulationType) {
         this.regulationType = regulationType;
     }
     //endregion
@@ -715,6 +762,7 @@ public class Regulation implements Categorized, Comparable<Regulation> {
 
     // Start region applicabilityDate
     @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
+    @PropertyLayout(hidden=Where.ALL_TABLES)
     private LocalDate applicabilityDate;
     @javax.jdo.annotations.Column(allowsNull="true")
     @MemberOrder(name="Regulation Tags", sequence="30")
@@ -726,10 +774,11 @@ public class Regulation implements Categorized, Comparable<Regulation> {
     }
     // endregion
 
+    @PropertyLayout(hidden=Where.ALL_TABLES)
     @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
     private CreationController.ApplicableInType applicableIn;
     @javax.jdo.annotations.Column(allowsNull="true")
-    @MemberOrder(name="Regulation Search", sequence="40")
+    @MemberOrder(name="Regulation Tags", sequence="40")
     public CreationController.ApplicableInType getApplicableIn() {
         return applicableIn;
     }
@@ -737,6 +786,22 @@ public class Regulation implements Categorized, Comparable<Regulation> {
         this.applicableIn = applicableIn;
     }
     //endregion
+
+
+    // region Invalidated (property)
+    private boolean mandatory;
+    @javax.jdo.annotations.Column(allowsNull="true")
+    @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
+    @PropertyLayout(hidden=Where.ALL_TABLES)
+    @ActionLayout(hidden=Where.ALL_TABLES)
+    @MemberOrder(name="Regulation Tags", sequence="49")
+    public boolean getMandatory() {
+        return mandatory;
+    }
+    public void setMandatory(final boolean mandatory) {
+        this.mandatory = mandatory;
+    }
+    // end region
 
     // region Invalidated (property)
     private boolean invalidated;
@@ -772,6 +837,237 @@ public class Regulation implements Categorized, Comparable<Regulation> {
     //   return finalized;
     //}
     //endregion
+
+
+
+    //region similar Regulations found by manual meta-data
+    // Search Similar Regulations (Interpretation)
+    // Do not need to store the search result!!
+    // Combined semantic and ontological search!
+    //region  dependencies (property), add (action), remove (action)
+    private SortedSet<Regulation> similarRegulations = new TreeSet<>();
+    @Collection()
+    @CollectionLayout(  render = RenderType.EAGERLY,named = "Search Similar Regulations") // not compatible with neo4j (as of DN v3.2.3)
+    public SortedSet<Regulation> getSimilarRegulations() {return similarRegulations;}
+    public void setSimilarRegulations(SortedSet<Regulation> similarRegulations) {this.similarRegulations=similarRegulations;}
+
+    @MemberOrder(name="Search Similar Regulations", sequence="20")
+    public Regulation SearchSimilarRegulations(){
+        setSimilarRegulations(null);
+        container.flush();
+
+        final List<Regulation> items = container.allMatches(
+                new QueryDefault<Regulation>(Regulation.class,
+                        "findSimilarReg",
+                        "regulationType", regulationType,
+                        "kpi", kpi));
+        if(items.isEmpty()) {
+            container.warnUser("No Similar Regulations found.");
+        }
+
+        Iterator it = items.iterator();
+        while (it.hasNext()) {
+            Regulation thisItem = (Regulation) it.next();
+            if (!thisItem.equals(this)) {
+                getSimilarRegulations().add(thisItem);
+            }
+        }
+        return this;
+    }
+    //endregion similar Regulations found by search on manual meta-data
+
+// Set links to related regulations. Done manually by the user.
+   //region  dependencies (property), add (action), remove (action)
+    private SortedSet<Regulation> referencedRegulations = new TreeSet<>();
+    @Collection()
+    @CollectionLayout( sortedBy = RefRegComparator.class, render = RenderType.EAGERLY,named = "Referenced Regulations") // not compatible with neo4j (as of DN v3.2.3)
+    public SortedSet<Regulation> getReferencedRegulations() {return referencedRegulations;}
+    public void setReferencedRegulations(SortedSet<Regulation> referencedRegulations) {this.referencedRegulations=referencedRegulations;}
+
+    public void addToReferencedRegulations(final Regulation reg) {
+        getReferencedRegulations().add(reg);
+    }
+
+    public void removeFromReferencedRegulations(final Regulation reg) {
+        if (reg == null || !getReferencedRegulations().contains(reg)) return;
+        getReferencedRegulations().remove(reg);
+    }
+
+    // / overrides the natural ordering
+    public static class RefRegComparator implements Comparator<Regulation> {
+        @Override
+        public int compare(Regulation p, Regulation q) {
+            Ordering<Regulation> byItemNo = new Ordering<Regulation>() {
+                public int compare(final Regulation p, final Regulation q) {
+                    return Ordering.natural().nullsFirst().compare(p.getRegulationNumber(), q.getRegulationNumber());
+                }
+            };
+            return byItemNo
+                    .compound(Ordering.<Regulation>natural())
+                    .compare(p, q);
+        }
+    }
+
+
+    //This is the add-Button!!!
+    @Action()
+    @ActionLayout(named = "Add Reference")
+    @MemberOrder(name = "Referenced Regulations", sequence = "10")
+    public Regulation add(
+            @ParameterLayout(typicalLength = 20)
+            final Regulation reg) {
+        // By wrapping the call, Isis will detect that the collection is modified
+        // and it will automatically send CollectionInteractionEvents to the Event Bus.
+        // ToDoItemSubscriptions is a demo subscriber to this event
+        wrapperFactory.wrapSkipRules(this).addToReferencedRegulations(reg);
+        return this;
+    }
+public List<Regulation> choices0Add(final Regulation reg){
+
+    List<Regulation> regChoices = container.allInstances(Regulation.class);
+
+       List<Regulation> regChoice = regChoices
+            .stream()
+            .filter(x -> x != Regulation.this)
+            .collect(Collectors.toList());
+
+     //  Have to delete the regulations that are already linked to:
+    Iterator it = getReferencedRegulations().iterator();
+    while (it.hasNext()) {
+        Regulation thisItem = (Regulation) it.next();
+        if (regChoice.contains(thisItem)) {
+            regChoice.remove(thisItem);
+        }
+    }
+
+return regChoice;
+}
+
+    //This is the Remove-Button!!
+    @MemberOrder(name = "Referenced Regulations", sequence = "20")
+    @ActionLayout(named = "Delete Reference")
+    public Regulation removeReferencedRegulation (final @ParameterLayout(typicalLength = 30) Regulation reg) {
+        // By wrapping the call, Isis will detect that the collection is modified
+        // and it will automatically send a CollectionInteractionEvent to the Event Bus.
+        // ToDoItemSubscriptions is a demo subscriber to this event
+        wrapperFactory.wrapSkipRules(this).removeFromReferencedRegulations(reg);
+        return this;
+    }
+
+    // disable action dependent on state of object
+    public String disableRemoveReferencedRegulation(final Regulation reg) {
+        return getReferencedRegulations().isEmpty() ? "No references to remove" : null;
+    }
+
+    // validate the provided argument prior to invoking action
+    public String validateRemoveReferencedRegulation(final Regulation reg) {
+        if (!getReferencedRegulations().contains(reg)) {
+            return "Not a Regulation";
+        }
+        return null;
+    }
+
+    // provide a drop-down
+    public java.util.Collection<Regulation> choices0RemoveReferencedRegulation() {
+        return getReferencedRegulations();
+    }
+    //END REGION Link Referenced regulations.
+
+    //endregion similar Regulations found by semantic-ontological search.
+
+
+    //region > documentURI (property)
+    // documentURI contains the URI of the RDF-node storing the text for this chapter-node.
+    @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
+    private String documentURI;
+    @PropertyLayout(hidden=Where.ALL_TABLES)
+    @MemberOrder(name = "RDF", sequence = "20")
+    @javax.jdo.annotations.Column(allowsNull="true")
+    @Property(editing= Editing.DISABLED,editingDisabledReason="Programmatically updated")
+    public String getDocumentURI() {
+        return documentURI;
+    }
+    @ActionLayout(hidden=Where.EVERYWHERE)
+    public void setDocumentURI(final String documentURI) {
+        this.documentURI = documentURI;
+    }
+    //endregion
+
+
+
+    //region > targetShipClassURI (property)
+    // targetShipClassURI contains the URI of the target ship class for this text in this RDF-node.
+    @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
+    private String targetShipClassURI;
+    @PropertyLayout(hidden=Where.ALL_TABLES)
+    @MemberOrder(name = "RDF", sequence = "30")
+    @javax.jdo.annotations.Column(allowsNull="true")
+    @Property(editing= Editing.DISABLED,editingDisabledReason="Programmatically updated")
+    public String getTargetShipClassURI() {
+        return targetShipClassURI;
+    }
+    @ActionLayout(hidden=Where.EVERYWHERE)
+    public void setTargetShipClassURI(final String targetShipClassURI) {
+        this.targetShipClassURI = targetShipClassURI;
+    }
+    //endregion
+
+
+
+    //region > CREATE RDF node for the regulation: (action)
+    @Action()
+    @ActionLayout(named = "Make Persistent",position = ActionLayout.Position.PANEL)
+    @MemberOrder(name="Title", sequence="5")
+    public Regulation storeRegulation() {
+
+        System.out.println("Make Persistent_1");
+       // Must check if the documentURI has already been stored:
+
+        if (getDocumentURI() == null){
+            System.out.println("DocumentURI not fetched for this Regulation");
+
+            // Must call 192.168.33.10:9000/api/rdf/document/component for this chapter to create a RDF Document for this chapter
+            DocumentComponentList documentComponentList = new DocumentComponentList();
+
+            if (getId() == null) {documentComponentList.setVersion("0");}
+            else {
+                documentComponentList.setVersion(getId().toString());
+            }
+            // Parent is documentURI of the Chapter:
+            documentComponentList.setParent(partLink.getDocumentURI());
+            documentComponentList.setComponentType(DocumentComponentType.DOCUMENT);
+
+            DocumentComponent documentComponent = new DocumentComponent();
+
+            documentComponent.setTitle(getRegulationLabel()+" "+getRegulationNumber()+" "+getRegulationTitle());
+            documentComponent.setShortTitle(getRegulationTitle().replace(" ","_"));
+            documentComponent.setText(getPlainRegulationText());
+//      THIS METHOD is missing:
+            //       documentComponentList.setComponent(documentComponent);
+
+
+            // Need to call the Component API to create the RDF node for the part.
+            // Will store the value in the documentURI property
+            IRIList iriList =restClient.CreateDocumentComponentNode(documentComponentList);
+            // has created the RDF node for only one CHAPTER, that is, only one Node, that is, only one IRI-element:
+            if (iriList.getIris().size()>0) {
+                setDocumentURI(iriList.getIris().get(0));
+            }
+            else
+            {setDocumentURI("Could not find URI for RDF");
+            }
+        }
+        else
+        {
+            // rootNode is not null, that is, already found.
+            System.out.println("DocumentURI is already fetched for this  = "+getDocumentURI()+".");
+        }
+        return this;
+    }
+    //endregion
+
+
+
 
 
     //region > lifecycle callbacks

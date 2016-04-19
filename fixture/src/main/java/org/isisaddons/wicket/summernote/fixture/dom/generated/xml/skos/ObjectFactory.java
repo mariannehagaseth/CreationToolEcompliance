@@ -6,7 +6,7 @@
 //
 
 
-package com.ecompliance.xml;
+package org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlElementDecl;
@@ -65,8 +65,8 @@ public class ObjectFactory {
      * Create an instance of {@link ShipClass }
      * 
      */
-    public ShipClass createShipClass() {
-        return new ShipClass();
+    public  ShipClass createShipClass() {
+        return new  ShipClass();
     }
 
     /**
@@ -105,8 +105,8 @@ public class ObjectFactory {
      * Create an instance of {@link SKOSConceptOccurrence }
      * 
      */
-    public SKOSConceptOccurrence createSKOSConceptOccurrence() {
-        return new SKOSConceptOccurrence();
+    public  SKOSConceptOccurrence createSKOSConceptOccurrence() {
+        return new  SKOSConceptOccurrence();
     }
 
     /**
@@ -132,8 +132,8 @@ public class ObjectFactory {
      * 
      */
     @XmlElementDecl(namespace = "", name = "ship_class_occurrence")
-    public JAXBElement<ShipClass> createShipClassOccurrence(ShipClass value) {
-        return new JAXBElement<ShipClass>(_ShipClassOccurrence_QNAME, ShipClass.class, null, value);
+    public JAXBElement< ShipClass> createShipClassOccurrence( ShipClass value) {
+        return new JAXBElement< ShipClass>(_ShipClassOccurrence_QNAME,  ShipClass.class, null, value);
     }
 
     /**

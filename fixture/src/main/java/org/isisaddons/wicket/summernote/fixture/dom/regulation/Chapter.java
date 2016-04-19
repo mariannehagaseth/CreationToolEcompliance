@@ -646,6 +646,24 @@ public class Chapter implements Categorized, Comparable<Chapter> {
     //endregion
 
 
+    //region > targetShipClassURI (property)
+    // targetShipClassURI contains the URI of the target ship class for this text in this RDF-node.
+    @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
+    private String targetShipClassURI;
+    @PropertyLayout(hidden=Where.ALL_TABLES)
+    @MemberOrder(name = "RDF", sequence = "30")
+    @javax.jdo.annotations.Column(allowsNull="true")
+    @Property(editing= Editing.DISABLED,editingDisabledReason="Programmatically updated")
+    public String getTargetShipClassURI() {
+        return targetShipClassURI;
+    }
+    @ActionLayout(hidden=Where.EVERYWHERE)
+    public void setTargetShipClassURI(final String targetShipClassURI) {
+        this.targetShipClassURI = targetShipClassURI;
+    }
+    //endregion
+
+
     //region > CREATE RDF node for the chapter: (action)
     @Action()
     @ActionLayout(named = "Make Persistent",position = ActionLayout.Position.PANEL)

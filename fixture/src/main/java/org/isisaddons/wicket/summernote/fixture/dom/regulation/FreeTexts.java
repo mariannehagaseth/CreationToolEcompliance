@@ -40,6 +40,7 @@ public class FreeTexts {
     @Programmatic // for use by fixtures
     public FreeText newFreeText(
             final @Parameter(optionality=Optionality.MANDATORY) @ParameterLayout(typicalLength=10, named="Section NO") String sectionNo,
+            final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=100,named = "Title") String sectionTitle,
             final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=1000, multiLine=8,named="Regulation Text") String plainRegulationText
             //, final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(named="SOLAS Chapter") SolasChapter solasChapter
             //final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(named="Finalized") boolean finalized
@@ -47,22 +48,11 @@ public class FreeTexts {
     {
         return newFreeText(
                 sectionNo,
+                sectionTitle,
                 plainRegulationText,
                 currentUserName()
         );
     }
-  //  public String default0NewRegulationText() {
-   //     return "";
-    //}
-    //public String default1NewRegulationText() {
-     //   return "";
-   // }
-//    public SolasChapter default2NewFreeText() {
- //       return this.solasChapter;
-  //  }
-    //public boolean default3NewRegulationText() {
-    //    return false;
-    //}
 
 
     //region > allFreeTextSection (action)
@@ -99,13 +89,16 @@ public class FreeTexts {
      * and it won't appear in any XML snapshots .*/
     public FreeText newFreeText(
             final String sectionNo,
+            final String sectionTitle,
             final String plainRegulationText,
             final String userName
             )
     {
         final FreeText freeText= container.newTransientInstance(FreeText.class);
         freeText.setSectionNo(sectionNo);
+        freeText.setSectionTitle(sectionTitle);
         freeText.setPlainRegulationText(plainRegulationText);
+        freeText.setDocumentURI(null);
         freeText.setOwnedBy(userName);
         container.persist(freeText);
         container.flush();

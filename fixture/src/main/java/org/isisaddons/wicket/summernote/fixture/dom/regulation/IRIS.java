@@ -27,8 +27,8 @@ import org.apache.isis.applib.services.clock.ClockService;
 //import java.math.BigDecimal;
 
 //@DomainServiceLayout(named="Regulation Hierarchy",menuOrder="10")
-@DomainService(repositoryFor = SKOS.class)
-@DomainServiceLayout(menuBar= DomainServiceLayout.MenuBar.TERTIARY,named="SKOS",menuOrder="50")
+@DomainService(repositoryFor = IRI.class)
+@DomainServiceLayout(menuBar= DomainServiceLayout.MenuBar.TERTIARY,named="IRI",menuOrder="51")
 public class IRIS {
 
 
@@ -38,23 +38,23 @@ public class IRIS {
     /*The @Programmatic annotation can be used to cause Apache Isis to complete ignore a class member. 
      * This means it won't appear in any viewer, its value will not be persisted, 
      * and it won't appear in any XML snapshots .*/
-    public SKOS newSKOS(
-            final String uri,
-            final String prefTerm,
-            final String usedTerm,
-            final String skosConceptProperty
+    public IRI newIRI(
+            final String iri,
+            final String plainRegulationText,
+            final Regulation regulationLink,
+            final ShipSearch searchLink
             )
     {
-        final SKOS skos= container.newTransientInstance(SKOS.class);
+        final IRI iriNew= container.newTransientInstance(IRI.class);
 
-        skos.setUri(uri);
-        skos.setPrefTerm(prefTerm);
-        skos.setUsedTerm(usedTerm);
-        skos.setSkosConceptProperty(skosConceptProperty);
-        container.persist(skos);
+        iriNew.setIri(iri);
+        iriNew.setPlainRegulationText(plainRegulationText);
+        iriNew.setRegulationLink(regulationLink);
+        iriNew.setSearchLink(searchLink);
+
+         container.persist(iriNew);
         container.flush();
-       // Generate id: solasChapter.setSolasChapterNumber(solasChapter.getIdString());
-        return skos;
+         return iriNew;
     }
 
 

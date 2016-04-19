@@ -6,15 +6,11 @@
 //
 
 
-package com.ecompliance.xml;
+package org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos;
 
+import javax.xml.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.List;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlSchemaType;
-import javax.xml.bind.annotation.XmlType;
 
 
 /**
@@ -55,7 +51,7 @@ public class DocumentComponentList {
     protected String parent;
     @XmlElement(name = "component_type", required = true)
     @XmlSchemaType(name = "string")
-    protected DocumentComponentType componentType;
+    protected  DocumentComponentType componentType;
     @XmlElement(required = true)
     protected List<DocumentComponent> component;
 
@@ -115,7 +111,7 @@ public class DocumentComponentList {
      *     {@link DocumentComponentType }
      *     
      */
-    public DocumentComponentType getComponentType() {
+    public  DocumentComponentType getComponentType() {
         return componentType;
     }
 
@@ -127,7 +123,7 @@ public class DocumentComponentList {
      *     {@link DocumentComponentType }
      *     
      */
-    public void setComponentType(DocumentComponentType value) {
+    public void setComponentType( DocumentComponentType value) {
         this.componentType = value;
     }
 

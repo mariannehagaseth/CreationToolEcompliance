@@ -20,7 +20,10 @@ package org.isisaddons.wicket.summernote.fixture.dom.regulation;
 
 import org.apache.isis.applib.DomainObjectContainer;
 import org.apache.isis.applib.annotation.*;
+import org.apache.isis.applib.query.QueryDefault;
 import org.apache.isis.applib.services.clock.ClockService;
+
+import java.util.List;
 
 //import java.math.BigDecimal;
 
@@ -31,7 +34,7 @@ public class ShipSearchs {
 
 
     //region > newRegulationSearch (action)
-    @MemberOrder(sequence = "5")
+    @MemberOrder(sequence = "10")
     @ActionLayout(named="Search Regulations for Ship")
     public ShipSearch newShipSearch(
             final @Parameter(optionality=Optionality.MANDATORY) @ParameterLayout(typicalLength=100, named="Ship Type") String type
@@ -44,11 +47,11 @@ public class ShipSearchs {
     {
         return newShipSearch(
                 type,
-                0,
-                0,
-                0,
-                0,
-                0,
+                tonnage,
+                length,
+                passengerNumber,
+                draft,
+                keelLaidDate,
                 currentUserName()
         );
     }
@@ -81,6 +84,23 @@ public class ShipSearchs {
     }
 
     //endregion newShipSearch
+
+    //region > allShipSearchs (action)
+    @Action(semantics=SemanticsOf.SAFE,restrictTo=RestrictTo.PROTOTYPING)
+    @MemberOrder(sequence = "20")
+    @PropertyLayout(named="List Search Regulations for Ship")
+    public List<ShipSearch> allShipSearchs() {
+        final List<ShipSearch> items = container.allMatches(
+                new QueryDefault<ShipSearch>(ShipSearch.class,
+                        "findAllSearches",
+                        "ownedBy", currentUserName()));
+        if(items.isEmpty()) {
+            container.warnUser("No Searches found.");
+        }
+        return items;
+    }
+    //endregion
+
 
     private String currentUserName() {
         return container.getUser().getName();

@@ -24,12 +24,15 @@ import com.google.common.collect.Ordering;
 import org.apache.isis.applib.DomainObjectContainer;
 import org.apache.isis.applib.Identifier;
 import org.apache.isis.applib.annotation.*;
+import org.apache.isis.applib.query.QueryDefault;
 import org.apache.isis.applib.services.eventbus.ActionInteractionEvent;
 import org.apache.isis.applib.services.eventbus.EventBusService;
 import org.apache.isis.applib.services.wrapper.WrapperFactory;
 import org.apache.isis.applib.util.ObjectContracts;
 import org.apache.isis.applib.util.TitleBuffer;
 import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.FragmentSKOSConceptOccurrences;
+import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.IRIList;
+import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.IndividualShip;
 import org.joda.time.LocalDate;
 
 import javax.jdo.JDOHelper;
@@ -46,6 +49,18 @@ import java.util.stream.Collectors;
 @javax.jdo.annotations.Version(
         strategy=VersionStrategy.VERSION_NUMBER, 
         column="version")
+@javax.jdo.annotations.Queries( {
+        @javax.jdo.annotations.Query(
+                name = "findByOwnedBy", language = "JDOQL",
+                value = "SELECT "
+                        + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.ShipSearch "
+                        + "WHERE ownedBy == :ownedBy"),
+        @javax.jdo.annotations.Query(
+                name = "findAllSearches", language = "JDOQL",
+                value = "SELECT "
+                        + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.ShipSearch "
+                        + "WHERE ownedBy == :ownedBy")
+})
  @DomainObject(objectType="SHIPSEARCH",autoCompleteRepository=ShipSearchs.class, autoCompleteAction="autoComplete")
  // default unless overridden by autoCompleteNXxx() method
 @DomainObjectLayout(named="Semantified Search",bookmarking= BookmarkPolicy.AS_ROOT)
@@ -68,7 +83,7 @@ public class ShipSearch implements Categorized, Comparable<ShipSearch> {
     // region > title, icon
     public String title() {
         final TitleBuffer buf = new TitleBuffer();
-         buf.append(getType());
+         buf.append("Ship Search for "+getType());
         return buf.toString();
     }
     //endregion
@@ -154,93 +169,6 @@ public class ShipSearch implements Categorized, Comparable<ShipSearch> {
     }
     //endregion
 
-    // region LogicType
-    public enum LogicType {
-        AND,
-        OR}
-    private LogicType andOr;
- //   @javax.jdo.annotations.Persistent(defaultFetchGroup="true") // ok ???
-    @PropertyLayout(named="")
-    @javax.jdo.annotations.Column(allowsNull="true")
-    @MemberOrder(name="AndOr", sequence="10")
-    public LogicType getAndOr() {
-        return andOr;
-    }
-    public void setAndOr(final LogicType andOr) {
-        this.andOr = andOr;
-    }
-    //endregion
-
-
-
-
-    // Region regulationTitle
-    private String regulationTitle;
-    @javax.jdo.annotations.Column(allowsNull="true", length=100)
-    @MemberOrder(name="Regulation Search",  sequence="10")
-    @PropertyLayout(typicalLength=100)
-    public String getRegulationTitle() {
-        return regulationTitle;
-    }
-    public void setRegulationTitle(final String regulationTitle) {this.regulationTitle = regulationTitle;
-    }
-    //endregion
-
-
-
-   // @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
-    private CreationController.RegulationType regulationType;
-  //  @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
-    @javax.jdo.annotations.Column(allowsNull="true")
-    @MemberOrder(name="Regulation Search", sequence="20")
-    public CreationController.RegulationType getRegulationType() {
-        return regulationType;
-    }
-    public void setRegulationType(final CreationController.RegulationType regulationType) {
-        this.regulationType = regulationType;
-    }
-    //endregion
-
-  @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
-    private CreationController.KPI kpi;
-     @javax.jdo.annotations.Column(allowsNull="true")
-    //   @Property(editing= Editing.DISABLED,editingDisabledReason="Use action to update kpi")
-    /*The @Disabled annotation means that the member cannot be used in any instance of the class. When applied to the property it means that the user may not modify the value of that property (though it may still be modified programmatically). When applied to an action method, it means that the user cannot invoke that method.*/
-    @MemberOrder(name="Regulation Search", sequence="21")
-    @PropertyLayout(hidden=Where.ALL_TABLES,named = "KPI")
-    public CreationController.KPI getKpi() {
-        return kpi;
-    }
-    public void setKpi(final CreationController.KPI kpi) {
-        this.kpi = kpi;
-    }
-    //endregion
-
-
-    // Start region applicabilityDate
-    @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
-    private LocalDate applicabilityDate;
-    @javax.jdo.annotations.Column(allowsNull="true")
-    @MemberOrder(name="Regulation Search", sequence="30")
-    public LocalDate getApplicabilityDate() {
-        return applicabilityDate;
-    }
-    public void setApplicabilityDate(final LocalDate applicabilityDate) {
-        this.applicabilityDate = applicabilityDate;
-    }
-    // endregion
-
-//    @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
-    private CreationController.ApplicableInType applicableIn;
-    @javax.jdo.annotations.Column(allowsNull="true")
-    @MemberOrder(name="Regulation Search", sequence="40")
-    public CreationController.ApplicableInType getApplicableIn() {
-        return applicableIn;
-    }
-    public void setApplicableIn(final CreationController.ApplicableInType applicableIn) {
-        this.applicableIn = applicableIn;
-    }
-    //endregion
 
 
     //region > ownedBy (property)
@@ -310,101 +238,102 @@ public class ShipSearch implements Categorized, Comparable<ShipSearch> {
 
 
     // BEGIN REGION Link from ShipSearch to SearchResult.
-     @javax.jdo.annotations.Persistent(mappedBy = "regulationLink")
-    @javax.jdo.annotations.Join // Make a separate join table.
+     @javax.jdo.annotations.Join // Make a separate join table.
     private SortedSet<IRI> iris = new TreeSet<IRI>();
     @SuppressWarnings("deprecation")
   //  @MemberOrder(name = "SKOS Terms (Select)", sequence = "90")
     // @MemberOrder(sequence = "90")
     @CollectionLayout(named = "Regulations Applicable for Ship", sortedBy = IRISComparator.class, render = RenderType.EAGERLY)
-    public SortedSet<IRI> getSkoses() {
-        return skoses;
+    public SortedSet<IRI> getIris() {
+        return iris;
     }
-    public void setSkoses(SortedSet<SKOS> skoses) {
-        this.skoses = skoses;
+    public void setIris(SortedSet<IRI> iris) {
+        this.iris = iris;
     }
-
-    public void removeFromSkoses(final SKOS skos) {
-        if (skos == null || !getSkoses().contains(skos)) return;
-        getSkoses().remove(skos);
+    public void removeFromIris(final IRI iri) {
+        if (iri == null || !getIris().contains(iri)) return;
+        getIris().remove(iri);
     }
-
     // / overrides the natural ordering
-    public static class SKOSComparator implements Comparator<SKOS> {
+    public static class IRISComparator implements Comparator<IRI> {
         @Override
-        public int compare(SKOS p, SKOS q) {
-            Ordering<SKOS> bySkos= new Ordering<SKOS>() {
-                public int compare(final SKOS p, final SKOS q) {
-                    return Ordering.natural().nullsFirst().compare(p.getUri(), q.getUri());
+        public int compare(IRI p, IRI q) {
+            Ordering<IRI> byIri= new Ordering<IRI>() {
+                public int compare(final IRI p, final IRI q) {
+                    return Ordering.natural().nullsFirst().compare(p.getIri(), q.getIri());
                 }
             };
-            return bySkos
-                    .compound(Ordering.<SKOS>natural())
+            return byIri
+                    .compound(Ordering.<IRI>natural())
                     .compare(p, q);
         }
     }
-
-    // BEGIN fetch SKOSs
+    // BEGIN fetch IRIs for this ship individual
     @Action()
-    @MemberOrder(name = "SKOS Terms (Select)", sequence = "60")
-    @ActionLayout(named = "Fetch")
-    public FreeText FetchSkosShow() {
+    @MemberOrder(name = "Regulations Applicable for Ship", sequence = "10")
+    @ActionLayout(named = "Search")
+    public ShipSearch FetchIris() {
 
-        FragmentSKOSConceptOccurrences fragment = restClient.GetSkos(plainRegulationText);
-        System.out.println("FREETEXT: fragment OK");
-        List<SKOS>  skosTermList = creationController.ShowSKOSlist(plainRegulationText,fragment);
 
-        Iterator it = skosTermList.iterator();
+        IndividualShip indShip = new IndividualShip();
+        indShip.setType(this.getType());
+        indShip.setPass(this.getPassengerNumber());
+        indShip.setTonnage(this.getTonnage());
+        indShip.setLength(this.getLength());
+        indShip.setDraft(this.getDraft());
+        indShip.setKeellaid(this.getKeelLaidDate());
+
+        List<String> regulationList = restClient.SearchRegulationByIndShip(indShip);
+        System.out.println("ShipSearch regulationList OK");
+
+        Iterator it = regulationList.iterator();
         while (it.hasNext()) {
-            SKOS thisSkos = (SKOS) it.next();
-            getSkoses().add(thisSkos);
+
+            String iriFound = (String) it.next();
+
+            Regulation regulationLink;
+            String regText;
+
+            // Have to find the regulation text and the link to this IRI:
+            // Search on chapter level
+            final  List<Regulation> foundRegs= container.allMatches(
+                    new QueryDefault<Regulation>(Regulation.class,
+                            "findRegulationByURI",
+                            "documentURI", iriFound));
+            if(foundRegs.isEmpty()) {
+                regulationLink = null;
+                regText = null;
+                container.warnUser("No Regulation found.");
+            }
+            else {
+                // URI is unique, so only one chapter is found:
+                regulationLink = foundRegs.get(0);
+                regText = regulationLink.getPlainRegulationText();
+
+            }
+            IRI thisReg = iriS.newIRI(iriFound,regText,regulationLink,this);
+
+            getIris().add(thisReg);
         }
+
+        // BEGIN dummy test:
+        IRI thisIRI= iriS.newIRI("Test URI", "This is the test regulation text", null, this);
+        getIris().add(thisIRI);
+        thisIRI= iriS.newIRI("Test URI no 2", "This is another test regulation text", null, this);
+        getIris().add(thisIRI);
+        // END dummy test:
         container.flush();
-        container.informUser("SKOS LIST fetched for" + container.titleOf(this));
+        container.informUser("Regulations fetched for individual ship: " + container.titleOf(this));
         return this;
     }
 // END FETCH applicability
 
 
-    @MemberOrder(name = "SKOS Terms (Select)", sequence = "90")
-    @ActionLayout(named = "Remove")
-    public FreeText removeSkos(final @ParameterLayout(typicalLength = 30) SKOS skos) {
-        wrapperFactory.wrapSkipRules(this).removeFromSkoses(skos);
-        container.removeIfNotAlready(skos);
-        return this;
-    }
-
-    // disable action dependent on state of object
-    public String disableRemoveSkos(final SKOS skos) {
-        return getSkoses().isEmpty() ? "No SKOSs to remove" : null;
-    }
-
-    // validate the provided argument prior to invoking action
-    public String validateRemoveSkos(final SKOS skos) {
-        if (!getSkoses().contains(skos)) {
-            return "Not a SKOS";
-        }
-        return null;
-    }
-
-    // provide a drop-down
-    public java.util.Collection<SKOS> choices0RemoveSkos() {
-        return getSkoses();
-    }
-
-    //END REGION Link Freetext to SKOS list
+    //END REGION Link ShipSearch to IRIs list
 
 
     //END
 
-
-    // Derived collection to fetch FREETEXTS based on the Regulation Tags:
-    @NotPersistent
-    public List <FreeText> searchResults () {
-        return newFreeTextCall.allFreeTexts().stream()
-                //.filter(x -> x.isFlag())
-        .collect(Collectors.toList());
-    }
 
     //region > lifecycle callbacks
 
@@ -496,7 +425,10 @@ public class ShipSearch implements Categorized, Comparable<ShipSearch> {
     private DomainObjectContainer container;
 
     @javax.inject.Inject
-    private RegulationSearchs regulationSearchs;
+    private RESTclient restClient;
+
+    @javax.inject.Inject
+    private IRIS iriS;
 
 
     @SuppressWarnings("deprecation")

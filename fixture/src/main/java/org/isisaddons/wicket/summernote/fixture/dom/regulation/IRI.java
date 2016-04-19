@@ -90,7 +90,7 @@ public class IRI implements Categorized, Comparable<IRI> {
      }
 
     private Regulation regulationLink;
-    @javax.jdo.annotations.Column(allowsNull="false")
+    @javax.jdo.annotations.Column(allowsNull="true")
     @Property(editing = Editing.DISABLED)
     public Regulation getRegulationLink() {
         return regulationLink;
@@ -105,8 +105,7 @@ public class IRI implements Categorized, Comparable<IRI> {
     // Mapping back from IRI to ShipSearch
     //Link to Section
     @javax.jdo.annotations.Column(allowsNull="true")
-    @Property(editing= Editing.DISABLED,editingDisabledReason="Cannot be updated from here")
-    @PropertyLayout(hidden=Where.REFERENCES_PARENT, named = "Link")
+    @Property(editing= Editing.DISABLED,editingDisabledReason="Cannot be updated from here",hidden=Where.ALL_TABLES)
     private ShipSearch searchLink;
     @javax.jdo.annotations.Column(allowsNull="true")
     public ShipSearch  getSearchLink() { return searchLink; }
@@ -178,7 +177,7 @@ public class IRI implements Categorized, Comparable<IRI> {
     @Override
     public String toString() {
 //        return ObjectContracts.toString(this, "description,complete,dueBy,ownedBy");
-        return ObjectContracts.toString(this, "uri");
+        return ObjectContracts.toString(this, "iri");
     }
 
     /**
@@ -186,7 +185,7 @@ public class IRI implements Categorized, Comparable<IRI> {
      */
     @Override
     public int compareTo(final IRI other) {
-        return ObjectContracts.compare(this, other, "uri");
+        return ObjectContracts.compare(this, other, "iri");
     }
     //endregion
 

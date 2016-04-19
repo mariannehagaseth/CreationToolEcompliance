@@ -28,38 +28,23 @@ import java.util.List;
 //import java.math.BigDecimal;
 
 //@DomainServiceLayout(named="Regulation Hierarchy",menuOrder="10")
-@DomainServiceLayout(menuBar= DomainServiceLayout.MenuBar.PRIMARY,named="Search Tool",menuOrder="60")
+@DomainServiceLayout(menuBar= DomainServiceLayout.MenuBar.PRIMARY,named="Search Tool",menuOrder="70")
 @DomainService(repositoryFor = RegulationSearch.class)
 public class RegulationSearchs {
 
 
     //region > newRegulationSearch (action)
     @MemberOrder(sequence = "10")
-    @ActionLayout(named="Start New Search")
+    @ActionLayout(named="Search Regulations for Tags")
     public RegulationSearch newRegulationSearch(
             final @Parameter(optionality=Optionality.MANDATORY) @ParameterLayout(typicalLength=100, named="Search Name") String searchName
-//           ,final @Parameter(optionality=Optionality.MANDATORY) @ParameterLayout(typicalLength=100, named="Tonnage") double tonnage
-//            ,final @Parameter(optionality=Optionality.MANDATORY) @ParameterLayout(typicalLength=100, named="Length") double length
-//            ,final @Parameter(optionality=Optionality.MANDATORY) @ParameterLayout(typicalLength=100, named="Passenger Number") int passengerNumber
-//            ,final @Parameter(optionality=Optionality.MANDATORY) @ParameterLayout(typicalLength=100, named="Draft") double draft
-  //         , final @Parameter(optionality=Optionality.MANDATORY) @ParameterLayout(typicalLength=100, named="Keel Laid Date") int keelLaidDate
-    )
+     )
     {
         return newRegulationSearch(
                 searchName,
-                0,
-                0,
-                0,
-                0,
-                0,
-        currentUserName()
+         currentUserName()
         );
     }
-//      public double default1NewRegulationSearch() {return 0;}
-//    public double default2NewRegulationSearch() {return 0;}
-//    public int default3NewRegulationSearch() {return 0;}
-//    public double default4NewRegulationSearch() {return 0;}
-//    public int default5NewRegulationSearch() {return 0;}
 
     @Programmatic // for use by fixtures
     /*The @Programmatic annotation can be used to cause Apache Isis to complete ignore a class member.
@@ -67,23 +52,12 @@ public class RegulationSearchs {
      * and it won't appear in any XML snapshots .*/
     public RegulationSearch newRegulationSearch(
             final String searchName,
-            final double tonnage,
-            final double length,
-            final int passengerNumber,
-            final double draft,
-            final int keelLaidDate,
-            final String userName
+             final String userName
     )
     {
         final RegulationSearch regulationSearch = container.newTransientInstance(RegulationSearch.class);
         regulationSearch.setSearchName(searchName);
         regulationSearch.setOwnedBy(userName);
-        regulationSearch.setAndOr(RegulationSearch.LogicType.AND);
-        regulationSearch.setTonnage(tonnage);
-        regulationSearch.setLength(length);
-        regulationSearch.setPassengerNumber(passengerNumber);
-        regulationSearch.setDraft(draft);
-        regulationSearch.setKeelLaidDate(keelLaidDate);
         container.persist(regulationSearch);
         container.flush();
         return regulationSearch;
@@ -96,8 +70,7 @@ public class RegulationSearchs {
     //region > allRegulationSearchs (action)
     @Action(semantics=SemanticsOf.SAFE,restrictTo=RestrictTo.PROTOTYPING)
     @MemberOrder(sequence = "20")
-    // Add this: OK???
-    @PropertyLayout(named="Select Regulation Searches")
+    @PropertyLayout(named="List Search Regulations for Tags")
     public List<RegulationSearch> allRegulationSearchs() {
         final List<RegulationSearch> items = container.allMatches(
                 new QueryDefault<RegulationSearch>(RegulationSearch.class,

@@ -85,6 +85,8 @@ public class Chapters {
         // start with manually add the solas chapter number:
         chapter.setChapterNumber(chapterNumber);
          chapter.setChapterTitle(chapterTitle);
+        chapter.setDocumentURI(null);
+        chapter.setRootURI(null);
         chapter.setAmendmentDate(clockService.now());
         chapter.setOwnedBy(userName);
         container.persist(chapter);

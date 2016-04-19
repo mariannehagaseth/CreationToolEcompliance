@@ -28,8 +28,7 @@ import org.apache.isis.applib.services.eventbus.EventBusService;
 import org.apache.isis.applib.services.wrapper.WrapperFactory;
 import org.apache.isis.applib.util.ObjectContracts;
 import org.apache.isis.applib.util.TitleBuffer;
-import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.FragmentSKOSConceptOccurrences;
-import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.ShipClass;
+import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.*;
 
 import javax.jdo.JDOHelper;
 import javax.jdo.annotations.IdentityType;
@@ -66,8 +65,8 @@ import java.util.List;
  // default unless overridden by autoCompleteNXxx() method
 @DomainObjectLayout(bookmarking= BookmarkPolicy.AS_ROOT)
 @MemberGroupLayout (
-		columnSpans={4,0,0,8},
-		left={"TextItem","Annotation"},
+		columnSpans={6,0,0,12},
+		left={"TextItem","Annotation","RDF"},
 		middle={},
         right={})
 public class SubSectionTextItem implements Categorized, Comparable<SubSectionTextItem> {
@@ -390,6 +389,94 @@ public class SubSectionTextItem implements Categorized, Comparable<SubSectionTex
     }
 // END SHOW applicability
 
+
+    //region > documentURI (property)
+    // documentURI contains the URI of the RDF-node storing the text for this chapter-node.
+    @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
+    private String documentURI;
+    @PropertyLayout(hidden=Where.ALL_TABLES)
+    @MemberOrder(name = "RDF", sequence = "20")
+    @javax.jdo.annotations.Column(allowsNull="true")
+    @Property(editing= Editing.DISABLED,editingDisabledReason="Programmatically updated")
+    public String getDocumentURI() {
+        return documentURI;
+    }
+    @ActionLayout(hidden=Where.EVERYWHERE)
+    public void setDocumentURI(final String documentURI) {
+        this.documentURI = documentURI;
+    }
+    //endregion
+
+    //region > targetShipClassURI (property)
+    // targetShipClassURI contains the URI of the target ship class for this text in this RDF-node.
+    @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
+    private String targetShipClassURI;
+    @PropertyLayout(hidden=Where.ALL_TABLES)
+    @MemberOrder(name = "RDF", sequence = "30")
+    @javax.jdo.annotations.Column(allowsNull="true")
+    @Property(editing= Editing.DISABLED,editingDisabledReason="Programmatically updated")
+    public String getTargetShipClassURI() {
+        return targetShipClassURI;
+    }
+    @ActionLayout(hidden=Where.EVERYWHERE)
+    public void setTargetShipClassURI(final String targetShipClassURI) {
+        this.targetShipClassURI = targetShipClassURI;
+    }
+    //endregion
+
+
+    //region > CREATE RDF node for the SubSectionTextItem: (action)
+    @Action()
+    @ActionLayout(named = "Make Persistent",position = ActionLayout.Position.PANEL)
+    @MemberOrder(name="Text", sequence="5")
+    public SubSectionTextItem storeSubSectionTextItem() {
+
+        System.out.println("Make Persistent_1");
+        // Must check if the documentURI has already been stored:
+
+        if (getDocumentURI() == null){
+            System.out.println("DocumentURI not fetched for this SubSection");
+
+            // Must call 192.168.33.10:9000/api/rdf/document/component for this chapter to create a RDF Document for this chapter
+            DocumentComponentList documentComponentList = new DocumentComponentList();
+
+            if (getId() == null) {documentComponentList.setVersion("0");}
+            else {
+                documentComponentList.setVersion(getId().toString());
+            }
+            // Parent is documentURI of the Chapter:
+            // freeTextSection is the link back to SubSection:
+            documentComponentList.setParent(subSection.getDocumentURI());
+            documentComponentList.setComponentType(DocumentComponentType.FRAGMENT);
+
+            DocumentComponent documentComponent = new DocumentComponent();
+
+            documentComponent.setTitle("TEXT ITEM"+" "+getItemNo());
+            documentComponent.setShortTitle("TEXT ITEM"+" "+getItemNo());
+            documentComponent.setText(getPlainRegulationText());
+//      THIS METHOD is missing:
+            //       documentComponentList.setComponent(documentComponent);
+
+
+            // Need to call the Component API to create the RDF node for the part.
+            // Will store the value in the documentURI property
+            IRIList iriList =restClient.CreateDocumentComponentNode(documentComponentList);
+            // has created the RDF node for only one CHAPTER, that is, only one Node, that is, only one IRI-element:
+            if (iriList.getIris().size()>0) {
+                setDocumentURI(iriList.getIris().get(0));
+            }
+            else
+            {setDocumentURI("Could not find URI for RDF");
+            }
+        }
+        else
+        {
+            // rootNode is not null, that is, already found.
+            System.out.println("DocumentURI is already fetched for this  = "+getDocumentURI()+".");
+        }
+        return this;
+    }
+    //endregion
 
     //region > lifecycle callbacks
 

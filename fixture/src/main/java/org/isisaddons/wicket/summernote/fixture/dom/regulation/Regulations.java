@@ -45,6 +45,7 @@ public class Regulations {
             final String partTitle,
             final String regulationNumber,
             final String regulationTitle,
+            final String plainRegulationText,
             final String userName
             )
     {
@@ -61,6 +62,9 @@ public class Regulations {
         if (chapterAnnexArticle == ChapterAnnex.DIRECTIVE) {regulation.setRegulationLabel("ARTICLE") ;};
         regulation.setRegulationNumber(regulationNumber);
         regulation.setRegulationTitle(regulationTitle);
+        regulation.setPlainRegulationText(plainRegulationText);
+        regulation.setDocumentURI(null);
+        regulation.setMandatory(true);
         regulation.setInvalidated(false);
         regulation.setFinalized(false);
         regulation.setOwnedBy(userName);

@@ -358,29 +358,16 @@ public String setColour () {
     }
     //endregion
 
-    //region > regulationType (property)
-    public static enum RegulationType {
-        Certificate,
-        Procedure,
-        Checklist,
-        TechnicalSpecification,
-        OperationalSpecification,
-        FunctionalRequirement,
-        GoalBasedRegulation,
-        Guideline,
-        ReportSpecification,
-        Template,
-        Other;
-    }
+
     @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
-    private RegulationType regulationType;
+    private CreationController.RegulationType regulationType;
     @javax.jdo.annotations.Column(allowsNull="true")
     //@Property(editing= Editing.DISABLED,editingDisabledReason="Use action to update regulationType")
     @MemberOrder(name="Regulation Tags (Edit)", sequence="20")
-    public RegulationType getRegulationType() {
+    public CreationController.RegulationType getRegulationType() {
         return regulationType;
     }
-    public void setRegulationType(final RegulationType regulationType) {
+    public void setRegulationType(final CreationController.RegulationType regulationType) {
         this.regulationType = regulationType;
     }
     //endregion

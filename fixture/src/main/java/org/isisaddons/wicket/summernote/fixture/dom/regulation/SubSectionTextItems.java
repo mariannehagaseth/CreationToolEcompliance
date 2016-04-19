@@ -103,6 +103,7 @@ public class SubSectionTextItems {
         final SubSectionTextItem subSectionTextItem= container.newTransientInstance(SubSectionTextItem.class);
         subSectionTextItem.setItemNo(itemNo);
         subSectionTextItem.setPlainRegulationText(plainRegulationText);
+        subSectionTextItem.setDocumentURI(null);
         subSectionTextItem.setOwnedBy(userName);
         container.persist(subSectionTextItem);
         container.flush();

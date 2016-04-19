@@ -8,9 +8,9 @@ import org.apache.isis.applib.annotation.Programmatic;
 import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.FragmentSKOSConceptOccurrences;
 import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.SKOSConceptOccurrence;
 import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.ShipClass;
-//import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @DomainService
 @DomainServiceLayout(menuBar= DomainServiceLayout.MenuBar.TERTIARY)
@@ -59,18 +59,18 @@ public class CreationController extends AbstractService   {
 
 	//region > kpi (property)
 	public static enum KPI {
-		Management_Leadership_And_Accountability,
-		Recruitment_And_Management_Of_Shore_Based_Personnel,
-		Recruitment_And_Management_Of_ShipPersonnel,
-		Reliability_And_MaintenanceStandards,
+		Management_Leadership_and_Accountability,
+		Recruitment_And_Management_of_Shore_Based_Personnel,
+		Recruitment_And_Management_of_Ship_Personnel,
+		Reliability_And_Maintenance_Standards,
 		Navigational_Safety,
 		Cargo_And_Ballast_Operations,
-		Management_Of_Change,
+		Management_of_Change,
 		Incident_Investigation_And_Analysis,
 		Safety_Management_Shore_Based_Monitoring,
 		Environmental_Management,
-		Emergency_Preparedness_And_Contingency_Planning,
-		Measurement_Analysis_And_Improvement;
+		Emergency_Preparedness_and_Contingency_Planning,
+		Measurement_Analysis_and_Improvement;
 	}
 
 
@@ -414,10 +414,10 @@ public List<SKOS> ShowSKOSlist(final String plainRegulationText, final FragmentS
 			minLengthEX = String.valueOf(shipClassFound.getMinLengthEx());
 			maxLengthIN = String.valueOf(shipClassFound.getMaxLengthIn());
 			maxLengthEX = String.valueOf(shipClassFound.getMaxLengthEx());
-			minPassIN = String.valueOf(shipClassFound.getMinPassengersIn());
-			minPassEX = String.valueOf(shipClassFound.getMinPassengersEx());
+			minPassIN = String.valueOf(shipClassFound.getMinPassengerIn());
+			minPassEX = String.valueOf(shipClassFound.getMinPassengerEx());
 			maxPassIN = String.valueOf(shipClassFound.getMaxPassengerIn());
-			maxPassEX = String.valueOf(shipClassFound.getMaxPassengersEx());
+			maxPassEX = String.valueOf(shipClassFound.getMaxPassengerEx());
 			minKeelLaidIN = String.valueOf(shipClassFound.getMinKeelLaidIn());
 			minKeelLaidEX = String.valueOf(shipClassFound.getMinKeelLaidEx());
 			maxKeelLaidIN = String.valueOf(shipClassFound.getMaxKeelLaidIn());

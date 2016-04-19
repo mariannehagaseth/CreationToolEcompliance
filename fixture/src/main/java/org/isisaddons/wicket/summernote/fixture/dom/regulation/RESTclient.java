@@ -10,6 +10,8 @@ import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.*;
 import javax.ws.rs.client.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -172,10 +174,10 @@ public class RESTclient extends AbstractService   {
 						shipClassFound.getMinDraughtEx(),
 						shipClassFound.getMaxDraughtIn(),
 						shipClassFound.getMaxDraughtEx(),
-						shipClassFound.getMinPassengersIn(),
-						shipClassFound.getMinPassengersEx(),
+						shipClassFound.getMinPassengerIn(),
+						shipClassFound.getMinPassengerEx(),
 						shipClassFound.getMaxPassengerIn(),
-						shipClassFound.getMaxPassengersEx(),
+						shipClassFound.getMaxPassengerEx(),
 						shipClassFound.getMinKeelLaidIn(),
 						shipClassFound.getMinKeelLaidEx(),
 						shipClassFound.getMaxKeelLaidIn(),
@@ -416,6 +418,58 @@ public class RESTclient extends AbstractService   {
 
 	private String currentUserName() {
 		return container.getUser().getName();
+	}
+
+
+	public List<String> SearchRegulationByIndShip(IndividualShip individualShip) {
+
+		IRIList iriList = new IRIList();
+		List<String> regulationList = new ArrayList<>();
+
+		class SemanticRuleCallback implements InvocationCallback<Response> {
+
+			@Override
+			public void completed(Response response) {
+			}
+			@Override
+			public void failed(Throwable throwable) {
+				System.out.println("Invocation failed.");
+				throwable.printStackTrace();
+			}
+		}
+		System.out.println("SearchRegulationByIndShip");
+		Client client = ClientBuilder.newClient();
+		WebTarget webTarget = client.target("http://192.168.33.10:9000/api/rdf/document/regulation");
+		Invocation.Builder invocationBuilder = webTarget.request(MediaType.APPLICATION_XML);
+		invocationBuilder.header("Content-type", "text/plain");
+		AsyncInvoker async_invoker = invocationBuilder.async();
+		InvocationCallback<Response> sftc = new SemanticRuleCallback();
+		Future<Response> response = async_invoker.post(Entity.entity(individualShip, MediaType.APPLICATION_XML), sftc);
+		Response responseEntity = null;
+		try {
+			responseEntity=response.get();
+			System.out.println("ResponseEntity in SearchRegulationByIndShip() = "+responseEntity.toString());
+			if (responseEntity.getStatus() ==200) {
+// CALL OK
+				iriList = responseEntity.readEntity(IRIList.class);
+				System.out.println("iriList found... = ");
+				regulationList = iriList.getIris();
+			}
+			else
+			{
+// CALL NOT OK
+				iriList = null;
+				regulationList = null;
+				System.out.println("iriList set=null");
+			}
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		} catch (ExecutionException e) {
+			e.printStackTrace();
+		}
+		System.out.println("return regulationList");
+
+		return regulationList;
 	}
 	//endregion
 

@@ -6,13 +6,9 @@
 //
 
 
-package com.ecompliance.xml;
+package org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlSchemaType;
-import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.*;
 
 
 /**
@@ -62,7 +58,7 @@ public class SKOSConceptOccurrence {
     protected Language language;
     @XmlElement(name = "skos_concept_property", required = true)
     @XmlSchemaType(name = "string")
-    protected SKOSConceptProperty skosConceptProperty;
+    protected  SKOSConceptProperty skosConceptProperty;
 
     /**
      * Gets the value of the uri property.
@@ -176,7 +172,7 @@ public class SKOSConceptOccurrence {
      *     {@link SKOSConceptProperty }
      *     
      */
-    public SKOSConceptProperty getSkosConceptProperty() {
+    public  SKOSConceptProperty getSkosConceptProperty() {
         return skosConceptProperty;
     }
 
@@ -188,7 +184,7 @@ public class SKOSConceptOccurrence {
      *     {@link SKOSConceptProperty }
      *     
      */
-    public void setSkosConceptProperty(SKOSConceptProperty value) {
+    public void setSkosConceptProperty( SKOSConceptProperty value) {
         this.skosConceptProperty = value;
     }
 

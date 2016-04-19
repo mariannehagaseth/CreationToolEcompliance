@@ -24,11 +24,14 @@ import com.google.common.collect.Ordering;
 import org.apache.isis.applib.DomainObjectContainer;
 import org.apache.isis.applib.Identifier;
 import org.apache.isis.applib.annotation.*;
+import org.apache.isis.applib.query.Query;
+import org.apache.isis.applib.query.QueryDefault;
 import org.apache.isis.applib.services.eventbus.ActionInteractionEvent;
 import org.apache.isis.applib.services.eventbus.EventBusService;
 import org.apache.isis.applib.services.wrapper.WrapperFactory;
 import org.apache.isis.applib.util.ObjectContracts;
 import org.apache.isis.applib.util.TitleBuffer;
+import org.isisaddons.wicket.summernote.fixture.dom.generated.xml.skos.FragmentSKOSConceptOccurrences;
 import org.joda.time.LocalDate;
 
 import javax.jdo.JDOHelper;
@@ -36,10 +39,7 @@ import javax.jdo.annotations.IdentityType;
 import javax.jdo.annotations.NotPersistent;
 import javax.jdo.annotations.VersionStrategy;
 import javax.naming.directory.SearchResult;
-import java.util.Comparator;
-import java.util.List;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @javax.jdo.annotations.PersistenceCapable(identityType=IdentityType.DATASTORE)
@@ -49,12 +49,7 @@ import java.util.stream.Collectors;
 @javax.jdo.annotations.Version(
         strategy=VersionStrategy.VERSION_NUMBER, 
         column="version")
-@javax.jdo.annotations.Uniques({
-    @javax.jdo.annotations.Unique(
-            name="Regulation_description_must_be_unique", 
-            members={"ownedBy","regulationTitle"})
-})
-@javax.jdo.annotations.Queries( {
+ @javax.jdo.annotations.Queries( {
         @javax.jdo.annotations.Query(
                 name = "findByOwnedBy", language = "JDOQL",
                 value = "SELECT "
@@ -65,15 +60,20 @@ import java.util.stream.Collectors;
                 value = "SELECT "
                         + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.RegulationSearch "
                         + "WHERE ownedBy == :ownedBy")
+ ,        @javax.jdo.annotations.Query(
+         name = "findRegByRegTitle", language = "JDOQL",
+         value = "SELECT "
+                 + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.Regulation "
+                 + "WHERE regulationTitle == :regulationTitle")
  })
 @DomainObject(objectType="REGULATIONSEARCH",autoCompleteRepository=RegulationSearchs.class, autoCompleteAction="autoComplete")
  // default unless overridden by autoCompleteNXxx() method
 @DomainObjectLayout(named="Semantified Search",bookmarking= BookmarkPolicy.AS_ROOT)
 @MemberGroupLayout (
-		columnSpans={5,2,5,12},
-		left={"Regulation Search based on Ship Particulars"},
-		middle={"AndOr"},
-        right={"Regulation Search"})
+		columnSpans={6,0,0,12},
+		left={"Regulation Search based on Tags","Search Result"},
+		middle={},
+        right={})
 
 public class RegulationSearch implements Categorized, Comparable<RegulationSearch> {
 
@@ -98,8 +98,8 @@ public class RegulationSearch implements Categorized, Comparable<RegulationSearc
     // Region searchName
     private String searchName;
     @javax.jdo.annotations.Column(allowsNull="true", length=100)
-    @MemberOrder(name="Regulation Search based on Ship Particulars",  sequence="10")
-    @PropertyLayout(hidden = Where.ALL_EXCEPT_STANDALONE_TABLES , typicalLength=100)
+    @MemberOrder(name="Regulation Search based on Tags",  sequence="5")
+    @PropertyLayout(hidden = Where.ALL_EXCEPT_STANDALONE_TABLES , typicalLength=100, named = "Search Name")
     public String getSearchName() {
         return searchName;
     }
@@ -108,110 +108,11 @@ public class RegulationSearch implements Categorized, Comparable<RegulationSearc
     //endregion
 
 
-    // Region type
-    private String type;
-    @javax.jdo.annotations.Column(allowsNull="true", length=100)
-    @MemberOrder(name="Regulation Search based on Ship Particulars",  sequence="20")
-    @PropertyLayout(typicalLength=100)
-    public String getType() {
-        return type;
-    }
-    public void setType(final String type) {this.type = type;
-    }
-    //endregion
-
-    // Region shipTypeTonnage
-    @javax.jdo.annotations.Column(allowsNull="false")
-    @MemberOrder(name="Regulation Search based on Ship Particulars",  sequence="30")
-    @PropertyLayout(typicalLength=100)
-    private double tonnage;
-    public double getTonnage() {
-        return tonnage;
-    }
-    public void setTonnage(final double tonnage) {this.tonnage = tonnage;
-    }
-    //endregion
-
-
-
-    // Region shipTypeLength
-    @javax.jdo.annotations.Column(allowsNull="false")
-    @MemberOrder(name="Regulation Search based on Ship Particulars",  sequence="40")
-    @PropertyLayout(typicalLength=100)
-    private double length;
-    public double getLength() {
-        return length;
-    }
-    public void setLength(final double length) {this.length = length;
-    }
-    //endregion
-
-
-
-    // Region shipTypeLength
-    @javax.jdo.annotations.Column(allowsNull="false")
-    @MemberOrder(name="Regulation Search based on Ship Particulars",  sequence="50")
-    @PropertyLayout(typicalLength=100)
-    private int passengerNumber;
-    public int getPassengerNumber() {
-        return passengerNumber;
-    }
-    public void setPassengerNumber(final int passengerNumber) {this.passengerNumber = passengerNumber;
-    }
-    //endregion
-
-
-    // Region shipTypeDraft
-    @javax.jdo.annotations.Column(allowsNull="false")
-    @MemberOrder(name="Regulation Search based on Ship Particulars",  sequence="60")
-    @PropertyLayout(typicalLength=100)
-    private double draft;
-    public double getDraft() {
-        return draft;
-    }
-    public void setDraft(final double draft) {this.draft = draft;
-    }
-    //endregion
-
-
-
-    // Region shipTypeKeelLaidDate
-    @javax.jdo.annotations.Column(allowsNull="false")
-    @MemberOrder(name="Regulation Search based on Ship Particulars",  sequence="80")
-    @PropertyLayout(typicalLength=100)
-    private int keelLaidDate;
-    public int getKeelLaidDate() {
-        return keelLaidDate;
-    }
-    public void setKeelLaidDate(final int keelLaidDate) {this.keelLaidDate = keelLaidDate;
-    }
-    //endregion
-
-    // region LogicType
-    public enum LogicType {
-        AND,
-        OR}
-    private LogicType andOr;
- //   @javax.jdo.annotations.Persistent(defaultFetchGroup="true") // ok ???
-    @PropertyLayout(named="")
-    @javax.jdo.annotations.Column(allowsNull="true")
-    @MemberOrder(name="AndOr", sequence="10")
-    public LogicType getAndOr() {
-        return andOr;
-    }
-    public void setAndOr(final LogicType andOr) {
-        this.andOr = andOr;
-    }
-    //endregion
-
-
-
-
     // Region regulationTitle
     private String regulationTitle;
     @javax.jdo.annotations.Column(allowsNull="true", length=100)
-    @MemberOrder(name="Regulation Search",  sequence="10")
-    @PropertyLayout(typicalLength=100)
+    @MemberOrder(name="Regulation Search based on Tags",  sequence="10")
+    @PropertyLayout(typicalLength=100,named = "Regulation Title")
     public String getRegulationTitle() {
         return regulationTitle;
     }
@@ -219,13 +120,40 @@ public class RegulationSearch implements Categorized, Comparable<RegulationSearc
     }
     //endregion
 
+    // BEGIN fetch Regulations
+    @Action()
+    @MemberOrder(name = "Regulation Title", sequence = "10")
+    @ActionLayout(named = "Search", position = ActionLayout.Position.RIGHT)
+    public RegulationSearch searchRegText() {
+        // clear the previous search
+        setRegs(null);
+        container.flush();
+        final  List<Regulation> foundRegs= container.allMatches(
+                new QueryDefault<Regulation>(Regulation.class,
+                        "findRegByRegTitle",
+                        "regulationTitle", regulationTitle));
+        if(foundRegs.isEmpty()) {
+            container.warnUser("No Regulations found.");
+        }
+        Iterator it =foundRegs.iterator();
+        while (it.hasNext()) {
+            Regulation thisReg = (Regulation) it.next();
+            getRegs().add(thisReg);
+        }
+        container.flush();
+        container.informUser("Regulation Search Completed" + container.titleOf(this));
+        return this;
+    }
+// END FETCH Regulations
+
 
 
    // @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
     private CreationController.RegulationType regulationType;
   //  @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
     @javax.jdo.annotations.Column(allowsNull="true")
-    @MemberOrder(name="Regulation Search", sequence="20")
+    @MemberOrder(name="Regulation Search based on Tags", sequence="20")
+    @PropertyLayout(named = "Regulation Type" ,typicalLength=100)
     public CreationController.RegulationType getRegulationType() {
         return regulationType;
     }
@@ -234,13 +162,41 @@ public class RegulationSearch implements Categorized, Comparable<RegulationSearc
     }
     //endregion
 
+    // BEGIN fetch Regulations
+    @Action()
+    @MemberOrder(name = "Regulation Type", sequence = "10")
+    @ActionLayout(named = "Search", position = ActionLayout.Position.RIGHT)
+    public RegulationSearch searchRegType() {
+        // clear the previous search
+        setRegs(null);
+        container.flush();
+        final  List<Regulation> foundRegs= container.allMatches(
+                new QueryDefault<Regulation>(Regulation.class,
+                        "findRegByRegulationType",
+                        "regulationType", regulationType));
+        if(foundRegs.isEmpty()) {
+            container.warnUser("No Regulations found.");
+        }
+        else {
+            Iterator it = foundRegs.iterator();
+            while (it.hasNext()) {
+                Regulation thisReg = (Regulation) it.next();
+                getRegs().add(thisReg);
+            }
+        container.informUser("Regulation Search Completed" + container.titleOf(this));
+        }
+        container.flush();
+        return this;
+    }
+    // END FETCH Regulations
+
   @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
     private CreationController.KPI kpi;
      @javax.jdo.annotations.Column(allowsNull="true")
     //   @Property(editing= Editing.DISABLED,editingDisabledReason="Use action to update kpi")
     /*The @Disabled annotation means that the member cannot be used in any instance of the class. When applied to the property it means that the user may not modify the value of that property (though it may still be modified programmatically). When applied to an action method, it means that the user cannot invoke that method.*/
-    @MemberOrder(name="Regulation Search", sequence="21")
-    @PropertyLayout(hidden=Where.ALL_TABLES,named = "KPI")
+    @MemberOrder(name="Regulation Search based on Tags", sequence="21")
+    @PropertyLayout(hidden=Where.ALL_TABLES,named = "KPI", typicalLength=100)
     public CreationController.KPI getKpi() {
         return kpi;
     }
@@ -249,12 +205,41 @@ public class RegulationSearch implements Categorized, Comparable<RegulationSearc
     }
     //endregion
 
+    // BEGIN fetch Regulations
+    @Action()
+    @MemberOrder(name = "KPI", sequence = "10")
+    @ActionLayout(named = "Search", position = ActionLayout.Position.RIGHT)
+    public RegulationSearch searchRegKPI() {
+        // clear the previous search
+        setRegs(null);
+        container.flush();
+        final  List<Regulation> foundRegs= container.allMatches(
+                new QueryDefault<Regulation>(Regulation.class,
+                        "findRegByKpi",
+                        "kpi", kpi));
+        if(foundRegs.isEmpty()) {
+            container.warnUser("No Regulations found.");
+        }
+        else {
+            Iterator it = foundRegs.iterator();
+            while (it.hasNext()) {
+                Regulation thisReg = (Regulation) it.next();
+                getRegs().add(thisReg);
+            }
+            container.informUser("Regulation Search Completed" + container.titleOf(this));
+        }
+        container.flush();
+        return this;
+    }
+    // END FETCH Regulations
+
 
     // Start region applicabilityDate
     @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
     private LocalDate applicabilityDate;
     @javax.jdo.annotations.Column(allowsNull="true")
-    @MemberOrder(name="Regulation Search", sequence="30")
+    @MemberOrder(name="Regulation Search based on Tags", sequence="30")
+    @PropertyLayout(named = "Applicability Date")
     public LocalDate getApplicabilityDate() {
         return applicabilityDate;
     }
@@ -263,10 +248,41 @@ public class RegulationSearch implements Categorized, Comparable<RegulationSearc
     }
     // endregion
 
-//    @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
+
+    // BEGIN fetch Regulations
+    @Action()
+    @MemberOrder(name = "Applicability Date", sequence = "10")
+    @ActionLayout(named = "Search", position = ActionLayout.Position.RIGHT)
+    public RegulationSearch searchApplicabilityDate() {
+        // clear the previous search
+        setRegs(null);
+        container.flush();
+        final  List<Regulation> foundRegs= container.allMatches(
+                new QueryDefault<Regulation>(Regulation.class,
+                        "findRegByApplicabilityDate",
+                        "applicabilityDate", applicabilityDate));
+        if(foundRegs.isEmpty()) {
+            container.warnUser("No Regulations found.");
+        }
+        else {
+            Iterator it = foundRegs.iterator();
+            while (it.hasNext()) {
+                Regulation thisReg = (Regulation) it.next();
+                getRegs().add(thisReg);
+            }
+            container.informUser("Regulation Search Completed" + container.titleOf(this));
+        }
+        container.flush();
+        return this;
+    }
+    // END FETCH Regulations
+
+
+    //    @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
     private CreationController.ApplicableInType applicableIn;
     @javax.jdo.annotations.Column(allowsNull="true")
-    @MemberOrder(name="Regulation Search", sequence="40")
+    @MemberOrder(name="Regulation Search based on Tags", sequence="40")
+    @PropertyLayout(named = "Applicable In")
     public CreationController.ApplicableInType getApplicableIn() {
         return applicableIn;
     }
@@ -274,7 +290,64 @@ public class RegulationSearch implements Categorized, Comparable<RegulationSearc
         this.applicableIn = applicableIn;
     }
     //endregion
+    // BEGIN fetch Regulations
+    @Action()
+    @MemberOrder(name = "Applicable In", sequence = "10")
+    @ActionLayout(named = "Search", position = ActionLayout.Position.RIGHT)
+    public RegulationSearch searchApplicableIn() {
+        // clear the previous search
+        setRegs(null);
+        container.flush();
+        final  List<Regulation> foundRegs= container.allMatches(
+                new QueryDefault<Regulation>(Regulation.class,
+                        "findRegByApplicableIn",
+                        "applicableIn", applicableIn));
+        if(foundRegs.isEmpty()) {
+            container.warnUser("No Regulations found.");
+        }
+        else {
+            Iterator it = foundRegs.iterator();
+            while (it.hasNext()) {
+                Regulation thisReg = (Regulation) it.next();
+                getRegs().add(thisReg);
+            }
+            container.informUser("Regulation Search Completed" + container.titleOf(this));
+        }
+        container.flush();
+        return this;
+    }
+    // END FETCH Regulations
 
+
+
+
+    // BEGIN REGION LIST OF REGULATIONS returned from SEARCH
+    private SortedSet<Regulation> regs= new TreeSet<Regulation>();
+    @SuppressWarnings("deprecation")
+    @MemberOrder(name = "Search Result", sequence = "10")
+    @CollectionLayout(named = "Search Result", sortedBy = RegulationComparator.class, render = RenderType.EAGERLY)
+    public SortedSet<Regulation> getRegs() {
+        return regs;
+    }
+    public void setRegs(SortedSet<Regulation> regs) {
+        this.regs = regs;
+    }
+
+    // / overrides the natural ordering
+    public static class RegulationComparator implements Comparator<Regulation> {
+        @Override
+        public int compare(Regulation p, Regulation q) {
+            Ordering<Regulation> byReg= new Ordering<Regulation>() {
+                public int compare(final Regulation p, final Regulation q) {
+                    return Ordering.natural().nullsFirst().compare(p.getRegulationNumber(), q.getRegulationNumber());
+                }
+            };
+            return byReg
+                    .compound(Ordering.<Regulation>natural())
+                    .compare(p, q);
+        }
+    }
+// END LIST OF REGULATIONS returned from SEARCH
 
     //region > ownedBy (property)
     @javax.jdo.annotations.Persistent(defaultFetchGroup="true")
@@ -341,27 +414,6 @@ public class RegulationSearch implements Categorized, Comparable<RegulationSearc
     }
 
 
-
-    // BEGIN REGION Link from RegulationSearch to SearchResult.
-    // Collection of SearchResults that is fetched from the oi.getRegulationsForShipInstance(myship);
-public List<Chapter> listChapter(){
-    return chapters.allChapters().stream()
-            //.filter()
-            .collect(Collectors.toList());
-}
-
-
-    //END
-
-
-    // Derived collection to fetch FREETEXTS based on the Regulation Tags:
-    @NotPersistent
-    @MemberOrder(name="Regulation Search",  sequence="10")
-    public List <FreeText> searchResults () {
-        return newFreeTextCall.allFreeTexts().stream()
-                //.filter(x -> x.isFlag())
-        .collect(Collectors.toList());
-    }
 
     //region > lifecycle callbacks
 

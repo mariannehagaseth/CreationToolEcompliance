@@ -86,6 +86,7 @@ public class Parts {
         part.setChapterNumber(chapterNumber);
         part.setPartNumber(partNumber);
         part.setPartTitle(partTitle);
+        part.setDocumentURI(null);
         part.setAmendmentDate(clockService.now());
         part.setFinalized(false);
         part.setOwnedBy(userName);
