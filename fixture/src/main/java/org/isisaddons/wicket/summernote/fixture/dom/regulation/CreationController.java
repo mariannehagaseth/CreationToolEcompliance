@@ -268,6 +268,7 @@ public List<SKOS> ShowSKOSlist(final String plainRegulationText, final FragmentS
 					System.out.println("skosConceptPropertyLabel = " + "i=" + i + " " + skosConceptPropertyLabel);
 
 					String skosConceptUri = skosList.get(i).getUri();
+					String skosHierarchy = skosList.get(i).getHierarchy();
 					String skosConceptProperyValue = skosConceptUri.substring(skosConceptUri.indexOf("#") + 1);
 					skosConceptProperyValue = skosConceptProperyValue.replace("_"," ");
 					System.out.println("skosConceptProperyValue = " + "i=" + i + " " + skosConceptProperyValue);
@@ -342,7 +343,7 @@ public List<SKOS> ShowSKOSlist(final String plainRegulationText, final FragmentS
 					System.out.println("usedTerm="+usedTerm);
 					System.out.println("skosConceptPropertyLabel="+skosConceptPropertyLabel);
 					SKOS thisskos =skoss.newSKOS(
-							skosConceptUri,
+							skosHierarchy+","+skosConceptUri,
 							skosConceptProperyValue,
 							usedTerm,
 							skosConceptPropertyLabel);

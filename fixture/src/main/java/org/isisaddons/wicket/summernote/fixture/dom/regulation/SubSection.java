@@ -72,7 +72,7 @@ import java.util.*;
 @DomainObjectLayout(bookmarking= BookmarkPolicy.AS_ROOT)
 @MemberGroupLayout (
 		columnSpans={6,0,0,6},
-		left={"SubSection","Annotation"},
+		left={"SubSection","Annotation","List","RDF"},
 		middle={},
         right={})
 public class SubSection implements Categorized, Comparable<SubSection> {
@@ -133,10 +133,22 @@ public class SubSection implements Categorized, Comparable<SubSection> {
     }
     //endregion
 
+    // Region plainRegulationText
+    private String subSectionTitle;
+    @javax.jdo.annotations.Column(allowsNull = "true", length = 100)
+    @MemberOrder(name = "SubSection", sequence = "14")
+    @PropertyLayout(typicalLength = 100, named = "Title")
+    public String getSubSectionTitle() {
+        return subSectionTitle;
+    }
+    public void setSubSectionTitle(final String subSectionTitle) {
+        this.subSectionTitle = subSectionTitle;
+    }
+    //endregion
 
     // Region plainRegulationText
     private String plainRegulationText;
-    @javax.jdo.annotations.Column(allowsNull="false", length=10000)
+    @javax.jdo.annotations.Column(allowsNull="true", length=10000)
    // @Property(regexPattern="\\w[@&:\\-\\,\\.\\+ \\w]*")
     @MemberOrder(name="SubSection", sequence="15")
     @PropertyLayout(typicalLength=10000, multiLine=8, named = "Text")
@@ -428,6 +440,20 @@ public class SubSection implements Categorized, Comparable<SubSection> {
 
 // END SHOW target
 
+    // Region regulationAND
+    private boolean regulationAND;
+    @javax.jdo.annotations.Column(allowsNull = "true")
+    @javax.jdo.annotations.Persistent(defaultFetchGroup = "true")
+    @PropertyLayout(hidden = Where.ALL_TABLES)
+    @MemberOrder(name = "List", sequence = "40")
+    public boolean getRegulationAND() {
+        return regulationAND;
+    }
+    public void setRegulationAND(final boolean regulationAND) {
+        this.regulationAND = regulationAND;
+    }
+    //end region
+
 
     //BEGIN show applicability
     private String applicability;
@@ -562,6 +588,7 @@ public class SubSection implements Categorized, Comparable<SubSection> {
         return this;
     }
     //endregion
+
 
 
     //region > lifecycle callbacks

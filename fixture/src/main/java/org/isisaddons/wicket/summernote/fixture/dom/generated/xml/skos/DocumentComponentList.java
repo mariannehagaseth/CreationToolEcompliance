@@ -42,6 +42,7 @@ import java.util.List;
     "componentType",
     "component"
 })
+@XmlRootElement(name="document_component_list")
 public class DocumentComponentList {
 
     @XmlElement(required = true)

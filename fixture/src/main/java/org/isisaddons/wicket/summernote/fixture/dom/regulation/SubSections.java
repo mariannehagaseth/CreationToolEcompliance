@@ -39,11 +39,13 @@ public class SubSections {
  //   @ActionLayout(named="Add New Section")
     public SubSection newSubSection(
             final @Parameter(optionality=Optionality.MANDATORY) @ParameterLayout(typicalLength=10, named="Sub Section NO") String subSectionNo,
-            final @Parameter(optionality=Optionality.MANDATORY) @ParameterLayout(typicalLength=1000, multiLine=8,named="Regulation Text") String plainRegulationText
+            final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=100, named="Title") String subSectionTitle,
+            final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength=1000, multiLine=8,named="Regulation Text") String plainRegulationText
      )
     {
         return newSubSection(
                 subSectionNo,
+                subSectionTitle,
                 plainRegulationText,
                 currentUserName()
         );
@@ -96,14 +98,17 @@ public class SubSections {
      * and it won't appear in any XML snapshots .*/
     public SubSection newSubSection(
             final String subSectionNo,
+            final String subSectionTitle,
             final String plainRegulationText,
             final String userName
             )
     {
         final SubSection subSection= container.newTransientInstance(SubSection.class);
         subSection.setSubSectionNo(subSectionNo);
+        subSection.setSubSectionTitle(subSectionTitle);
         subSection.setPlainRegulationText(plainRegulationText);
         subSection.setDocumentURI(null);
+        subSection.setRegulationAND(false);
         subSection.setOwnedBy(userName);
         container.persist(subSection);
         container.flush();

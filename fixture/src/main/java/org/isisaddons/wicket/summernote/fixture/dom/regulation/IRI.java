@@ -80,7 +80,7 @@ public class IRI implements Categorized, Comparable<IRI> {
        }
 
      private String plainRegulationText;
-    @javax.jdo.annotations.Column(allowsNull="false")
+    @javax.jdo.annotations.Column(allowsNull="true")
      @Property(editing = Editing.DISABLED)
     public String getPlainRegulationText() {
         return plainRegulationText;

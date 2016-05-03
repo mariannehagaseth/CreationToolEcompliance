@@ -45,6 +45,7 @@ import java.math.BigInteger;
     "realises",
     "text"
 })
+@XmlRootElement(name="document_root")
 public class DocumentRoot {
 
     @XmlElement(required = true)

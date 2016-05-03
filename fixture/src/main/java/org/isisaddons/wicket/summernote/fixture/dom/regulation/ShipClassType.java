@@ -67,7 +67,7 @@ public class ShipClassType implements Categorized, Comparable<ShipClassType>  {
 
     @javax.jdo.annotations.Column(allowsNull="false")
     @MemberOrder(name="Tonnage",  sequence="10")
-    @PropertyLayout(typicalLength=100,named = "Tonnage >=",hidden=Where.ALL_TABLES)
+    @PropertyLayout(typicalLength=100,named = "Tonnage >",hidden=Where.ALL_TABLES)
     private double minTonnageIn;
     public double getMinTonnageIn() {
         return minTonnageIn;
@@ -78,7 +78,7 @@ public class ShipClassType implements Categorized, Comparable<ShipClassType>  {
 
     @javax.jdo.annotations.Column(allowsNull="false")
     @MemberOrder(name="Tonnage",  sequence="12")
-    @PropertyLayout(typicalLength=100,named = "Tonnage >",hidden=Where.ALL_TABLES)
+    @PropertyLayout(typicalLength=100,named = "Tonnage >=",hidden=Where.ALL_TABLES)
      private double minTonnageEx;
     public double getMinTonnageEx() {
         return minTonnageEx;
@@ -89,7 +89,7 @@ public class ShipClassType implements Categorized, Comparable<ShipClassType>  {
 
     @javax.jdo.annotations.Column(allowsNull="false")
     @MemberOrder(name="Tonnage",  sequence="14")
-    @PropertyLayout(typicalLength=100,named = "Tonnage <=",hidden=Where.ALL_TABLES)
+    @PropertyLayout(typicalLength=100,named = "Tonnage <",hidden=Where.ALL_TABLES)
     private double maxTonnageIn;
     public double getMaxTonnageIn() {
         return maxTonnageIn;
@@ -101,7 +101,7 @@ public class ShipClassType implements Categorized, Comparable<ShipClassType>  {
 
     @javax.jdo.annotations.Column(allowsNull="false")
     @MemberOrder(name="Tonnage",  sequence="16")
-    @PropertyLayout(typicalLength=100,named = "Tonnage <",hidden=Where.ALL_TABLES)
+    @PropertyLayout(typicalLength=100,named = "Tonnage <=",hidden=Where.ALL_TABLES)
       private double maxTonnageEx;
     public double getMaxTonnageEx() {
         return maxTonnageEx;
@@ -112,7 +112,7 @@ public class ShipClassType implements Categorized, Comparable<ShipClassType>  {
 
     @javax.jdo.annotations.Column(allowsNull="false" )
     @MemberOrder(name="Length",  sequence="18")
-    @PropertyLayout(typicalLength=100,named = "Length >=",hidden=Where.ALL_TABLES)
+    @PropertyLayout(typicalLength=100,named = "Length >",hidden=Where.ALL_TABLES)
     private double minLengthIn;
     public double getMinLengthIn() {
         return minLengthIn;
@@ -124,7 +124,7 @@ public class ShipClassType implements Categorized, Comparable<ShipClassType>  {
 
     @javax.jdo.annotations.Column(allowsNull="false" )
     @MemberOrder(name="Length",  sequence="20")
-    @PropertyLayout(typicalLength=100,named = "Length >",hidden=Where.ALL_TABLES)
+    @PropertyLayout(typicalLength=100,named = "Length >=",hidden=Where.ALL_TABLES)
       private double minLengthEx;
     public double getMinLengthEx() {
         return minLengthEx;
@@ -136,7 +136,7 @@ public class ShipClassType implements Categorized, Comparable<ShipClassType>  {
 
     @javax.jdo.annotations.Column(allowsNull="false" )
     @MemberOrder(name="Length",  sequence="22")
-    @PropertyLayout(typicalLength=100,named = "Length <=",hidden=Where.ALL_TABLES)
+    @PropertyLayout(typicalLength=100,named = "Length <",hidden=Where.ALL_TABLES)
     private double maxLengthIn;
     public double getMaxLengthIn() {
         return maxLengthIn;
@@ -148,7 +148,7 @@ public class ShipClassType implements Categorized, Comparable<ShipClassType>  {
 
      @javax.jdo.annotations.Column(allowsNull="false" )
     @MemberOrder(name="Length",  sequence="24")
-    @PropertyLayout(typicalLength=100,named = "Length <",hidden=Where.ALL_TABLES)
+    @PropertyLayout(typicalLength=100,named = "Length <=",hidden=Where.ALL_TABLES)
       private double maxLengthEx;
     public double getMaxLengthEx() {
         return maxLengthEx;
@@ -161,7 +161,7 @@ public class ShipClassType implements Categorized, Comparable<ShipClassType>  {
 
     @javax.jdo.annotations.Column(allowsNull="false" )
     @MemberOrder(name="Draught",  sequence="26")
-    @PropertyLayout(typicalLength=100,named = "Draught >=",hidden=Where.ALL_TABLES)
+    @PropertyLayout(typicalLength=100,named = "Draught >",hidden=Where.ALL_TABLES)
     private double minDraughtIn;
     public double getMinDraughtIn() {
         return minDraughtIn;
@@ -172,7 +172,7 @@ public class ShipClassType implements Categorized, Comparable<ShipClassType>  {
 
      @javax.jdo.annotations.Column(allowsNull="false" )
     @MemberOrder(name="Draught",  sequence="28")
-    @PropertyLayout(typicalLength=100,named = "Draught >",hidden=Where.ALL_TABLES)
+    @PropertyLayout(typicalLength=100,named = "Draught >=",hidden=Where.ALL_TABLES)
       private double minDraughtEx;
     public double getMinDraughtEx() {
         return minDraughtEx;
@@ -183,7 +183,7 @@ public class ShipClassType implements Categorized, Comparable<ShipClassType>  {
 
     @javax.jdo.annotations.Column(allowsNull="false" )
     @MemberOrder(name="Draught",  sequence="30")
-    @PropertyLayout(typicalLength=100,named = "Draught <=",hidden=Where.ALL_TABLES)
+    @PropertyLayout(typicalLength=100,named = "Draught <",hidden=Where.ALL_TABLES)
     private double maxDraughtIn;
     public double getMaxDraughtIn() {
         return maxDraughtIn;
@@ -195,7 +195,7 @@ public class ShipClassType implements Categorized, Comparable<ShipClassType>  {
 
     @javax.jdo.annotations.Column(allowsNull="false" )
     @MemberOrder(name="Draught",  sequence="32")
-    @PropertyLayout(typicalLength=100,named = "Draught <",hidden=Where.ALL_TABLES)
+    @PropertyLayout(typicalLength=100,named = "Draught <=",hidden=Where.ALL_TABLES)
       private double maxDraughtEx;
     public double getMaxDraughtEx() {
         return maxDraughtEx;
@@ -207,7 +207,7 @@ public class ShipClassType implements Categorized, Comparable<ShipClassType>  {
 
     @javax.jdo.annotations.Column(allowsNull="false" )
     @MemberOrder(name="Number of Passengers",  sequence="34")
-    @PropertyLayout(typicalLength=100,named = "No of Passengers >=",hidden=Where.ALL_TABLES)
+    @PropertyLayout(typicalLength=100,named = "No of Passengers >",hidden=Where.ALL_TABLES)
     private int minPassengersIn;
     public int getMinPassengersIn() {
         return minPassengersIn;
@@ -219,7 +219,7 @@ public class ShipClassType implements Categorized, Comparable<ShipClassType>  {
 
      @javax.jdo.annotations.Column(allowsNull="false" )
     @MemberOrder(name="Number of Passengers",  sequence="36")
-    @PropertyLayout(typicalLength=100,named = "No of Passengers >",hidden=Where.ALL_TABLES)
+    @PropertyLayout(typicalLength=100,named = "No of Passengers >=",hidden=Where.ALL_TABLES)
       private int minPassengersEx;
     public int getMinPassengersEx() {
         return minPassengersEx;
@@ -230,7 +230,7 @@ public class ShipClassType implements Categorized, Comparable<ShipClassType>  {
 
     @javax.jdo.annotations.Column(allowsNull="false" )
     @MemberOrder(name="Number of Passengers",  sequence="38")
-    @PropertyLayout(typicalLength=100,named = "No of Passengers <=",hidden=Where.ALL_TABLES)
+    @PropertyLayout(typicalLength=100,named = "No of Passengers <",hidden=Where.ALL_TABLES)
     private int maxPassengerIn;
     public int getMaxPassengerIn() {
         return maxPassengerIn;
@@ -241,7 +241,7 @@ public class ShipClassType implements Categorized, Comparable<ShipClassType>  {
 
     @javax.jdo.annotations.Column(allowsNull="false" )
     @MemberOrder(name="Number of Passengers",  sequence="40")
-    @PropertyLayout(typicalLength=100,named = "No of Passengers <",hidden=Where.ALL_TABLES)
+    @PropertyLayout(typicalLength=100,named = "No of Passengers <=",hidden=Where.ALL_TABLES)
       private int maxPassengersEx;
     public int getMaxPassengersEx() {
         return maxPassengersEx;
@@ -253,7 +253,7 @@ public class ShipClassType implements Categorized, Comparable<ShipClassType>  {
 
     @javax.jdo.annotations.Column(allowsNull="false" )
     @MemberOrder( name="Keel Laid Date", sequence="42")
-    @PropertyLayout(typicalLength=100,named = "Keel Laid Date >=",hidden=Where.ALL_TABLES)
+    @PropertyLayout(typicalLength=100,named = "Keel Laid Date >",hidden=Where.ALL_TABLES)
     private  int minKeelLaidIn;
     public int getMinKeelLaidIn() {
         return minKeelLaidIn;
@@ -264,7 +264,7 @@ public class ShipClassType implements Categorized, Comparable<ShipClassType>  {
 
      @javax.jdo.annotations.Column(allowsNull="false" )
     @MemberOrder( name="Keel Laid Date", sequence="44")
-    @PropertyLayout(typicalLength=100,named = "Keel Laid Date >",hidden=Where.ALL_TABLES)
+    @PropertyLayout(typicalLength=100,named = "Keel Laid Date >=",hidden=Where.ALL_TABLES)
       private int minKeelLaidEx;
     public int getMinKeelLaidEx() {
         return minKeelLaidEx;
@@ -275,7 +275,7 @@ public class ShipClassType implements Categorized, Comparable<ShipClassType>  {
 
     @javax.jdo.annotations.Column(allowsNull="false" )
     @MemberOrder(  name="Keel Laid Date",sequence="46")
-    @PropertyLayout(typicalLength=100,named = "Keel Laid Date <=",hidden=Where.ALL_TABLES)
+    @PropertyLayout(typicalLength=100,named = "Keel Laid Date <",hidden=Where.ALL_TABLES)
     private  int maxKeelLaidIn;
     public int getMaxKeelLaidIn() {
         return maxKeelLaidIn;
@@ -287,7 +287,7 @@ public class ShipClassType implements Categorized, Comparable<ShipClassType>  {
 
      @javax.jdo.annotations.Column(allowsNull="false" )
     @MemberOrder( name="Keel Laid Date", sequence="48")
-    @PropertyLayout(typicalLength=100,named = "Keel Laid Date <",hidden=Where.ALL_TABLES)
+    @PropertyLayout(typicalLength=100,named = "Keel Laid Date <=",hidden=Where.ALL_TABLES)
       private  int maxKeelLaidEx;
     public int getMaxKeelLaidEx() {
         return maxKeelLaidEx;

@@ -735,11 +735,9 @@ public class Chapter implements Categorized, Comparable<Chapter> {
         DocumentComponent documentComponent = new DocumentComponent();
 
         documentComponent.setTitle(getChapterAnnexArticle()+" "+getChapterNumber()+" "+getChapterTitle());
-        documentComponent.setShortTitle(getChapterAnnexArticle()+"_"+getChapterLabel()+"_"+getChapterNumber());
+        documentComponent.setShortTitle(getChapterAnnexArticle()+"_"+getChapterNumber());
         documentComponent.setText(getPlainRegulationText());
-//      THIS METHOD is missing:
- //       documentComponentList.setComponent(documentComponent);
-
+        documentComponentList.getComponent().add(documentComponent);
 
         // Need to call the Component API to create the RDF node for the chapter.
         // Will store the value in the documentURI property

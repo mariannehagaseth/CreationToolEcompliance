@@ -303,8 +303,7 @@ public class ShipSearch implements Categorized, Comparable<ShipSearch> {
             if(foundRegs.isEmpty()) {
                 regulationLink = null;
                 regText = null;
-                container.warnUser("No Regulation found.");
-            }
+             }
             else {
                 // URI is unique, so only one chapter is found:
                 regulationLink = foundRegs.get(0);
@@ -316,12 +315,14 @@ public class ShipSearch implements Categorized, Comparable<ShipSearch> {
             getIris().add(thisReg);
         }
 
+        /*
         // BEGIN dummy test:
         IRI thisIRI= iriS.newIRI("Test URI", "This is the test regulation text", null, this);
         getIris().add(thisIRI);
         thisIRI= iriS.newIRI("Test URI no 2", "This is another test regulation text", null, this);
         getIris().add(thisIRI);
         // END dummy test:
+        */
         container.flush();
         container.informUser("Regulations fetched for individual ship: " + container.titleOf(this));
         return this;

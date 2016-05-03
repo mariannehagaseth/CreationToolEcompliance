@@ -42,7 +42,8 @@ import javax.xml.bind.annotation.*;
     "begin",
     "end",
     "language",
-    "skosConceptProperty"
+    "skosConceptProperty",
+        "hierarchy"
 })
 public class SKOSConceptOccurrence {
 
@@ -51,6 +52,8 @@ public class SKOSConceptOccurrence {
     protected String uri;
     @XmlElement(required = true)
     protected String text;
+    @XmlElement(required = true)
+    protected String hierarchy;
     protected int begin;
     protected int end;
     @XmlElement(required = true)
@@ -112,6 +115,38 @@ public class SKOSConceptOccurrence {
      * Gets the value of the begin property.
      * 
      */
+
+
+    /**
+     * Gets the value of the text property.
+     *
+     * @return
+     *     possible object is
+     *     {@link String }
+     *
+     */
+    public String getHierarchy() {
+        return hierarchy;
+    }
+
+    /**
+     * Sets the value of the text property.
+     *
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *
+     */
+    public void setHierarchy(String value) {
+        this.hierarchy = value;
+    }
+
+    /**
+     * Gets the value of the begin property.
+     *
+     */
+
+
     public int getBegin() {
         return begin;
     }

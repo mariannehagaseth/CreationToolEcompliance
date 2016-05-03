@@ -396,9 +396,8 @@ public class FreeText implements Categorized, Comparable<FreeText> {
     // End   Regulation to RegulationRule
 
 
-    // Region regulationAND
+      // Region regulationAND
     private boolean regulationAND;
-
     @javax.jdo.annotations.Column(allowsNull = "true")
     @javax.jdo.annotations.Persistent(defaultFetchGroup = "true")
     @PropertyLayout(hidden = Where.ALL_TABLES)
@@ -406,7 +405,6 @@ public class FreeText implements Categorized, Comparable<FreeText> {
     public boolean getRegulationAND() {
         return regulationAND;
     }
-
     public void setRegulationAND(final boolean regulationAND) {
         this.regulationAND = regulationAND;
     }
@@ -554,10 +552,11 @@ public class FreeText implements Categorized, Comparable<FreeText> {
     @Action()
     @ActionLayout(named = "Add New SubSection")
     @MemberOrder(name = "subSections", sequence = "15")
-    public FreeText addNewSubSection(final @ParameterLayout(typicalLength = 10, named = "Sub Section No") String subSectionNo,
-                                     final @ParameterLayout(typicalLength = 1000, multiLine = 8, named = "Regulation Text") String plainRegulationText
+    public FreeText addNewSubSection(final @Parameter(optionality=Optionality.MANDATORY) @ParameterLayout(typicalLength = 10, named = "Sub Section No") String subSectionNo,
+                                     final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout( typicalLength = 10, named = "Title") String subSectionTitle,
+                                     final @Parameter(optionality=Optionality.OPTIONAL) @ParameterLayout(typicalLength = 1000, multiLine = 8, named = "Regulation Text") String plainRegulationText
     ) {
-        getSubSections().add(newSubSectionCall.newSubSection(subSectionNo, plainRegulationText));
+        getSubSections().add(newSubSectionCall.newSubSection(subSectionNo, subSectionTitle, plainRegulationText));
         return this;
     }
 
@@ -670,26 +669,26 @@ public class FreeText implements Categorized, Comparable<FreeText> {
     @ActionLayout(named = "Add")
     public FreeText addNewShipClassType(
             final @Parameter(optionality = Optionality.MANDATORY) @ParameterLayout(typicalLength = 100, named = "Name") String type,
-            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Tonnage >=") double minTonnageIn,
-            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Tonnage >") double minTonnageEx,
-            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Tonnage <=") double maxTonnageIn,
-            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Tonnage < ") double maxTonnageEx,
-            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Length >=") double minLengthIn,
-            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Length >") double minLengthEx,
-            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Length <=") double maxLengthIn,
-            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Length <") double maxLengthEx,
-            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Draught >=") double minDraughtIn,
-            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Draught >") double minDraughtEx,
-            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Draught <=") double maxDraughtIn,
-            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Draught <") double maxDraughtEx,
-            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "No of Passengers >=") int minPassengersIn,
-            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "No of Passengers >") int minPassengersEx,
-            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "No of Passengers <=") int maxPassengerIn,
-            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "No of Passengers <") int maxPassengersEx,
-            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Keel Laid Date >=") int minKeelLaidIn,
-            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Keel Laid Date >") int minKeelLaidEx,
-            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Keel Laid Date <=") int maxKeelLaidIn,
-            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Keel Laid Date <") int maxKeelLaidEx,
+            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Tonnage >") double minTonnageIn,
+            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Tonnage >=") double minTonnageEx,
+            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Tonnage <") double maxTonnageIn,
+            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Tonnage <= ") double maxTonnageEx,
+            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Length >") double minLengthIn,
+            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Length >=") double minLengthEx,
+            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Length <") double maxLengthIn,
+            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Length <=") double maxLengthEx,
+            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Draught >") double minDraughtIn,
+            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Draught >=") double minDraughtEx,
+            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Draught <") double maxDraughtIn,
+            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Draught <=") double maxDraughtEx,
+            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "No of Passengers >") int minPassengersIn,
+            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "No of Passengers >=") int minPassengersEx,
+            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "No of Passengers <") int maxPassengerIn,
+            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "No of Passengers <=") int maxPassengersEx,
+            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Keel Laid Date >") int minKeelLaidIn,
+            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Keel Laid Date >=") int minKeelLaidEx,
+            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Keel Laid Date <") int maxKeelLaidIn,
+            final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Keel Laid Date <=") int maxKeelLaidEx,
             final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Length Unit") String lengthUnit,
             final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Tonnage Unit") String tonnageUnit,
             final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(typicalLength = 100, named = "Draught Unit") String draughtUnit

@@ -71,10 +71,10 @@ import java.util.stream.Collectors;
                 name = "findSimilarReg", language = "JDOQL",
                 value = "SELECT "
                         + "FROM org.isisaddons.wicket.summernote.fixture.dom.regulation.Regulation "
-                        + "WHERE regulationType == :regulationType "
-                        + "&& kpi == :kpi"
-                        + "&& regulationType != null "
-                        + "&& kpi != null ")
+                        + "WHERE (regulationType == :regulationType "
+                        + "&& regulationType != null)"
+                        + "|| (kpi == :kpi "
+                        + "&& kpi != null)")
 
 ,        @javax.jdo.annotations.Query(
                 name = "findRegulations", language = "JDOQL",

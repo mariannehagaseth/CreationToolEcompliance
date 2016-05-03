@@ -95,7 +95,8 @@ public class RESTclient extends AbstractService   {
 
 	 	System.out.println("GetApplicability");
 		Client client = ClientBuilder.newClient();
-		WebTarget webTarget = client.target("http://192.168.33.10:9000/api/semantic/applicability");
+		WebTarget webTarget = client.target("http://192.168.33.10:9000/api/semantic/target");
+		//WebTarget webTarget = client.target("http://192.168.33.10:9000/api/semantic/applicability");
 		Invocation.Builder invocationBuilder = webTarget.request(MediaType.APPLICATION_XML);
 		invocationBuilder.header("Content-type", "text/plain");
 		AsyncInvoker async_invoker = invocationBuilder.async();
@@ -164,9 +165,9 @@ public class RESTclient extends AbstractService   {
 						shipClassFound.getType(),
 						shipClassFound.getMinTonnageIn(),
 						shipClassFound.getMinTonnageEx(),
-						shipClassFound.getMinTonnageIn(),
-						shipClassFound.getMinTonnageEx(),
-						shipClassFound.getMinLengthIn(),
+						shipClassFound.getMaxTonnageIn(),
+						shipClassFound.getMaxTonnageEx(),
+						shipClassFound.getMaxLengthEx(),
 						shipClassFound.getMinLengthEx(),
 						shipClassFound.getMaxLengthIn(),
 						shipClassFound.getMaxLengthEx(),
@@ -276,6 +277,11 @@ public class RESTclient extends AbstractService   {
 			}
 		}
 
+		if ((rootNode.getText()== "") || (rootNode.getText()) == null) {rootNode.setText(" ");}
+		if ((rootNode.getTitle()== "") || (rootNode.getTitle()) == null) {rootNode.setTitle(" ");}
+		if ((rootNode.getShortTitle()== "") || (rootNode.getShortTitle()) == null) {rootNode.setShortTitle(" ");}
+		if ((rootNode.getRealises()== "") || (rootNode.getRealises()) == null) {rootNode.setRealises(" ");}
+
 		System.out.println("CreateRdfRootNode");
 		Client client = ClientBuilder.newClient();
 		WebTarget webTarget = client.target("http://192.168.33.10:9000/api/rdf/document/root");
@@ -332,6 +338,16 @@ public class RESTclient extends AbstractService   {
 				throwable.printStackTrace();
 			}
 		}
+
+		if ((documentComponentList.getComponent().get(0).getShortTitle()== "") || (documentComponentList.getComponent().get(0).getShortTitle()== null) )
+		{documentComponentList.getComponent().get(0).setShortTitle(" ");}
+
+		if ((documentComponentList.getComponent().get(0).getTitle()== "") || (documentComponentList.getComponent().get(0).getTitle()== null) )
+		{documentComponentList.getComponent().get(0).setTitle(" ");}
+
+		if ((documentComponentList.getComponent().get(0).getText()== "") || (documentComponentList.getComponent().get(0).getText()== null) )
+		{documentComponentList.getComponent().get(0).setText(" ");}
+
 
 		System.out.println("CreateDocumentComponentNode");
 		Client client = ClientBuilder.newClient();
@@ -439,7 +455,7 @@ public class RESTclient extends AbstractService   {
 		}
 		System.out.println("SearchRegulationByIndShip");
 		Client client = ClientBuilder.newClient();
-		WebTarget webTarget = client.target("http://192.168.33.10:9000/api/rdf/document/regulation");
+		WebTarget webTarget = client.target("http://192.168.33.10:9000/api/semantic/regulations");
 		Invocation.Builder invocationBuilder = webTarget.request(MediaType.APPLICATION_XML);
 		invocationBuilder.header("Content-type", "text/plain");
 		AsyncInvoker async_invoker = invocationBuilder.async();
